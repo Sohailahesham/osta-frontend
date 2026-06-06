@@ -9,8 +9,11 @@ import AuthInput from "@/components/auth/AuthInput";
 import AuthSelect from "@/components/auth/AuthSelect";
 import Button from "@/components/ui/Button";
 import { registerTechnician } from "@/services/auth.service";
-import logoImage from '@/assets/images/logo.png';
-
+import logoImage from "@/assets/images/logo.png";
+import {
+  technicianBasicInfoSchema,
+  validateSchema,
+} from "@/validators/auth.validators";
 
 // الـ steps بتاعة الـ stepper
 const STEPS = [
@@ -83,20 +86,29 @@ export default function TechnicianRegisterPage() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const validate = () => {
-    const newErrors: Partial<BasicInfoForm> = {};
-    if (!form.fullName.trim()) newErrors.fullName = "الاسم مطلوب";
-    if (!form.email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
-    if (!form.phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
-    if (!form.governorate) newErrors.governorate = "اختر المحافظة";
-    if (!form.city) newErrors.city = "اختر المدينة";
-    if (!form.password) newErrors.password = "كلمة المرور مطلوبة";
-    if (form.password !== form.confirmPassword)
-      newErrors.confirmPassword = "كلمة المرور غير متطابقة";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  // const validate = () => {
+  //   const newErrors: Partial<BasicInfoForm> = {};
+  //   if (!form.fullName.trim()) newErrors.fullName = "الاسم مطلوب";
+  //   if (!form.email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
+  //   if (!form.phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
+  //   if (!form.governorate) newErrors.governorate = "اختر المحافظة";
+  //   if (!form.city) newErrors.city = "اختر المدينة";
+  //   if (!form.password) newErrors.password = "كلمة المرور مطلوبة";
+  //   if (form.password !== form.confirmPassword)
+  //     newErrors.confirmPassword = "كلمة المرور غير متطابقة";
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
+  const validate = () => {
+    const fieldErrors = validateSchema(technicianBasicInfoSchema, form);
+    if (fieldErrors) {
+      setErrors(fieldErrors as Partial<BasicInfoForm>);
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
   const handleNext = async () => {
     if (!validate()) return;
 

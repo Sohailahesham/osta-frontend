@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import AuthSelect from "@/components/auth/AuthSelect";
 import AuthInput from "@/components/auth/AuthInput";
 import { api } from "@/api/axios";
+import { workAreaSchema, validateSchema } from "@/validators/auth.validators";
 
 const STEPS = [
   "المعلومات الأساسية",
@@ -30,13 +31,26 @@ export default function WorkAreaPage() {
   const [canWorkOutside, setCanWorkOutside] = useState("");
   const [error, setError] = useState("");
 
+  // const validate = () => {
+  //   if (!workRange.trim()) {
+  //     setError("حدد نطاق العمل");
+  //     return false;
+  //   }
+  //   if (!canWorkOutside) {
+  //     setError("اختر إجابة العمل خارج المنطقة");
+  //     return false;
+  //   }
+  //   setError("");
+  //   return true;
+  // };
+
   const validate = () => {
-    if (!workRange.trim()) {
-      setError("حدد نطاق العمل");
-      return false;
-    }
-    if (!canWorkOutside) {
-      setError("اختر إجابة العمل خارج المنطقة");
+    const fieldErrors = validateSchema(workAreaSchema, {
+      workRange,
+      canWorkOutside,
+    });
+    if (fieldErrors) {
+      setError(Object.values(fieldErrors)[0] || "");
       return false;
     }
     setError("");

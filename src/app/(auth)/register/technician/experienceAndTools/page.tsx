@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import AuthSelect from "@/components/auth/AuthSelect";
 import { api } from "@/api/axios";
 import logoImage from '@/assets/images/logo.png';
+import { experienceSchema, validateSchema } from "@/validators/auth.validators";
 
 
 const STEPS = [
@@ -91,30 +92,47 @@ export default function ExperiencePage() {
     );
   };
 
+  // const validate = () => {
+  //   if (!experienceYears) {
+  //     setError("اختر سنوات الخبرة");
+  //     return false;
+  //   }
+  //   if (!hasTransport) {
+  //     setError("اختر إجابة وسيلة المواصلات");
+  //     return false;
+  //   }
+  //   if (!hasTools) {
+  //     setError("اختر إجابة الأدوات");
+  //     return false;
+  //   }
+  //   if (selectedDays.length === 0) {
+  //     setError("اختر يوم عمل واحد على الأقل");
+  //     return false;
+  //   }
+  //   if (!fromHour || !toHour) {
+  //     setError("اختر أوقات العمل");
+  //     return false;
+  //   }
+  //   setError("");
+  //   return true;
+  // };
+
   const validate = () => {
-    if (!experienceYears) {
-      setError("اختر سنوات الخبرة");
-      return false;
-    }
-    if (!hasTransport) {
-      setError("اختر إجابة وسيلة المواصلات");
-      return false;
-    }
-    if (!hasTools) {
-      setError("اختر إجابة الأدوات");
-      return false;
-    }
-    if (selectedDays.length === 0) {
-      setError("اختر يوم عمل واحد على الأقل");
-      return false;
-    }
-    if (!fromHour || !toHour) {
-      setError("اختر أوقات العمل");
-      return false;
-    }
-    setError("");
-    return true;
-  };
+  const fieldErrors = validateSchema(experienceSchema, {
+    experienceYears,
+    hasTransport,
+    hasTools,
+    selectedDays,
+    fromHour,
+    toHour,
+  });
+  if (fieldErrors) {
+    setError(Object.values(fieldErrors)[0] || "");
+    return false;
+  }
+  setError("");
+  return true;
+};
 
   const handleNext = async () => {
     if (!validate()) return;
