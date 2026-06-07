@@ -19,6 +19,7 @@ export default function RegisterPage() {
     if (!selectedRole) return;
     router.push(`/register/${selectedRole}`);
   };
+  
 
   return (
     <div className="min-h-screen flex relative overflow-hidden" dir="ltr">

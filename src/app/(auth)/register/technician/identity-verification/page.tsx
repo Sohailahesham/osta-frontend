@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import authBg from '@/assets/images/auth-bg.jpg';
-import Button from '@/components/ui/Button';
-import FileUpload from '@/components/auth/FileUpload';
-import { api } from '@/api/axios';
-import logoImage from '@/assets/images/logo.png';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import authBg from "@/assets/images/auth-bg.jpg";
+import Button from "@/components/ui/Button";
+import FileUpload from "@/components/auth/FileUpload";
+import { api } from "@/api/axios";
+import logoImage from "@/assets/images/logo.png";
+import { identitySchema, validateSchema } from "@/validators/auth.validators";
 
-
-const STEPS = ['المعلومات الأساسية', 'التخصصات والخدمات', 'الخبرة و الأدوات', 'منطقة العمل', 'التحقق من الهوية'];
+const STEPS = [
+  "المعلومات الأساسية",
+  "التخصصات والخدمات",
+  "الخبرة و الأدوات",
+  "منطقة العمل",
+  "التحقق من الهوية",
+];
 const currentStep = 4;
 
 interface IdentityFiles {
@@ -32,47 +38,72 @@ export default function IdentityPage() {
     criminalRecordImage: null,
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof IdentityFiles, string>>>({});
-  const [generalError, setGeneralError] = useState('');
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof IdentityFiles, string>>
+  >({});
+  const [generalError, setGeneralError] = useState("");
 
   const update = (field: keyof IdentityFiles) => (file: File | null) => {
-    setFiles(prev => ({ ...prev, [field]: file }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+    setFiles((prev) => ({ ...prev, [field]: file }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
+
+  // const validate = () => {
+  //   const newErrors: Partial<Record<keyof IdentityFiles, string>> = {};
+  //   if (!files.idFrontImage) newErrors.idFrontImage = 'صورة البطاقة الأمامية مطلوبة';
+  //   if (!files.idBackImage) newErrors.idBackImage = 'صورة البطاقة الخلفية مطلوبة';
+  //   if (!files.personalImage) newErrors.personalImage = 'صورة السيلفي مع البطاقة مطلوبة';
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
   const validate = () => {
-    const newErrors: Partial<Record<keyof IdentityFiles, string>> = {};
-    if (!files.idFrontImage) newErrors.idFrontImage = 'صورة البطاقة الأمامية مطلوبة';
-    if (!files.idBackImage) newErrors.idBackImage = 'صورة البطاقة الخلفية مطلوبة';
-    if (!files.personalImage) newErrors.personalImage = 'صورة السيلفي مع البطاقة مطلوبة';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const fieldErrors = validateSchema(identitySchema, files);
+    if (fieldErrors) {
+      setErrors(fieldErrors as Partial<Record<keyof IdentityFiles, string>>);
+      return false;
+    }
+    setErrors({});
+    return true;
   };
-
   const handleNext = async () => {
     if (!validate()) return;
     try {
       const formData = new FormData();
-      if (files.idFrontImage) formData.append('idFrontImage', files.idFrontImage);
-      if (files.idBackImage) formData.append('idBackImage', files.idBackImage);
-      if (files.personalImage) formData.append('personalImage', files.personalImage);
-      if (files.certificateImage) formData.append('certificateImage', files.certificateImage);
-      if (files.criminalRecordImage) formData.append('criminalRecordImage', files.criminalRecordImage);
+      if (files.idFrontImage)
+        formData.append("idFrontImage", files.idFrontImage);
+      if (files.idBackImage) formData.append("idBackImage", files.idBackImage);
+      if (files.personalImage)
+        formData.append("personalImage", files.personalImage);
+      if (files.certificateImage)
+        formData.append("certificateImage", files.certificateImage);
+      if (files.criminalRecordImage)
+        formData.append("criminalRecordImage", files.criminalRecordImage);
 
-      await api.post('/technician/step5', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      await api.post("/technician/step5", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      router.push('/register/technician/review-application');
+      router.push("/register/technician/review-application");
     } catch (error: any) {
       const message = error.response?.data?.message;
-      setGeneralError(Array.isArray(message) ? message[0] : message || 'حدث خطأ، حاول مرة أخرى');
+      setGeneralError(
+        Array.isArray(message)
+          ? message[0]
+          : message || "حدث خطأ، حاول مرة أخرى",
+      );
     }
   };
 
   return (
     <div className="min-h-screen flex relative overflow-hidden" dir="ltr">
-      <Image src={authBg} alt="Background" fill priority className="object-cover object-right" />
+      <Image
+        src={authBg}
+        alt="Background"
+        fill
+        priority
+        className="object-cover object-right"
+      />
       <div className="absolute inset-0 bg-black/25 lg:hidden" />
 
       {/* Logo */}
@@ -89,8 +120,10 @@ export default function IdentityPage() {
       </div>
 
       <div className="flex items-center justify-center z-10 w-full min-h-screen px-4 py-20 lg:w-[55%] lg:px-12 lg:py-12">
-        <div className="bg-white rounded-3xl shadow-sm w-full p-7 max-w-sm sm:p-10 sm:max-w-md lg:p-12 lg:max-w-2xl" dir="rtl">
-
+        <div
+          className="bg-white rounded-3xl shadow-sm w-full p-7 max-w-sm sm:p-10 sm:max-w-md lg:p-12 lg:max-w-2xl"
+          dir="rtl"
+        >
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--primary-color)] text-center mb-10">
             إنشاء حساب فني
           </h1>
@@ -147,19 +180,18 @@ export default function IdentityPage() {
           </p>
 
           <div className="flex flex-col gap-4">
-
             {/* البطاقة الشخصية */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FileUpload
                 label="صورة البطاقة الشخصية (أمامية)"
                 value={files.idFrontImage}
-                onChange={update('idFrontImage')}
+                onChange={update("idFrontImage")}
                 error={errors.idFrontImage}
               />
               <FileUpload
                 label="صورة البطاقة الشخصية (خلفية)"
                 value={files.idBackImage}
-                onChange={update('idBackImage')}
+                onChange={update("idBackImage")}
                 error={errors.idBackImage}
               />
             </div>
@@ -168,7 +200,7 @@ export default function IdentityPage() {
             <FileUpload
               label="صورة سيلفي مع البطاقة الشخصية"
               value={files.personalImage}
-              onChange={update('personalImage')}
+              onChange={update("personalImage")}
               error={errors.personalImage}
             />
 
@@ -176,24 +208,29 @@ export default function IdentityPage() {
             <FileUpload
               label="شهادة تثبت الخبرة (اختياري)"
               value={files.certificateImage}
-              onChange={update('certificateImage')}
+              onChange={update("certificateImage")}
             />
 
             {/* فيش وتشبيه */}
             <FileUpload
               label="فيش وتشبيه (اختياري)"
               value={files.criminalRecordImage}
-              onChange={update('criminalRecordImage')}
+              onChange={update("criminalRecordImage")}
             />
-
           </div>
 
-          {generalError && <p className="text-red-500 text-xs mt-4 text-right">{generalError}</p>}
+          {generalError && (
+            <p className="text-red-500 text-xs mt-4 text-right">
+              {generalError}
+            </p>
+          )}
 
           <div className="h-px bg-gray-100 my-6 sm:my-8" />
 
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => router.back()}>إلغاء</Button>
+            <Button variant="outline" onClick={() => router.back()}>
+              إلغاء
+            </Button>
             <Button onClick={handleNext}>التالي</Button>
           </div>
         </div>

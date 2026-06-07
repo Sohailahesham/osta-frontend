@@ -8,18 +8,25 @@ import AuthInput from '@/components/auth/AuthInput';
 import Button from '@/components/ui/Button';
 import { api } from '@/api/axios';
 import logoImage from '@/assets/images/logo.png';
+import { forgotPasswordSchema, validateSchema } from "@/validators/auth.validators";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
-  const validate = () => {
-    if (!email.trim()) { setError('البريد الإلكتروني مطلوب'); return false; }
-    setError('');
-    return true;
-  };
+  // const validate = () => {
+  //   if (!email.trim()) { setError('البريد الإلكتروني مطلوب'); return false; }
+  //   setError('');
+  //   return true;
+  // };
 
+  const validate = () => {
+  const fieldErrors = validateSchema(forgotPasswordSchema, { email });
+  if (fieldErrors?.email) { setError(fieldErrors.email); return false; }
+  setError("");
+  return true;
+};
   const handleSubmit = async () => {
   if (!validate()) return;
   try {

@@ -9,6 +9,7 @@ import AuthInput from "@/components/auth/AuthInput";
 import Button from "@/components/ui/Button";
 import { loginUser } from "@/services/auth.service";
 import logoImage from "@/assets/images/logo.png";
+import { loginSchema, validateSchema } from "@/validators/auth.validators";
 
 interface LoginForm {
   email: string;
@@ -26,13 +27,12 @@ export default function LoginPage() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const validate = () => {
-    const newErrors: Partial<LoginForm> = {};
-    if (!form.email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
-    if (!form.password) newErrors.password = "كلمة المرور مطلوبة";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+ const validate = () => {
+  const fieldErrors = validateSchema(loginSchema, form);
+  if (fieldErrors) { setErrors(fieldErrors as Partial<LoginForm>); return false; }
+  setErrors({});
+  return true;
+};
 
   const handleSubmit = async () => {
     if (!validate()) return;
@@ -55,6 +55,9 @@ export default function LoginPage() {
     } catch (error: any) {
       setErrors({ email: "البريد أو كلمة المرور غلط" });
     }
+  };
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
 
   return (
@@ -148,12 +151,20 @@ export default function LoginPage() {
           </div>
 
           {/* Google */}
-          <button className="w-full py-2.5 rounded-full border border-gray-200 flex items-center justify-center gap-2 bg-[#F1F7E7] hover:bg-[#E7F1D8] transition-all">
+          {/* <button className="w-full py-2.5 rounded-full border border-gray-200 flex items-center justify-center gap-2 bg-[#F1F7E7] hover:bg-[#E7F1D8] transition-all">
             <Image src={googleIcon} alt="Google" width={18} height={18} />
             <span className="text-sm text-gray-600 font-medium">
               سجل الدخول عبر جوجل
             </span>
-          </button>
+          </button> */}
+
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full py-2.5 rounded-full border border-gray-200 flex items-center justify-center gap-2 bg-[#F1F7E7] hover:bg-[#E7F1D8] transition-all"
+          ><Image src={googleIcon} alt="Google" width={18} height={18} />
+            <span className="text-sm text-gray-600 font-medium">
+              سجل الدخول عبر جوجل
+            </span></button>
 
           {/* لينك إنشاء حساب */}
           <p className="text-center text-xs sm:text-sm text-gray-400 mt-5">
