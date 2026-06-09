@@ -6,7 +6,7 @@ import Image from "next/image";
 import authBg from "@/assets/images/auth-bg.jpg";
 import Button from "@/components/ui/Button";
 import { api } from "@/api/axios";
-import logoImage from "@/assets/images/logo.png";
+import logoImage from "@/assets/images/logo.svg";
 
 const OTP_LENGTH = 6;
 

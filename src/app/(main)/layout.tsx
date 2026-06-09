@@ -1,12 +1,13 @@
-// import Navbar from '@/components/layout/Navbar';
-// import Footer from '@/components/layout/Footer';
+import Footer from '@/components/layout/Footer';
+import "@/styles/sectionsLayout.css";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* <Navbar /> */}
-      <main>{children}</main>
-      {/* <Footer /> */}
+      <main>
+        {children}
+      </main>
+      <Footer />
     </>
   );
 }

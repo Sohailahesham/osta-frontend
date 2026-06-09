@@ -8,7 +8,7 @@ import googleIcon from "@/assets/icons/google.svg";
 import AuthInput from "@/components/auth/AuthInput";
 import Button from "@/components/ui/Button";
 import { loginUser } from "@/services/auth.service";
-import logoImage from "@/assets/images/logo.png";
+import logoImage from "@/assets/images/logo.svg";
 import { loginSchema, validateSchema } from "@/validators/auth.validators";
 
 interface LoginForm {

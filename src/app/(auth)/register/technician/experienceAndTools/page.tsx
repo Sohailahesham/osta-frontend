@@ -7,7 +7,7 @@ import authBg from "@/assets/images/auth-bg.jpg";
 import Button from "@/components/ui/Button";
 import AuthSelect from "@/components/auth/AuthSelect";
 import { api } from "@/api/axios";
-import logoImage from '@/assets/images/logo.png';
+import logoImage from '@/assets/images/logo.svg';
 import { experienceSchema, validateSchema } from "@/validators/auth.validators";
 
 

@@ -8,7 +8,7 @@ import Button from "@/components/ui/Button";
 import { api } from "@/api/axios";
 import { ChevronLeft, Check } from "lucide-react";
 import InfoRow from "@/components/auth/InfoRow";
-import logoImage from '@/assets/images/logo.png';
+import logoImage from '@/assets/images/logo.svg';
 
 
 const STEPS = [

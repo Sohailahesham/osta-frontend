@@ -7,7 +7,7 @@ import authBg from '@/assets/images/auth-bg.jpg';
 import AuthInput from '@/components/auth/AuthInput';
 import Button from '@/components/ui/Button';
 import { api } from '@/api/axios';
-import logoImage from '@/assets/images/logo.png';
+import logoImage from '@/assets/images/logo.svg';
 import { forgotPasswordSchema, validateSchema } from "@/validators/auth.validators";
 
 export default function ForgotPasswordPage() {

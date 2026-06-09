@@ -10,7 +10,7 @@ import AuthInput from "@/components/auth/AuthInput";
 import Button from "@/components/ui/Button";
 import { registerUser } from "@/services/auth.service";
 import AuthSelect from "@/components/auth/AuthSelect";
-import logoImage from "@/assets/images/logo.png";
+import logoImage from "@/assets/images/logo.svg";
 import {
   userRegisterSchema,
   validateSchema,

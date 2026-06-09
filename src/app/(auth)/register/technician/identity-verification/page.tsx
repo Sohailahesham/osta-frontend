@@ -7,7 +7,7 @@ import authBg from "@/assets/images/auth-bg.jpg";
 import Button from "@/components/ui/Button";
 import FileUpload from "@/components/auth/FileUpload";
 import { api } from "@/api/axios";
-import logoImage from "@/assets/images/logo.png";
+import logoImage from "@/assets/images/logo.svg";
 import { identitySchema, validateSchema } from "@/validators/auth.validators";
 
 const STEPS = [
