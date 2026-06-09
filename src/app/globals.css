@@ -8,3 +8,11 @@
   --gray-color: #636261;
 }
 
+.gradient-brand {
+  background: linear-gradient(to right, 
+    #1C4B41 0%, #316044 7%, #457546 14%, 
+    #5A8B46 21%, #6FA143 29%, #85B83D 36%, 
+    #9CCF32 43%, #B3E718 50%, #B3E718 100%
+  );
+}
+

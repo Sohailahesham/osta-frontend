@@ -8,7 +8,7 @@ import technicianIcon from '@/assets/icons/technician.svg';
 import userIcon from '@/assets/icons/user.svg';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
-import logoImage from '@/assets/images/logo.png';
+import logoImage from '@/assets/images/logo.svg';
 
 
 export default function RegisterPage() {

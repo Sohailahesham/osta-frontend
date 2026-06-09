@@ -17,7 +17,7 @@ export default function Button({
   fullWidth = false,
   className = '',
   type = 'button',
-  variant = 'primary',  // ← default
+  variant = 'primary',
 }: ButtonProps) {
   return (
     <button

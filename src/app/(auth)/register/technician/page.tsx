@@ -9,7 +9,7 @@ import AuthInput from "@/components/auth/AuthInput";
 import AuthSelect from "@/components/auth/AuthSelect";
 import Button from "@/components/ui/Button";
 import { registerTechnician } from "@/services/auth.service";
-import logoImage from "@/assets/images/logo.png";
+import logoImage from "@/assets/images/logo.svg";
 import {
   technicianBasicInfoSchema,
   validateSchema,
