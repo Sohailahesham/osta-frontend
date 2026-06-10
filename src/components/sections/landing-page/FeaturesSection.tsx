@@ -108,7 +108,7 @@ export default function FeaturesSection() {
               className="bg-[#f0f7e6] rounded-2xl p-6 flex flex-col gap-4 hover:shadow-md transition-shadow duration-300"
             >
               {/* Icon */}
-              <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[var(--primary-color)] shadow-sm self-end">
+              <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[var(--primary-color)] shadow-sm ml-auto">
                 {feature.icon}
               </div>
               {/* Text */}
