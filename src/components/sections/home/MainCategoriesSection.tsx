@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { api } from "@/api/axios";
-// import "@/styles/sectionsLayout.css";
 import Button from "@/components/ui/Button";
 import electricalIcon from "@/assets/icons/electrician.svg";
 import plumbingIcon from "@/assets/icons/plumbing.svg";

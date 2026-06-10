@@ -26,7 +26,7 @@ export default function Navbar() {
   
   return (
     <nav
-      className="w-full lg:w-[90%] mx-auto bg-white/70 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
+      className="w-full lg:w-[90%] mx-auto bg-[#FEFEFE70]/50 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
       dir="rtl"
     >
       <div className="px-4 sm:px-6 lg:px-8">
