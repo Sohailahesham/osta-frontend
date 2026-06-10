@@ -1,5 +1,4 @@
 import Image from "next/image";
-// import Link from "next/link";
 import aibg from "@/assets/images/ail.png";
 import CTAButton from "@/components/sections/landing-page/CTAButton";
 
@@ -7,186 +6,112 @@ export default function AIDiagnosis() {
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden py-24 px-6"
+      className="relative overflow-hidden py-16 lg:py-24 px-4 sm:px-6"
       style={{
         background:
           "linear-gradient(90deg,#1B5647 0%, #205C4C 50%, #1B5647 100%)",
       }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* RIGHT CONTENT */}
-          <div className="order-1 lg:order-1">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* RIGHT — Content */}
+          <div className="order-1">
             <div className="text-right">
-              <h2 className="text-white font-black text-4xl lg:text-5xl mb-4">
+              <h2 className="text-white font-black text-3xl sm:text-4xl lg:text-5xl mb-4">
                 التشخيص الذكي للمشكلة
               </h2>
-
-              <p className="text-white/60 text-lg">
+              <p className="text-white/60 text-base lg:text-lg">
                 تقنيات ذكية تساعدك في تحديد الخدمة المناسبة بشكل أسرع وأسهل.
               </p>
             </div>
 
             {/* Chat Card */}
-            <div
-              className="
-                mt-12
-                rounded-[28px]
-                bg-white/10
-                backdrop-blur-xl
-                border
-                border-white/10
-                p-4
-                max-w-[520px]
-              "
-            >
+            <div className="mt-8 lg:mt-12 rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/10 p-4 w-full max-w-[520px]">
               {/* Message Area */}
-              <div
-                className="
-                  rounded-[20px]
-                  bg-white/10
-                  min-h-[140px]
-                  p-6
-                "
-              >
-                <p className="text-right text-white/90 leading-8">
+              <div className="rounded-[20px] bg-white/10 min-h-[120px] lg:min-h-[140px] p-4 sm:p-6">
+                <p className="text-right text-white/90 leading-8 text-sm sm:text-base">
                   يوجد تسريب مياه أسفل الحوض والمياه لا تتوقف
                 </p>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-3 mt-4">
-                <button
-                  className="
-                    bg-[var(--accent-color)]
-                    text-[var(--primary-color)]
-                    rounded-full
-                    px-5
-                    py-2
-                    text-sm
-                    font-bold
-                    flex
-                    items-center
-                    gap-2
-                  "
-                >
+              <div className="flex items-center gap-2 sm:gap-3 mt-4 flex-wrap">
+                <button className="bg-[var(--accent-color)] text-[var(--primary-color)] rounded-full px-4 sm:px-5 py-2 text-sm font-bold flex items-center gap-2">
                   رفع صورة
                   <svg
                     className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
-                  >
-                   
-                  </svg>
+                  />
                 </button>
 
-                <button
-                  className="
-                    border
-                    border-white/30
-                    text-white
-                    rounded-full
-                    px-5
-                    py-2
-                    text-sm
-                    flex
-                    items-center
-                    gap-2
-                  "
-                >
+                <button className="border border-white/30 text-white rounded-full px-4 sm:px-5 py-2 text-sm flex items-center gap-2">
                   تسجيل صوتي
                   <svg
                     className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
-                  >
-                    
-                  </svg>
+                  />
                 </button>
               </div>
             </div>
 
             {/* CTA */}
-            <div className="mt-16 flex ">
-                <CTAButton href="/login" />
+            <div className="mt-10 lg:mt-16 flex">
+              <CTAButton href="/login" />
             </div>
           </div>
 
-          {/* LEFT IMAGE AREA */}
-          <div className="order-2 lg:order-2">
-            <div className="relative w-fit">
-              {/* Image */}
+          {/* LEFT — Image */}
+          <div className="order-2 flex justify-center lg:justify-end">
+            {/*
+              On mobile: no relative overflow tricks, chips hidden, bubble shown below image.
+              On lg+: original absolute-positioned decorative elements restored.
+            */}
+
+            {/* Mobile layout */}
+            <div className="lg:hidden w-full flex flex-col items-center gap-6">
+              <Image
+                src={aibg}
+                alt="AI Diagnosis"
+                width={500}
+                height={460}
+                className="rounded-[30px] object-cover w-full max-w-[420px] h-auto shadow-2xl"
+              />
+
+              {/* Bubble shown below image on mobile */}
+              <div className="w-full max-w-[420px] rounded-[24px] bg-white/20 backdrop-blur-xl border border-white/20 p-4">
+                <p className="text-right text-white leading-7 text-sm">
+                  يبدو أن المشكلة مرتبطة بخدمة سباكة وقد تحتاج إلى فحص السيفون
+                  أو تغيير بعض التوصيلات
+                </p>
+              </div>
+            </div>
+
+            {/* Desktop layout — original decorative positioning preserved */}
+            <div className="hidden lg:block relative w-fit">
               <Image
                 src={aibg}
                 alt="AI Diagnosis"
                 width={500}
                 height={500}
-                className="
-                  rounded-[30px]
-                  object-cover
-                  h-[460px]
-                  w-[500px]
-                  shadow-2xl
-                "
+                className="rounded-[30px] object-cover h-[460px] w-[500px] shadow-2xl"
               />
 
               {/* Chip 1 */}
-              <div
-                className="
-                  absolute
-                  -right-28
-                  top-24
-                  bg-white/15
-                  backdrop-blur-lg
-                  border
-                  border-white/20
-                  rounded-full
-                  px-5
-                  py-2
-                  text-white
-                  text-sm
-                "
-              >
+              <div className="absolute -right-28 top-24 bg-white/15 backdrop-blur-lg border border-white/20 rounded-full px-5 py-2 text-white text-sm">
                 تغيير سيفون
               </div>
 
               {/* Chip 2 */}
-              <div
-                className="
-                  absolute
-                  -right-20
-                  top-52
-                  bg-white/15
-                  backdrop-blur-lg
-                  border
-                  border-white/20
-                  rounded-full
-                  px-5
-                  py-2
-                  text-white
-                  text-sm
-                "
-              >
+              <div className="absolute -right-20 top-52 bg-white/15 backdrop-blur-lg border border-white/20 rounded-full px-5 py-2 text-white text-sm">
                 إصلاح تسريب
               </div>
 
               {/* Bubble */}
-              <div
-                className="
-                  absolute
-                  -bottom-2
-                  left-60
-                  w-[340px]
-                  rounded-[24px]
-                  bg-white/20
-                  backdrop-blur-xl
-                  border
-                  border-white/20
-                  p-5
-                "
-              >
+              <div className="absolute -bottom-2 left-60 w-[340px] rounded-[24px] bg-white/20 backdrop-blur-xl border border-white/20 p-5">
                 <p className="text-right text-white leading-8 text-sm">
                   يبدو أن المشكلة مرتبطة بخدمة سباكة وقد تحتاج إلى فحص السيفون
                   أو تغيير بعض التوصيلات

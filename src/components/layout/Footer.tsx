@@ -73,27 +73,19 @@ export default function Footer() {
 
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
-              <Image
-                    src={mailIcon}
-                    alt="mail"
-                />
+              <Image src={mailIcon} alt="mail" />
               <span className="text-[#FAFAF7] text-sm">info@gmail.com</span>
             </div>
             <div className="flex items-center gap-3">
-                <Image
-                    src={phoneIcon}
-                    alt="phone"
-                />
+              <Image src={phoneIcon} alt="phone" />
               <span className="text-[#FAFAF7] text-sm" dir="ltr">
-                +971 2 304 3333
+                +01000000000
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 w-fit mt-2">
-            <Button onClick={() => router.push("/register")}>
-                إنشاء حساب
-            </Button>
+            <Button onClick={() => router.push("/register")}>إنشاء حساب</Button>
             <div className="w-9 h-9 rounded-full border bg-[var(--accent-color)] hover:bg[var(--accent-hover)] flex items-center justify-center">
               <ArrowUpLeft size={16} className="text-[var(--primary-color)]" />
             </div>
@@ -103,7 +95,10 @@ export default function Footer() {
 
       <div className="w-4/5 mx-auto h-px bg-white/10" />
 
-      <div className="w-4/5 mx-auto py-5 flex items-center justify-between" dir="ltr">
+      <div
+        className="w-4/5 mx-auto py-5 flex items-center justify-between"
+        dir="ltr"
+      >
         <div className="flex items-center gap-2 text-white/40 text-xs">
           <button className="hover:text-white/70 transition-all">
             Cookie Policy

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-// import Link from "next/link";
 import heroBg from "@/assets/images/herobg.jpg";
 import CTAButton from "@/components/sections/landing-page/CTAButton";
 
@@ -30,32 +29,33 @@ const progressSteps = [
 
 export default function HeroSection() {
   return (
-    <section dir="ltr" className="w-full px-4 lg:px-8 py-6">
-      <div className=" min-h-[720px] lg:h-[720px] overflow-hidden">
+    <section dir="ltr" className="w-full ">
+      <div className="relative min-h-[720px] lg:h-[720px] overflow-hidden rounded-bl-[40px] rounded-br-[40px]">
         {/* Background */}
         <Image
           src={heroBg}
           alt="Hero Background"
           fill
           priority
-          className="object-cover rounded-bl-[40px] rounded-br-[40px]"
+          className="object-cover"
         />
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-[var(--primary-color)]/35 rounded-bl-[40px] rounded-br-[40px]" />
+        <div className="absolute inset-0 bg-[var(--primary-color)]/35" />
 
         {/* Content */}
-        <div className="relative z-10 h-full px-6 lg:px-16 py-16 lg:py-0">
+        {/* Content */}
+        <div className="relative z-10 h-full px-4 sm:px-6 lg:px-16 pt-24 sm:pt-28 lg:pt-0 pb-10 lg:pb-0">
           <div className="grid lg:grid-cols-2 h-full items-center gap-10">
             {/* LEFT SIDE — Cards */}
-            <div className="relative flex justify-start">
-              <div className="relative w-full max-w-[470px] rounded-[32px] bg-white/20 backdrop-blur-xl border border-white/20 p-6 shadow-2xl">
+            <div className="relative flex justify-center lg:justify-start order-2 lg:order-1">
+              <div className="relative w-full max-w-[470px] rounded-[32px] bg-white/20 backdrop-blur-xl border border-white/20 p-4 sm:p-6 shadow-2xl">
                 {/* Technician Cards */}
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {techCards.map((card, index) => (
                     <div
                       key={index}
-                      className="bg-white/50 backdrop-blur-lg rounded-[24px] p-5 shadow-lg"
+                      className="bg-white/50 backdrop-blur-lg rounded-[24px] p-4 sm:p-5 shadow-lg"
                     >
                       <div className="flex justify-between items-start">
                         <div className="text-right">
@@ -79,10 +79,10 @@ export default function HeroSection() {
                         </div>
                       </div>
 
-                      <div className="mt-5 flex justify-between items-center">
+                      <div className="mt-4 sm:mt-5 flex justify-between items-center flex-wrap gap-2">
                         <div className="flex items-center gap-2 text-gray-500 text-xs">
                           <svg
-                            className="w-4 h-4"
+                            className="w-4 h-4 shrink-0"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -99,7 +99,7 @@ export default function HeroSection() {
                         {card.time && (
                           <div className="flex items-center gap-1 text-gray-500 text-xs">
                             <svg
-                              className="w-4 h-4"
+                              className="w-4 h-4 shrink-0"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -125,8 +125,8 @@ export default function HeroSection() {
                   ))}
                 </div>
 
-                {/* Floating Notification — hidden on small, shown md+ */}
-                <div className="hidden md:block absolute -right-40 bottom-20 bg-white/70 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-xl max-w-[220px]">
+                {/* Floating Notification — shown only on lg+ to avoid overflow */}
+                <div className="hidden lg:block absolute -right-44 bottom-20 bg-white/70 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-xl max-w-[220px]">
                   <p className="text-sm font-bold text-[var(--primary-color)]">
                     تم العثور على فنيين مناسبين بالقرب منك
                   </p>
@@ -136,16 +136,16 @@ export default function HeroSection() {
                 </div>
 
                 {/* Progress */}
-                <div className="mt-10 px-4">
+                <div className="mt-6 sm:mt-10 px-2 sm:px-4">
                   <div className="relative">
-                    <div className="absolute top-3 left-10 right-10 h-[2px] bg-[var(--accent-color)]/50" />
+                    <div className="absolute top-3 left-8 right-8 h-[2px] bg-[var(--accent-color)]/50" />
                     <div className="relative flex justify-between">
                       {progressSteps.map((step, index) => (
                         <div
                           key={index}
                           className="flex flex-col items-center text-center"
                         >
-                          <div className="w-7 h-7 rounded-full bg-[var(--accent-color)] flex items-center justify-center shadow-md">
+                          <div className="w-7 h-7 rounded-full bg-[var(--accent-color)] flex items-center justify-center shadow-md shrink-0">
                             <svg
                               className="w-4 h-4 text-[var(--primary-color)]"
                               fill="none"
@@ -160,7 +160,7 @@ export default function HeroSection() {
                               />
                             </svg>
                           </div>
-                          <span className="text-xs text-slate-700 mt-3 w-24 leading-5">
+                          <span className="text-[10px] sm:text-xs text-slate-700 mt-2 sm:mt-3 w-16 sm:w-24 leading-4 sm:leading-5">
                             {step.label}
                           </span>
                         </div>
@@ -172,18 +172,18 @@ export default function HeroSection() {
             </div>
 
             {/* RIGHT SIDE — Headline */}
-            <div className="text-right text-white">
-              <h1 className="font-black leading-[1.2] text-5xl lg:text-6xl">
+            <div className="text-right text-white order-1 lg:order-2 ">
+              <h1 className="font-black leading-[1.2] text-4xl sm:text-5xl lg:text-6xl">
                 اطلب فني موثوق في
                 <br />
                 دقائق
               </h1>
-              <p className="mt-6 text-white/85 text-lg leading-8 max-w-xl mr-auto lg:mr-0">
+              <p className="mt-4 sm:mt-6 text-white/85 text-base sm:text-lg leading-7 sm:leading-8 max-w-xl mr-auto lg:mr-0">
                 منصة ذكية تربطك بالحرفيين المناسبين بسرعة، مع تسعير تقديري
                 ومتابعة لحالة الطلب لحظة بلحظة.
               </p>
-              <div className="mt-10 flex justify-end">
-                <CTAButton/>
+              <div className="mt-6 sm:mt-10 flex justify-end">
+                <CTAButton />
               </div>
             </div>
           </div>
