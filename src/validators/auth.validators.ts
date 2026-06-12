@@ -9,6 +9,14 @@ const fullNameSchema = z
   .max(100, "الاسم طويل جداً")
   .regex(/^[\u0600-\u06FFa-zA-Z\s]+$/, "الاسم يجب أن يحتوي على أحرف فقط");
 
+const genderSchema = z
+  .string()
+  .min(1, "الرجاء اختيار النوع")
+  .refine(
+    (value) => ["male", "female"].includes(value),
+    "النوع غير صحيح"
+  );
+
 const emailSchema = z
   .string()
   .min(1, "البريد الإلكتروني مطلوب")
@@ -59,6 +67,7 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export const userRegisterSchema = z
   .object({
     fullName: fullNameSchema,
+    gender: genderSchema,
     email: emailSchema,
     phone: egyptianPhoneSchema,
     governorate: z.string().optional(),
@@ -81,6 +90,7 @@ export type UserRegisterFormData = z.infer<typeof userRegisterSchema>;
 export const technicianBasicInfoSchema = z
   .object({
     fullName: fullNameSchema,
+    gender: genderSchema,
     email: emailSchema,
     phone: egyptianPhoneSchema,
     governorate: governorateSchema,
