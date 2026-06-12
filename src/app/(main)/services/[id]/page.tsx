@@ -8,13 +8,13 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 import { api } from "@/api/axios";
 import Navbar from "@/components/layout/Navbar";
 import Button from "@/components/ui/Button";
 import arrowUpIcon from "@/assets/icons/arrow-up.svg";
-import calendarIcon from "@/assets/icons/calendar.svg";
+import BookingModal from "@/components/sections/booking/BookingModal";
 
 interface Service {
   _id: string;
@@ -37,6 +37,7 @@ export default function ServiceDetailsPage() {
   const router = useRouter();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showBooking, setShowBooking] = useState(false);
 
   useEffect(() => {
     const fetchService = async () => {
@@ -69,7 +70,7 @@ export default function ServiceDetailsPage() {
       </div>
 
       {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" dir='rtl'>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span
             className="cursor-pointer hover:text-[var(--primary-color)] transition-colors"
@@ -77,14 +78,14 @@ export default function ServiceDetailsPage() {
           >
             الأقسام
           </span>
-          <ArrowRight size={14} />
+          <ArrowLeft size={14} />
           <span
             className="cursor-pointer hover:text-[var(--primary-color)] transition-colors"
             onClick={() => router.push(`/categories/${service.category._id}`)}
           >
             {service.category.name}
           </span>
-          <ArrowRight size={14} />
+          <ArrowLeft size={14} />
           <span className="text-[var(--primary-color)] font-medium">
             {service.name}
           </span>
@@ -94,9 +95,9 @@ export default function ServiceDetailsPage() {
       {/* المحتوى الرئيسي */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="flex flex-col-reverse lg:flex-row gap-8">
-          {/* الجانب الأيسر — ثابت */}
+          {/* الجانب الأيسر */}
           <div className="lg:w-80 flex-shrink-0">
-            <div className="sticky top-24 flex flex-col gap-4">
+            <div className="top-24 flex flex-col gap-4">
               {/* بطاقة السعر */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <p className="text-sm text-gray-500 text-right mb-1">
@@ -141,28 +142,27 @@ export default function ServiceDetailsPage() {
                   <Button
                     fullWidth
                     className="py-3"
-                    onClick={() =>
-                      router.push(`/orders/new?serviceId=${service._id}`)
-                    }
+                    onClick={() => setShowBooking(true)}
                   >
                     <span className="flex items-center justify-center gap-2">
                       <Image src={arrowUpIcon} alt="orders" />
                       اطلب الآن
                     </span>
                   </Button>
-                  <Button fullWidth className="py-3" variant="outline">
-                    <span className="flex items-center justify-center gap-2">
-                      <Image src={calendarIcon} alt="" />
-                      جدولة لاحقاً
-                    </span>
-                  </Button>
+
+                  {showBooking && service && (
+                    <BookingModal
+                      service={service}
+                      onClose={() => setShowBooking(false)}
+                    />
+                  )}
                 </div>
               </div>
 
-              {/* لماذا أوسطي */}
+              {/* لماذا أُسطى */}
               <div className="bg-[var(--primary-color)] rounded-2xl p-6">
                 <h3 className="text-white font-bold text-base mb-4 text-right">
-                  لماذا أوسطي؟
+                  لماذا أُسطى؟
                 </h3>
                 <div className="flex flex-col gap-3">
                   {[

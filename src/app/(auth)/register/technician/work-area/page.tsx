@@ -89,7 +89,7 @@ export default function WorkAreaPage() {
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
         <div className="flex items-center gap-2">
           <span className="font-bold text-[var(--primary-color)] sm:text-lg">
-            أوسطي
+            أُسطى
           </span>
           <div className="w-3 h-3 sm:w-4 sm:h-4 bg-[#8DC63F] rounded-sm" />
         </div>

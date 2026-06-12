@@ -56,6 +56,7 @@ const GOVERNORATES = [
 
 interface BasicInfoForm {
   fullName: string;
+  gender: string;
   email: string;
   phone: string;
   governorate: string;
@@ -70,6 +71,7 @@ export default function TechnicianRegisterPage() {
 
   const [form, setForm] = useState<BasicInfoForm>({
     fullName: "",
+    gender: "",
     email: "",
     phone: "",
     governorate: "",
@@ -86,20 +88,6 @@ export default function TechnicianRegisterPage() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  // const validate = () => {
-  //   const newErrors: Partial<BasicInfoForm> = {};
-  //   if (!form.fullName.trim()) newErrors.fullName = "الاسم مطلوب";
-  //   if (!form.email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
-  //   if (!form.phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
-  //   if (!form.governorate) newErrors.governorate = "اختر المحافظة";
-  //   if (!form.city) newErrors.city = "اختر المدينة";
-  //   if (!form.password) newErrors.password = "كلمة المرور مطلوبة";
-  //   if (form.password !== form.confirmPassword)
-  //     newErrors.confirmPassword = "كلمة المرور غير متطابقة";
-  //   setErrors(newErrors);
-  //   return Object.keys(newErrors).length === 0;
-  // };
-
   const validate = () => {
     const fieldErrors = validateSchema(technicianBasicInfoSchema, form);
     if (fieldErrors) {
@@ -115,6 +103,7 @@ export default function TechnicianRegisterPage() {
     try {
       const { data } = await registerTechnician({
         fullName: form.fullName,
+        gender: form.gender,
         email: form.email,
         password: form.password,
         confirmPassword: form.confirmPassword,
@@ -241,17 +230,29 @@ export default function TechnicianRegisterPage() {
 
           {/* الفورم */}
           <div className="flex flex-col gap-4">
-            {/* الاسم بالكامل — full width */}
-            <AuthInput
-              label="الاسم بالكامل"
-              placeholder="ادخل الاسم الرباعي"
-              type="text"
-              value={form.fullName}
-              onChange={update("fullName")}
-              error={errors.fullName}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <AuthInput
+                label="الاسم بالكامل"
+                placeholder="ادخل الاسم الرباعي"
+                type="text"
+                value={form.fullName}
+                onChange={update("fullName")}
+                error={errors.fullName}
+              />
+              <AuthSelect
+                label="النوع"
+                placeholder="اختر النوع"
+                value={form.gender}
+                onChange={update("gender")}
+                error={errors.gender}
+                options={[
+                  { label: "ذكر", value: "male" },
+                  { label: "أنثى", value: "female" },
+                ]}
+              />
+            </div>
 
-            {/* البريد ورقم الهاتف — جنب بعض */}
+            {/* البريد ورقم الهاتف */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AuthInput
                 label="البريد الإلكتروني"
@@ -296,7 +297,7 @@ export default function TechnicianRegisterPage() {
               />
             </div>
 
-            {/* كلمة المرور والتأكيد — جنب بعض */}
+            {/* كلمة المرور والتأكيد */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AuthInput
                 label="كلمة المرور"
