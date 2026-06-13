@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { MapPin, Camera } from 'lucide-react';
-import vodafoneLogo from '@/assets/images/vodafone-cash.jpg';
-import instapayLogo from '@/assets/images/instapay.jpg';
-import visaLogo from '@/assets/images/visa.jpg';
-import Image from 'next/image';
+import { useState } from "react";
+import { MapPin, Camera } from "lucide-react";
+import vodafoneLogo from "@/assets/images/vodafone-cash.jpeg";
+import instapayLogo from "@/assets/images/instapay.jpeg";
+import visaLogo from "@/assets/images/visa.jpeg";
+import Image from "next/image";
+import { validateBookingForm } from "@/validators/bookingForm.validators";
 
 interface Props {
   selectedDate: string;
@@ -23,60 +24,90 @@ export interface LocationData {
 }
 
 const PAYMENT_METHODS = [
-  { id: 'vodafone', logo: vodafoneLogo, alt: 'Vodafone Cash', disabled: true },
-  { id: 'instapay', logo: instapayLogo, alt: 'InstaPay', disabled: true },
-  { id: 'visa', logo: visaLogo, alt: 'Visa', disabled: false },
+  { id: "vodafone", logo: vodafoneLogo, alt: "Vodafone Cash", disabled: true },
+  { id: "instapay", logo: instapayLogo, alt: "InstaPay", disabled: true },
+  { id: "visa", logo: visaLogo, alt: "Visa", disabled: false },
 ];
 
 const TIME_SLOTS = [
-  '8:00 ص', '9:00 ص', '10:00 ص', '11:00 ص',
-  '12:00 م', '1:00 م', '2:00 م', '3:00 م',
-  '4:00 م', '5:00 م', '6:00 م', '7:00 م',
+  "8:00 ص", "9:00 ص", "10:00 ص", "11:00 ص",
+  "12:00 م", "1:00 م", "2:00 م", "3:00 م",
+  "4:00 م", "5:00 م", "6:00 م", "7:00 م",
 ];
 
-export default function StepLocation({
+export default function BookingForm({
   selectedDate,
   selectedTime,
   onTimeChange,
   onSubmit,
   loading,
 }: Props) {
-  const [district, setDistrict] = useState('');
-  const [fullAddress, setFullAddress] = useState('');
-  const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const [district, setDistrict] = useState("");
+  const [fullAddress, setFullAddress] = useState("");
+  const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
   const displayDate = selectedDate
-    ? new Date(selectedDate).toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' })
-    : '';
+    ? new Date(selectedDate).toLocaleDateString("ar-EG", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : "";
 
   const handleSubmit = () => {
-    if (!district || !fullAddress || !paymentMethod) return;
+    const fieldErrors = validateBookingForm({
+      district,
+      fullAddress,
+      notes,
+      paymentMethod,
+      selectedTime,
+    });
+
+    if (fieldErrors) {
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
     onSubmit({ district, fullAddress, notes, paymentMethod });
+  };
+
+  const clearError = (field: string) => {
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   return (
     <div dir="rtl">
       {/* المواعيد المتاحة */}
-      <h3 className="font-bold text-[var(--primary-color)] text-right mb-3">المواعيد المتاحة</h3>
-      <div className="grid grid-cols-4 gap-2 mb-6">
-        {TIME_SLOTS.map(slot => (
+      <h3 className="font-bold text-[var(--primary-color)] text-right mb-3">
+        المواعيد المتاحة
+      </h3>
+      <div className="grid grid-cols-4 gap-2 mb-1">
+        {TIME_SLOTS.map((slot) => (
           <button
             key={slot}
-            onClick={() => onTimeChange(slot)}
+            onClick={() => { onTimeChange(slot); clearError("selectedTime"); }}
             className={`py-2.5 px-3 rounded-full border text-[var(--primary-color)] text-xs font-medium transition-all
               ${selectedTime === slot
-                ? 'border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)]'
-                : 'border-gray-200 hover:border-gray-300'
+                ? "border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)]"
+                : "border-gray-200 hover:border-gray-300"
               }`}
           >
             {slot}
           </button>
         ))}
       </div>
+      {errors.selectedTime && (
+        <p className="text-red-500 text-xs text-right mb-4 mt-1">{errors.selectedTime}</p>
+      )}
+      {!errors.selectedTime && <div className="mb-6" />}
 
       {/* نطاق السعر */}
-      <h3 className="font-bold text-[var(--primary-color)] text-right mb-3">نطاق السعر المتوقع (جنية)</h3>
+      <h3 className="font-bold text-[var(--primary-color)] text-right mb-3">
+        نطاق السعر المتوقع (جنية)
+      </h3>
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-400 text-right">الحد الأدنى</label>
@@ -96,10 +127,12 @@ export default function StepLocation({
           </label>
           <input
             value={district}
-            onChange={e => setDistrict(e.target.value)}
+            onChange={(e) => { setDistrict(e.target.value); clearError("district"); }}
             placeholder="مثال: حي الزهرة"
-            className="border border-gray-200 rounded-full px-4 py-3 text-sm text-right outline-none focus:border-[var(--accent-color)] placeholder:text-gray-300"
+            className={`border rounded-full px-4 py-3 text-sm text-right outline-none placeholder:text-gray-300 transition-all
+              ${errors.district ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-[var(--accent-color)]"}`}
           />
+          {errors.district && <p className="text-red-500 text-xs text-right">{errors.district}</p>}
         </div>
 
         {/* العنوان */}
@@ -109,10 +142,12 @@ export default function StepLocation({
           </label>
           <input
             value={fullAddress}
-            onChange={e => setFullAddress(e.target.value)}
+            onChange={(e) => { setFullAddress(e.target.value); clearError("fullAddress"); }}
             placeholder="مثال: شارع الملك فهد، البناية 12"
-            className="border border-gray-200 rounded-full px-4 py-3 text-sm text-right outline-none focus:border-[var(--accent-color)] placeholder:text-gray-300"
+            className={`border rounded-full px-4 py-3 text-sm text-right outline-none placeholder:text-gray-300 transition-all
+              ${errors.fullAddress ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-[var(--accent-color)]"}`}
           />
+          {errors.fullAddress && <p className="text-red-500 text-xs text-right">{errors.fullAddress}</p>}
         </div>
       </div>
 
@@ -135,7 +170,7 @@ export default function StepLocation({
         </label>
         <textarea
           value={notes}
-          onChange={e => setNotes(e.target.value)}
+          onChange={(e) => setNotes(e.target.value)}
           placeholder="أي تفاصيل إضافية تود إخبار الحرفي بها..."
           rows={3}
           className="border border-gray-200 rounded-2xl px-4 py-3 text-sm text-right outline-none focus:border-[var(--accent-color)] placeholder:text-gray-300 resize-none"
@@ -159,24 +194,28 @@ export default function StepLocation({
           طريقة الدفع <span className="text-red-500">*</span>
         </label>
         <div className="grid grid-cols-3 gap-3">
-          {PAYMENT_METHODS.map(method => (
+          {PAYMENT_METHODS.map((method) => (
             <div key={method.id} className="relative">
               <button
-                onClick={() => !method.disabled && setPaymentMethod(method.id)}
-                className={`w-full border-2 rounded-2xl p-4 flex items-center justify-center transition-all
+                onClick={() => { if (!method.disabled) { setPaymentMethod(method.id); clearError("paymentMethod"); } }}
+                className={`w-full h-16 border-2 rounded-2xl flex items-center justify-center transition-all
                   ${method.disabled
-                    ? 'cursor-not-allowed border-gray-200'
+                    ? "cursor-not-allowed border-gray-200"
                     : paymentMethod === method.id
-                      ? 'border-[var(--primary-color)]'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? "border-[var(--accent-color)]"
+                      : errors.paymentMethod
+                        ? "border-red-300 hover:border-red-400"
+                        : "border-gray-200 hover:border-gray-300"
                   }`}
               >
-                <Image
-                  src={method.logo}
-                  alt={method.alt}
-                  width={100}
-                  className={`object-contain ${method.disabled ? 'blur-sm opacity-40' : ''}`}
-                />
+                <div className="relative w-full h-full px-3 py-2">
+                  <Image
+                    src={method.logo}
+                    alt={method.alt}
+                    fill
+                    className={`object-contain ${method.disabled ? "blur-sm opacity-40" : ""}`}
+                  />
+                </div>
               </button>
               {method.disabled && (
                 <div className="absolute inset-0 rounded-2xl cursor-not-allowed" />
@@ -184,6 +223,9 @@ export default function StepLocation({
             </div>
           ))}
         </div>
+        {errors.paymentMethod && (
+          <p className="text-red-500 text-xs text-right">{errors.paymentMethod}</p>
+        )}
       </div>
 
       {/* ملخص الموعد + زرار الإرسال */}
@@ -194,14 +236,14 @@ export default function StepLocation({
         </div>
         <button
           onClick={handleSubmit}
-          disabled={!district || !fullAddress || !paymentMethod || loading}
+          disabled={loading}
           className={`px-8 py-3 rounded-full font-bold text-sm transition-all
-            ${district && fullAddress && paymentMethod && !loading
-              ? 'bg-[var(--accent-color)] text-[var(--primary-color)] hover:opacity-90'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            ${!loading
+              ? "bg-[var(--accent-color)] text-[var(--primary-color)] hover:opacity-90"
+              : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
         >
-          {loading ? 'جاري الإرسال...' : 'إرسال الطلب'}
+          {loading ? "جاري الإرسال..." : "إرسال الطلب"}
         </button>
       </div>
     </div>
