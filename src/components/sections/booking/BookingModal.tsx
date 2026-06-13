@@ -4,8 +4,8 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import Image from "next/image";
 import { Clock, Star, CalendarDays } from "lucide-react";
-import StepCalendar from "./StepCalendar";
-import StepLocation, { LocationData } from "./StepLocation";
+import DatePicker from "./DatePicker";
+import BookingForm, { LocationData } from "./BookingForm";
 import BookingSuccess from "./BookingSuccess";
 import { createBooking } from "@/api/services/booking.service";
 
@@ -36,34 +36,22 @@ const parseArabicTime = (timeStr: string): string => {
 export default function BookingModal({ service, onClose }: Props) {
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
-
-  // "calendar" = اليوم active وبيظهر الكاليندر
-  // "location" = تحديد موعد active وبيظهر فورم الموعد والعنوان
-  // "success"  = تم الحجز
-  const [view, setView] = useState<"calendar" | "location" | "success">(
-    "calendar",
-  );
   const [dateMode, setDateMode] = useState<"today" | "pick">("today");
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedTime, setSelectedTime] = useState("");
   const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
 
   const handleTodayClick = () => {
     setDateMode("today");
     setSelectedDate(todayStr);
-    setView("calendar");
   };
 
   const handlePickClick = () => {
     setDateMode("pick");
-    setView("location");
   };
 
-  const handleNext = () => {
-    setView("location");
-  };
-
-  const handleLocationSubmit = async (locationData: LocationData) => {
+  const handleSubmit = async (locationData: LocationData) => {
     setLoading(true);
     try {
       await createBooking({
@@ -78,7 +66,7 @@ export default function BookingModal({ service, onClose }: Props) {
         preferredTime: parseArabicTime(selectedTime),
         notes: locationData.notes,
       });
-      setView("success");
+      setDone(true);
     } catch (err) {
       console.error(err);
     } finally {
@@ -95,7 +83,7 @@ export default function BookingModal({ service, onClose }: Props) {
         className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {view === "success" ? (
+        {done ? (
           <BookingSuccess onClose={onClose} />
         ) : (
           <div className="p-8">
@@ -116,7 +104,7 @@ export default function BookingModal({ service, onClose }: Props) {
             </div>
 
             <div className="grid grid-cols-3 gap-6">
-              {/* الخدمة المطلوبة — ثابت دايماً */}
+              {/* كارت الخدمة — ثابت */}
               <div className="col-span-1" dir="rtl">
                 <h3 className="font-bold text-[var(--primary-color)] mb-3 text-right">
                   الخدمة المطلوبة
@@ -140,11 +128,10 @@ export default function BookingModal({ service, onClose }: Props) {
                         {service.name}
                       </p>
                       <div className="flex items-center gap-1">
-                        <Star
-                          size={12}
-                          className="text-yellow-400 fill-yellow-400"
-                        />
-                        <span className="text-xs text-gray-500">4.5</span>
+                        <Star size={12} className="text-yellow-400 fill-yellow-400" />
+                        <span className="text-xs text-gray-500">
+                          {service.averageRating.toFixed(1)}
+                        </span>
                       </div>
                     </div>
                     <p className="text-xs text-[#545454] leading-relaxed text-right line-clamp-2 mb-2">
@@ -152,28 +139,26 @@ export default function BookingModal({ service, onClose }: Props) {
                     </p>
                     <div className="flex items-center gap-1 bg-[var(--secondary-color)] px-2 py-1 w-fit rounded-xl">
                       <Clock size={12} className="text-gray-400" />
-                      <span className="text-xs text-gray-400">
-                        30 - 45 دقيقة
-                      </span>
+                      <span className="text-xs text-gray-400">30 - 45 دقيقة</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* الفورم */}
+              {/* الفورم — ثابت الزرارين، متغير المحتوى */}
               <div className="col-span-2" dir="rtl">
-                {/* الزرارين — ثابتين دايماً */}
                 <h3 className="font-bold text-[var(--primary-color)] text-right mb-3">
                   موعد تنفيذ الخدمة
                 </h3>
+
+                {/* الزرارين — ثابتين دايماً */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <button
                     onClick={handleTodayClick}
                     className={`py-3 px-4 rounded-2xl border-2 text-sm transition-all
-                      ${
-                        dateMode === "today"
-                          ? "border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)] font-bold"
-                          : "border-[var(--primary-color)] text-[var(--primary-color)]"
+                      ${dateMode === "today"
+                        ? "border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)] font-bold"
+                        : "border-[var(--primary-color)] text-[var(--primary-color)]"
                       }`}
                   >
                     اليوم
@@ -181,10 +166,9 @@ export default function BookingModal({ service, onClose }: Props) {
                   <button
                     onClick={handlePickClick}
                     className={`py-3 px-4 rounded-2xl border-2 text-sm flex items-center justify-center gap-2 transition-all
-                      ${
-                        dateMode === "pick"
-                          ? "border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)] font-bold"
-                          : "border-[var(--primary-color)] text-[var(--primary-color)]"
+                      ${dateMode === "pick"
+                        ? "border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)] font-bold"
+                        : "border-[var(--primary-color)] text-[var(--primary-color)]"
                       }`}
                   >
                     تحديد موعد
@@ -192,23 +176,22 @@ export default function BookingModal({ service, onClose }: Props) {
                   </button>
                 </div>
 
-                {/* المحتوى المتغير */}
-                {view === "calendar" && (
-                  <StepCalendar
+                {/* الكاليندر — بيظهر بس لما pick */}
+                {dateMode === "pick" && (
+                  <DatePicker
                     selectedDate={selectedDate}
                     onDateChange={setSelectedDate}
-                    onNext={handleNext}
                   />
                 )}
-                {view === "location" && (
-                  <StepLocation
-                    selectedDate={selectedDate}
-                    selectedTime={selectedTime}
-                    onTimeChange={setSelectedTime}
-                    onSubmit={handleLocationSubmit}
-                    loading={loading}
-                  />
-                )}
+
+                {/* فورم المواعيد والعنوان — ثابت في الحالتين */}
+                <BookingForm
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  onTimeChange={setSelectedTime}
+                  onSubmit={handleSubmit}
+                  loading={loading}
+                />
               </div>
             </div>
           </div>
