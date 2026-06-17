@@ -27,12 +27,15 @@ export default function LoginPage() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
- const validate = () => {
-  const fieldErrors = validateSchema(loginSchema, form);
-  if (fieldErrors) { setErrors(fieldErrors as Partial<LoginForm>); return false; }
-  setErrors({});
-  return true;
-};
+  const validate = () => {
+    const fieldErrors = validateSchema(loginSchema, form);
+    if (fieldErrors) {
+      setErrors(fieldErrors as Partial<LoginForm>);
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
 
   const handleSubmit = async () => {
     if (!validate()) return;
@@ -48,11 +51,12 @@ export default function LoginPage() {
 
       // وديه حسب الـ role
       if (data.data.user.role === "technician") {
-        router.push("/home");
+        router.push("/technician/orders");
       } else {
-        router.push("/home");
+        router.push("/client/home");
       }
     } catch (error: any) {
+      alert(JSON.stringify(error?.response?.data ?? error?.message ?? "unknown error"));
       setErrors({ email: "البريد أو كلمة المرور غلط" });
     }
   };
@@ -161,10 +165,12 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             className="w-full py-2.5 rounded-full border border-gray-200 flex items-center justify-center gap-2 bg-[#F1F7E7] hover:bg-[#E7F1D8] transition-all"
-          ><Image src={googleIcon} alt="Google" width={18} height={18} />
+          >
+            <Image src={googleIcon} alt="Google" width={18} height={18} />
             <span className="text-sm text-gray-600 font-medium">
               سجل الدخول عبر جوجل
-            </span></button>
+            </span>
+          </button>
 
           {/* لينك إنشاء حساب */}
           <p className="text-center text-xs sm:text-sm text-gray-400 mt-5">

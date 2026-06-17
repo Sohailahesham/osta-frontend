@@ -43,6 +43,7 @@ export default function ReviewPage() {
       try {
         const { data } = await api.get("technician/details");
         setTechData(data.data);
+        console.log(data.data)
       } catch {
         setError("حدث خطأ في تحميل البيانات");
       } finally {
@@ -73,7 +74,7 @@ export default function ReviewPage() {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    router.push("/home"); // الـ redirect هنا بس
+    router.push("/technician/orders"); // الـ redirect هنا بس
   };
 
   return (
@@ -185,8 +186,8 @@ export default function ReviewPage() {
               <InfoRow label="المحافظة" value={techData.governorate} />
               <InfoRow label="المدينة" value={techData.city} />
               <InfoRow
-                label="التخصصات"
-                value={techData.specialization?.categoryId || "—"}
+                label="التخصص"
+                value={techData.category || "—"}
               />
               <InfoRow
                 label="الخبرة"

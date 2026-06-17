@@ -3,7 +3,7 @@ import HeroSection from "@/components/sections/landing-page/HeroSection";
 import HowItWorks from "@/components/sections/landing-page/HowItWorks";
 import TechnicianCTA from "@/components/sections/landing-page/TechnicianCTA";
 import FeaturesSection from "@/components/sections/landing-page/FeaturesSection";
-import FAQSection from "@/components/sections/home/FAQSection";
+import FAQSection from "@/components/sections/client/home/FAQSection";
 import Footer from "@/components/layout/Footer";
 import AIDiagnosis from "@/components/sections/landing-page/AIdiagnosis";
 import "@/styles/sectionsLayout.css";
@@ -23,25 +23,3 @@ export default function Home() {
     </main>
   );
 }
-
-// 'use client';
-
-// import { useRouter } from 'next/navigation';
-// import Button from '@/components/ui/Button';
-
-// export default function Home() {
-//   const router = useRouter();
-
-//   const handleLogin = () => {
-//     localStorage.removeItem('token');
-//     router.push('/login');
-//   };
-
-//   return (
-//     <div className="min-h-screen flex items-center justify-center">
-//       <Button onClick={handleLogin}>
-//         تسجيل الدخول
-//       </Button>
-//     </div>
-//   );
-// }

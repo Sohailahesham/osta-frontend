@@ -38,13 +38,13 @@ const HAVE_TOOLS_OPTIONS = [
 ];
 
 const DAYS_OPTIONS = [
-  { label: "السبت", value: "sat" },
-  { label: "الأحد", value: "sun" },
-  { label: "الاثنين", value: "mon" },
-  { label: "الثلاثاء", value: "tue" },
-  { label: "الأربعاء", value: "wed" },
-  { label: "الخميس", value: "thu" },
-  { label: "الجمعة", value: "fri" },
+  { label: "السبت", value: "السبت" },
+  { label: "الأحد", value: "الأحد" },
+  { label: "الاثنين", value: "الاثنين" },
+  { label: "الثلاثاء", value: "الثلاثاء" },
+  { label: "الأربعاء", value: "الأربعاء" },
+  { label: "الخميس", value: "الخميس" },
+  { label: "الجمعة", value: "الجمعة" },
 ];
 
 const HOURS_OPTIONS = [
