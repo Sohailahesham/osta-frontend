@@ -14,6 +14,7 @@ const categoryIcons = {
   سباكة: plumbingIcon,
   نجارة: carpentryIcon,
   تكييف: acIcon,
+  "إصلاح أجهزة": electricalIcon,
 };
 
 interface Category {

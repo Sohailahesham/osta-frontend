@@ -12,7 +12,7 @@ const districtSchema = z
 const fullAddressSchema = z
   .string()
   .min(1, "العنوان مطلوب")
-  .min(5, "العنوان قصير جداً")
+  .min(10, "العنوان قصير جداً")
   .max(300, "العنوان طويل جداً");
 
 const notesSchema = z

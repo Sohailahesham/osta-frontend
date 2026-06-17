@@ -320,7 +320,7 @@ export default function UserRegisterPage() {
             <p className="text-gray-400 text-sm mb-8">
               يمكنك الآن الوصول إلى جميع خدمات أُسطى
             </p>
-            <Button fullWidth onClick={() => router.push("/home")}>
+            <Button fullWidth onClick={() => router.push("/client/home")}>
               الذهاب إلى الصفحة الرئيسية
             </Button>
           </div>

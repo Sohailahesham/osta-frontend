@@ -24,7 +24,7 @@ export default function Footer() {
   const router = useRouter();
 
   return (
-    <footer className="bg-[#1C4B41]" dir="rtl">
+    <footer className="primary-gradient" dir="rtl">
       <div className="w-4/5 mx-auto py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">

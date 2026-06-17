@@ -20,7 +20,7 @@ export default function AuthCallbackPage() {
       localStorage.setItem("refresh_token", refreshToken);
     }
 
-    router.replace("/home");
+    router.replace("/client/home");
   }, [router, searchParams]);
 
   return (

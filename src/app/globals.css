@@ -16,3 +16,7 @@
   );
 }
 
+.primary-gradient {
+  background: linear-gradient(to bottom, #1C4B41, #112D27);
+}
+
