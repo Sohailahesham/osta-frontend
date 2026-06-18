@@ -64,7 +64,7 @@ export default function MainCategoriesSection() {
           {categories.map((cat) => (
             <div
               key={cat._id}
-              onClick={() => router.push(`/categories/${cat._id}`)}
+              onClick={() => router.push(`/client/categories/${cat._id}`)}
               className="rounded-2xl overflow-hidden cursor-pointer group bg-[#eef5e0]"
             >
               {/* Image */}

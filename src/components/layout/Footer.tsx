@@ -11,7 +11,7 @@ import Button from "../ui/Button";
 const QUICK_LINKS_COL1 = [
   { label: "من نحن", href: "/about" },
   { label: "كيف تعمل المنصة", href: "/how-it-works" },
-  { label: "الأقسام", href: "/categories" },
+  { label: "الأقسام", href: "/client/categories" },
 ];
 
 const QUICK_LINKS_COL2 = [
