@@ -14,7 +14,6 @@ const NAV_LINKS = [
   { label: "الرئيسية", href: "/client/home" },
   { label: "الطلبات الحالية", href: "/client/orders" },
   { label: "الأقسام", href: "/client/categories" },
-  { label: "الطلب الذكي", href: "/client/smart-request" },
   { label: "الدعم والمساعدة", href: "/client/support" },
 ];
 
