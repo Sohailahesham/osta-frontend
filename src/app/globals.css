@@ -20,3 +20,6 @@
   background: linear-gradient(to bottom, #1C4B41, #112D27);
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
