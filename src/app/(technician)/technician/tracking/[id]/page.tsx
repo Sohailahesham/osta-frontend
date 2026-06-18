@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -35,9 +35,16 @@ const COLORS = {
 
 const STEPS = [
   { key: "on_the_way", title: "في الطريق" },
-  { key: "in_progress", title: "العمل جار" },
+  { key: "started", title: "العمل جار" },
   { key: "completed", title: "تم انجاز العمل" },
 ] as const;
+
+const STATUS_TO_PROGRESS: Record<string, number> = {
+  in_progress: 0,
+  on_the_way: 1,
+  started: 2,
+  completed: 3,
+};
 
 function getToken() {
   return localStorage.getItem("access_token") || null;
@@ -61,10 +68,34 @@ export default function TechnicianTrackingPage({
 
   const [request, setRequest] = useState<TechnicianRequest | null>(null);
   const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // جيب بيانات الطلب عند الدخول
+  useEffect(() => {
+    const fetchRequest = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`${BASE_URL}/requests/${requestId}`, {
+          headers: authHeaders(),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || "حصل خطأ في تحميل الطلب");
+        const data = json.data ?? json;
+        setRequest(data);
+        setProgress(STATUS_TO_PROGRESS[data.status] ?? 0);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "حصل خطأ، حاول تاني");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchRequest();
+  }, [requestId]);
 
   const handleOnTheWay = async () => {
     setLoading(true);
@@ -85,7 +116,6 @@ export default function TechnicianTrackingPage({
     }
   };
 
-  // ===== خطوة 2: العمل جار =====
   const handleStartWork = async () => {
     setLoading(true);
     setError("");
@@ -105,10 +135,35 @@ export default function TechnicianTrackingPage({
     }
   };
 
-  // ===== خطوة 3: بس بتفتح المودال، النداء الفعلي لـ /complete جوه المودال نفسه =====
   const handleOpenInvoice = () => setShowInvoiceModal(true);
 
   const handlers = [handleOnTheWay, handleStartWork, handleOpenInvoice];
+
+  if (loading && !request) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-4 border-t-transparent"
+          style={{ borderColor: COLORS.primary, borderTopColor: "transparent" }}
+        />
+      </div>
+    );
+  }
+
+  if (error && !request) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-red-500 text-sm">{error}</p>
+        <button
+          onClick={() => router.back()}
+          className="rounded-full px-6 py-2 text-sm font-bold text-white"
+          style={{ backgroundColor: COLORS.primary }}
+        >
+          رجوع
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -118,10 +173,15 @@ export default function TechnicianTrackingPage({
           <h1 className="text-lg font-bold" style={{ color: COLORS.primary }}>
             {request?.serviceId?.name ?? "تتبع الطلب"}
           </h1>
-          <button className="text-sm font-medium text-gray-500">الطلبات</button>
+          <button
+            className="text-sm font-medium text-gray-500"
+            onClick={() => router.push("/technician/orders")}
+          >
+            الطلبات
+          </button>
         </div>
 
-        {/* ===== Stepper ===== */}
+        {/* Stepper */}
         <div className="relative mb-10">
           <div className="absolute top-7 left-0 right-0 h-0.5 bg-gray-200" />
           <div
@@ -177,7 +237,7 @@ export default function TechnicianTrackingPage({
                           ? COLORS.accent
                           : "#F3F4F6",
                       color: isDone || isNext ? COLORS.primary : "#9CA3AF",
-                      cursor: isNext ? "pointer" : "default",
+                      cursor: isNext && !loading ? "pointer" : "default",
                     }}
                   >
                     {isDone ? "تم" : isNext && loading ? "..." : "ابدأ"}
@@ -192,7 +252,7 @@ export default function TechnicianTrackingPage({
           <p className="text-center text-red-500 text-sm mb-6">{error}</p>
         )}
 
-        {/* ===== كروت تفاصيل كل خطوة ===== */}
+        {/* كروت تفاصيل كل خطوة */}
         <div className="flex flex-col gap-3">
           {STEPS.map((step, i) => {
             const isLive = i === progress - 1;
@@ -266,7 +326,7 @@ export default function TechnicianTrackingPage({
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                        <span>{request.address.fullAddress}</span>
+                        <span>{request.address?.fullAddress}</span>
                         <MapPin
                           className="w-4 h-4"
                           style={{ color: COLORS.accent }}
@@ -422,18 +482,16 @@ function InvoiceModal({
   const total = servicePrice + materialsPrice;
 
   const handleSubmit = async () => {
+    if (!price) {
+      setError("من فضلك أدخل سعر الخدمة");
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
-      const body: Record<string, unknown> = {
-        servicePrice,
-      };
-      if (notes.trim()) {
-        body.completionNote = notes;
-      }
-      if (hasSupplies) {
-        body.extraMaterialsPrice = materialsPrice;
-      }
+      const body: Record<string, unknown> = { servicePrice };
+      if (notes.trim()) body.completionNote = notes;
+      if (hasSupplies) body.extraMaterialsPrice = materialsPrice;
 
       const res = await fetch(`${BASE_URL}/requests/${requestId}/complete`, {
         method: "PATCH",
@@ -454,10 +512,7 @@ function InvoiceModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div
-        dir="rtl"
-        className="bg-white rounded-2xl w-full max-w-md p-6 relative"
-      >
+      <div dir="rtl" className="bg-white rounded-2xl w-full max-w-md p-6 relative">
         <button
           onClick={onClose}
           className="absolute top-5 left-5 text-gray-400 hover:text-gray-600"
@@ -476,9 +531,7 @@ function InvoiceModal({
         <div className="flex flex-col gap-5">
           {/* عنوان الخدمة */}
           <div>
-            <label className="text-sm text-gray-500 block mb-2">
-              عنوان الخدمة
-            </label>
+            <label className="text-sm text-gray-500 block mb-2">عنوان الخدمة</label>
             <div
               className="flex items-center justify-between rounded-lg px-4 py-3"
               style={{ backgroundColor: COLORS.secondary }}
@@ -519,9 +572,7 @@ function InvoiceModal({
           {/* مستلزمات اضافية */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-500">
-                مستلزمات اضافية (اختياري)
-              </label>
+              <label className="text-sm text-gray-500">مستلزمات اضافية (اختياري)</label>
               <button
                 type="button"
                 onClick={() => setHasSupplies((v) => !v)}
@@ -551,7 +602,7 @@ function InvoiceModal({
             )}
           </div>
 
-          {/* ملاحظات اضافية */}
+          {/* ملاحظات */}
           <div>
             <label className="text-sm text-gray-500 block mb-2">
               ملاحظات اضافية (اختياري)
@@ -568,10 +619,7 @@ function InvoiceModal({
           {/* الإجمالي */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-4">
             <div className="flex items-baseline gap-1">
-              <span
-                className="text-2xl font-bold"
-                style={{ color: COLORS.primary }}
-              >
+              <span className="text-2xl font-bold" style={{ color: COLORS.primary }}>
                 {total}
               </span>
               <span className="text-sm text-gray-500">جنيه</span>

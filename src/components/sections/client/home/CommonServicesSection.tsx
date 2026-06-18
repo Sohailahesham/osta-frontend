@@ -72,7 +72,7 @@ export default function CommonServicesSection() {
             return (
               <div
                 key={service._id}
-                onClick={() => router.push(`/services/${service._id}`)}
+                onClick={() => router.push(`/client/services/${service._id}`)}
                 className="px-3 rounded-2xl overflow-hidden cursor-pointer group bg-[var(--secondary-color)] hover:bg-[var(--accent-color)] shadow-sm hover:shadow-md transition-all"
               >
                 {/* الصورة */}
