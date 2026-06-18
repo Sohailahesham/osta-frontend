@@ -76,7 +76,7 @@ export default function ChatMessages({
                   card={msg.serviceCard}
                   onRequest={(id) => {
                     onClose();
-                    router.push(`/services/${id}`);
+                    router.push(`/client/services/${id}`);
                   }}
                 />
               )}
