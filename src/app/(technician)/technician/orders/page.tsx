@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getTechnicianDashboard } from "@/api/services/Dashboard.service";
-import OrdersNavbar from "@/components/layout/technician/OrdersNavbar";
 import HeroSection from "@/components/sections/technician/current-orders/HeroSection";
 
 type TechnicianOrder = {
@@ -23,7 +22,6 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen">
-      <OrdersNavbar />
       <HeroSection />
 
       <div className="mx-auto max-w-6xl px-4 py-6">

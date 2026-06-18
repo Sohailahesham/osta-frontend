@@ -2,8 +2,15 @@
 
 import { useState, use } from "react";
 import { useRouter } from "next/navigation";
-import OrdersNavbar from "@/components/layout/technician/OrdersNavbar";
-import { Check, Clock, CheckCircle2, MapPin, X, Camera, FileText } from "lucide-react";
+import {
+  Check,
+  Clock,
+  CheckCircle2,
+  MapPin,
+  X,
+  Camera,
+  FileText,
+} from "lucide-react";
 
 interface TechnicianRequest {
   _id: string;
@@ -53,14 +60,12 @@ export default function TechnicianTrackingPage({
   const { id: requestId } = use(params);
 
   const [request, setRequest] = useState<TechnicianRequest | null>(null);
-  // عدد الخطوات اللي خلصت: 0 = لسه مفيش حاجة حصلت، 1 = في الطريق خلصت، 2 = العمل جار خلصت، 3 = كله خلص
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // ===== خطوة 1: في الطريق =====
   const handleOnTheWay = async () => {
     setLoading(true);
     setError("");
@@ -107,177 +112,224 @@ export default function TechnicianTrackingPage({
 
   return (
     <>
-      <OrdersNavbar />
       <div dir="rtl" className="max-w-2xl mx-auto px-4 py-10">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-lg font-bold" style={{ color: COLORS.primary }}>
-          {request?.serviceId?.name ?? "تتبع الطلب"}
-        </h1>
-        <button className="text-sm font-medium text-gray-500">الطلبات</button>
-      </div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-lg font-bold" style={{ color: COLORS.primary }}>
+            {request?.serviceId?.name ?? "تتبع الطلب"}
+          </h1>
+          <button className="text-sm font-medium text-gray-500">الطلبات</button>
+        </div>
 
-      {/* ===== Stepper ===== */}
-      <div className="relative mb-10">
-        <div className="absolute top-7 left-0 right-0 h-0.5 bg-gray-200" />
-        <div
-          className="absolute top-7 h-0.5 transition-all"
-          style={{
-            right: 0,
-            width: `${(progress / STEPS.length) * 100}%`,
-            backgroundColor: COLORS.primary,
-          }}
-        />
-        <div className="relative flex justify-between">
-          {STEPS.map((step, i) => {
-            const isDone = i < progress;
-            const isNext = i === progress;
-            return (
-              <div key={step.key} className="flex flex-col items-center gap-2 w-1/3 px-1">
+        {/* ===== Stepper ===== */}
+        <div className="relative mb-10">
+          <div className="absolute top-7 left-0 right-0 h-0.5 bg-gray-200" />
+          <div
+            className="absolute top-7 h-0.5 transition-all"
+            style={{
+              right: 0,
+              width: `${(progress / STEPS.length) * 100}%`,
+              backgroundColor: COLORS.primary,
+            }}
+          />
+          <div className="relative flex justify-between">
+            {STEPS.map((step, i) => {
+              const isDone = i < progress;
+              const isNext = i === progress;
+              return (
                 <div
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center"
-                  style={{
-                    backgroundColor: isDone ? COLORS.primary : "#fff",
-                    border: isDone ? "none" : "2px solid #E5E7EB",
-                  }}
+                  key={step.key}
+                  className="flex flex-col items-center gap-2 w-1/3 px-1"
                 >
-                  {i === 0 ? (
-                    <Clock className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isDone ? "#fff" : "#9CA3AF" }} />
+                  <div
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center"
+                    style={{
+                      backgroundColor: isDone ? COLORS.primary : "#fff",
+                      border: isDone ? "none" : "2px solid #E5E7EB",
+                    }}
+                  >
+                    {i === 0 ? (
+                      <Clock
+                        className="w-5 h-5 sm:w-6 sm:h-6"
+                        style={{ color: isDone ? "#fff" : "#9CA3AF" }}
+                      />
+                    ) : (
+                      <CheckCircle2
+                        className="w-5 h-5 sm:w-6 sm:h-6"
+                        style={{ color: isDone ? "#fff" : "#9CA3AF" }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className="text-xs sm:text-sm font-semibold text-center"
+                    style={{ color: COLORS.primary }}
+                  >
+                    {step.title}
+                  </span>
+                  <button
+                    onClick={() => isNext && !loading && handlers[i]()}
+                    disabled={!isNext || loading}
+                    className="text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-1.5 rounded-full transition"
+                    style={{
+                      backgroundColor: isDone
+                        ? `${COLORS.accent}55`
+                        : isNext
+                          ? COLORS.accent
+                          : "#F3F4F6",
+                      color: isDone || isNext ? COLORS.primary : "#9CA3AF",
+                      cursor: isNext ? "pointer" : "default",
+                    }}
+                  >
+                    {isDone ? "تم" : isNext && loading ? "..." : "ابدأ"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-center text-red-500 text-sm mb-6">{error}</p>
+        )}
+
+        {/* ===== كروت تفاصيل كل خطوة ===== */}
+        <div className="flex flex-col gap-3">
+          {STEPS.map((step, i) => {
+            const isLive = i === progress - 1;
+            const isFuture = i >= progress;
+
+            return (
+              <div
+                key={step.key}
+                className="rounded-xl border overflow-hidden transition-all"
+                style={{
+                  borderColor: isLive ? COLORS.accent : "#E5E7EB",
+                  backgroundColor: isLive ? "#fff" : "#FAFAFA",
+                }}
+              >
+                <div className="flex items-center justify-between px-4 py-3.5">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-sm font-bold"
+                      style={{ color: isFuture ? "#9CA3AF" : COLORS.primary }}
+                    >
+                      {step.title}
+                    </span>
+                    <span
+                      className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
+                      style={{
+                        backgroundColor: isFuture ? "#F3F4F6" : COLORS.primary,
+                        color: isFuture ? "#9CA3AF" : "#fff",
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                  </div>
+
+                  {isLive ? (
+                    <span
+                      className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full"
+                      style={{
+                        backgroundColor: COLORS.secondary,
+                        color: COLORS.primary,
+                      }}
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: COLORS.accent }}
+                      />
+                      جار الآن
+                    </span>
                   ) : (
-                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isDone ? "#fff" : "#9CA3AF" }} />
+                    <span />
                   )}
                 </div>
-                <span className="text-xs sm:text-sm font-semibold text-center" style={{ color: COLORS.primary }}>
-                  {step.title}
-                </span>
-                <button
-                  onClick={() => isNext && !loading && handlers[i]()}
-                  disabled={!isNext || loading}
-                  className="text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-1.5 rounded-full transition"
-                  style={{
-                    backgroundColor: isDone ? `${COLORS.accent}55` : isNext ? COLORS.accent : "#F3F4F6",
-                    color: isDone || isNext ? COLORS.primary : "#9CA3AF",
-                    cursor: isNext ? "pointer" : "default",
-                  }}
-                >
-                  {isDone ? "تم" : isNext && loading ? "..." : "ابدأ"}
-                </button>
+
+                {isLive && request && (
+                  <div className="px-4 pb-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                          style={{
+                            backgroundColor: COLORS.accent,
+                            color: COLORS.primary,
+                          }}
+                        >
+                          {request.userId?.fullName?.charAt(0) ?? "؟"}
+                        </span>
+                        <span
+                          className="text-sm font-semibold"
+                          style={{ color: COLORS.primary }}
+                        >
+                          {request.userId?.fullName ?? "-"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                        <span>{request.address.fullAddress}</span>
+                        <MapPin
+                          className="w-4 h-4"
+                          style={{ color: COLORS.accent }}
+                        />
+                      </div>
+                    </div>
+
+                    <div
+                      className="flex items-center justify-between rounded-lg px-3 py-2"
+                      style={{ backgroundColor: "#F5F5F4" }}
+                    >
+                      <span
+                        className="text-xs font-medium"
+                        style={{ color: COLORS.primary }}
+                      >
+                        {step.title}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span
+                          className="w-1.5 h-1.5 rounded-full animate-pulse"
+                          style={{ backgroundColor: COLORS.accent }}
+                        />
+                        <span
+                          className="w-6 h-1.5 rounded-full"
+                          style={{ backgroundColor: COLORS.primary }}
+                        />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: COLORS.accent }}
+                        />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: COLORS.accent }}
+                        />
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-      </div>
 
-      {error && <p className="text-center text-red-500 text-sm mb-6">{error}</p>}
+        {showInvoiceModal && request && (
+          <InvoiceModal
+            request={request}
+            requestId={requestId}
+            onClose={() => setShowInvoiceModal(false)}
+            onSubmitted={(updated) => {
+              setRequest(updated);
+              setProgress(3);
+              setShowInvoiceModal(false);
+              setShowSuccessModal(true);
+            }}
+          />
+        )}
 
-      {/* ===== كروت تفاصيل كل خطوة ===== */}
-      <div className="flex flex-col gap-3">
-        {STEPS.map((step, i) => {
-          const isLive = i === progress - 1;
-          const isFuture = i >= progress;
-
-          return (
-            <div
-              key={step.key}
-              className="rounded-xl border overflow-hidden transition-all"
-              style={{
-                borderColor: isLive ? COLORS.accent : "#E5E7EB",
-                backgroundColor: isLive ? "#fff" : "#FAFAFA",
-              }}
-            >
-              <div className="flex items-center justify-between px-4 py-3.5">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-sm font-bold"
-                    style={{ color: isFuture ? "#9CA3AF" : COLORS.primary }}
-                  >
-                    {step.title}
-                  </span>
-                  <span
-                    className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
-                    style={{
-                      backgroundColor: isFuture ? "#F3F4F6" : COLORS.primary,
-                      color: isFuture ? "#9CA3AF" : "#fff",
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                </div>
-
-                {isLive ? (
-                  <span
-                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full"
-                    style={{ backgroundColor: COLORS.secondary, color: COLORS.primary }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS.accent }} />
-                    جار الآن
-                  </span>
-                ) : (
-                  <span />
-                )}
-              </div>
-
-              {isLive && request && (
-                <div className="px-4 pb-4 flex flex-col gap-3">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}
-                      >
-                        {request.userId?.fullName?.charAt(0) ?? "؟"}
-                      </span>
-                      <span className="text-sm font-semibold" style={{ color: COLORS.primary }}>
-                        {request.userId?.fullName ?? "-"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                      <span>{request.address.fullAddress}</span>
-                      <MapPin className="w-4 h-4" style={{ color: COLORS.accent }} />
-                    </div>
-                  </div>
-
-                  <div
-                    className="flex items-center justify-between rounded-lg px-3 py-2"
-                    style={{ backgroundColor: "#F5F5F4" }}
-                  >
-                    <span className="text-xs font-medium" style={{ color: COLORS.primary }}>
-                      {step.title}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: COLORS.accent }} />
-                      <span className="w-6 h-1.5 rounded-full" style={{ backgroundColor: COLORS.primary }} />
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS.accent }} />
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS.accent }} />
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {showInvoiceModal && request && (
-        <InvoiceModal
-          request={request}
-          requestId={requestId}
-          onClose={() => setShowInvoiceModal(false)}
-          onSubmitted={(updated) => {
-            setRequest(updated);
-            setProgress(3);
-            setShowInvoiceModal(false);
-            setShowSuccessModal(true);
-          }}
-        />
-      )}
-
-      {showSuccessModal && (
-        <SuccessModal
-          onClose={() => setShowSuccessModal(false)}
-          onBackToOrders={() => router.push("/technician/orders")}
-        />
-      )}
+        {showSuccessModal && (
+          <SuccessModal
+            onClose={() => setShowSuccessModal(false)}
+            onBackToOrders={() => router.push("/technician/orders")}
+          />
+        )}
       </div>
     </>
   );
@@ -306,12 +358,16 @@ function SuccessModal({
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="mt-8 text-2xl font-extrabold sm:text-3xl" style={{ color: COLORS.primary }}>
+        <h2
+          className="mt-8 text-2xl font-extrabold sm:text-3xl"
+          style={{ color: COLORS.primary }}
+        >
           تم إرسال الفاتورة!
         </h2>
 
         <p className="mx-auto mt-5 max-w-[310px] text-sm leading-7 text-gray-500">
-          تم إرسال الفاتورة إلى العميل لمراجعتها واعتمادها. سيتم إشعارك فور اتخاذ أي إجراء.
+          تم إرسال الفاتورة إلى العميل لمراجعتها واعتمادها. سيتم إشعارك فور
+          اتخاذ أي إجراء.
         </p>
 
         <div
@@ -322,7 +378,11 @@ function SuccessModal({
             className="flex h-[82px] w-[82px] items-center justify-center rounded-full"
             style={{ backgroundColor: COLORS.accent }}
           >
-            <Check className="h-9 w-9" style={{ color: COLORS.primary }} strokeWidth={2.5} />
+            <Check
+              className="h-9 w-9"
+              style={{ color: COLORS.primary }}
+              strokeWidth={2.5}
+            />
           </div>
         </div>
 
@@ -367,8 +427,10 @@ function InvoiceModal({
     try {
       const body: Record<string, unknown> = {
         servicePrice,
-        completionNote: notes,
       };
+      if (notes.trim()) {
+        body.completionNote = notes;
+      }
       if (hasSupplies) {
         body.extraMaterialsPrice = materialsPrice;
       }
@@ -392,7 +454,10 @@ function InvoiceModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div dir="rtl" className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+      <div
+        dir="rtl"
+        className="bg-white rounded-2xl w-full max-w-md p-6 relative"
+      >
         <button
           onClick={onClose}
           className="absolute top-5 left-5 text-gray-400 hover:text-gray-600"
@@ -411,7 +476,9 @@ function InvoiceModal({
         <div className="flex flex-col gap-5">
           {/* عنوان الخدمة */}
           <div>
-            <label className="text-sm text-gray-500 block mb-2">عنوان الخدمة</label>
+            <label className="text-sm text-gray-500 block mb-2">
+              عنوان الخدمة
+            </label>
             <div
               className="flex items-center justify-between rounded-lg px-4 py-3"
               style={{ backgroundColor: COLORS.secondary }}
@@ -419,7 +486,10 @@ function InvoiceModal({
               <span className="text-sm" style={{ color: COLORS.primary }}>
                 {request.serviceId?.name}
               </span>
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.accent }} />
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: COLORS.accent }}
+              />
             </div>
           </div>
 
@@ -449,7 +519,9 @@ function InvoiceModal({
           {/* مستلزمات اضافية */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-500">مستلزمات اضافية (اختياري)</label>
+              <label className="text-sm text-gray-500">
+                مستلزمات اضافية (اختياري)
+              </label>
               <button
                 type="button"
                 onClick={() => setHasSupplies((v) => !v)}
@@ -496,7 +568,10 @@ function InvoiceModal({
           {/* الإجمالي */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-4">
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold" style={{ color: COLORS.primary }}>
+              <span
+                className="text-2xl font-bold"
+                style={{ color: COLORS.primary }}
+              >
                 {total}
               </span>
               <span className="text-sm text-gray-500">جنيه</span>
