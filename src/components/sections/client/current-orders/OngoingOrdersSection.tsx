@@ -1,31 +1,66 @@
 "use client";
 
-import { Clock, Star, MapPin } from "lucide-react";
+import ActiveOrderCard from "./ActiveOrderCard"
+import { MapPin } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Order {
   _id: string;
-  title: string;
-  status: "pending" | "accepted" | "in-progress" | "completed" | "cancelled";
+
+  status:
+    | "pending"
+    | "accepted"
+    | "in-progress"
+    | "completed"
+    | "cancelled";
+
   preferredDate: string;
   preferredTime: string;
+
   createdAt: string;
-  address?: {
+  updatedAt: string;
+
+  depositAmount: number;
+  depositStatus: "paid" | "unpaid";
+
+  totalPrice: number;
+  isFullyPaid: boolean;
+
+  notes: string;
+
+  address: {
     fullAddress: string;
     district: string;
-    coordinates?: { lat: number; lng: number };
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
   };
-  categoryId?: { _id: string; name: string; image: string };
-  serviceId?: {
+
+  categoryId: {
     _id: string;
     name: string;
-    priceRange?: { min: number; max: number }; 
+    image?: string;
   };
-  assignedTechnician?: { _id: string; fullName: string; phone: string };
-  technicianRating?: number;
-  technicianReviews?: number;
-  technicianSpecialty?: string;
+
+  serviceId: {
+    _id: string;
+    name: string;
+    priceRange?: {
+      min: number;
+      max: number;
+    };
+  };
+
+  assignedTechnician?: {
+    _id: string;
+    fullName: string;
+    phone: string;
+
+    averageRating?: number;
+    yearsOfExperience?: number;
+  };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -105,88 +140,82 @@ function OrderMeta({ order }: { order: Order }) {
 }
 
 // ─── Active Card ──────────────────────────────────────────────────────────────
+// function ActiveOrderCard({ order }: { order: Order }) {
+//   const technicianInitial =
+//     order.assignedTechnician?.fullName?.charAt(0) ?? "ه";
 
-function ActiveOrderCard({ order }: { order: Order }) {
-  const technicianInitial =
-    order.assignedTechnician?.fullName?.charAt(0) ?? "ه";
+//   return (
+//     <div
+//       className="border-2 border-[var(--accent-color)] rounded-2xl p-5 bg-white"
+//       dir="rtl"
+//     >
+//       {/* Header */}
+//       <div className="flex items-start justify-between mb-4">
+//         <div className="">
+//           <h3 className="font-bold text-[var(--primary-color)] text-base">
+//             {order.serviceId?.name}
+//           </h3>
+//           {order.categoryId?.name && (
+//             <span className="text-xs text-gray-400">
+//               {order.categoryId.name}
+//             </span>
+//           )}
+//         </div>
+//         <div className="flex items-center gap-2">
+//           <StatusBadge status={order.status} />
+//           <button className="text-gray-300 hover:text-gray-500">⋮</button>
+//         </div>
+//       </div>
 
-  return (
-    <div
-      className="border-2 border-[var(--accent-color)] rounded-2xl p-5 bg-white"
-      dir="rtl"
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="">
-          <h3 className="font-bold text-[var(--primary-color)] text-base">
-            {order.serviceId?.name ?? order.title}
-          </h3>
-          {order.categoryId?.name && (
-            <span className="text-xs text-gray-400">
-              {order.categoryId.name}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={order.status} />
-          <button className="text-gray-300 hover:text-gray-500">⋮</button>
-        </div>
-      </div>
+//       <OrderMeta order={order} />
 
-      <OrderMeta order={order} />
+//       {/* عروض الفنيين */}
+//       <div>
+//         <p className="text-sm font-bold text-[var(--primary-color)] mb-3">
+//           عروض الفنيين
+//         </p>
 
-      {/* عروض الفنيين */}
-      <div>
-        <p className="text-sm font-bold text-[var(--primary-color)] mb-3">
-          عروض الفنيين
-        </p>
+//         {/* الصف الأول: دفع العربون + بيانات الفني */}
+//         <div className="flex items-center justify-between mb-4">
+//           <div className="flex items-center gap-2">
+//             <div className="w-10 h-10 rounded-full bg-[var(--secondary-color)] flex items-center justify-center text-[var(--primary-color)] text-sm font-bold flex-shrink-0">
+//               {technicianInitial}
+//             </div>
+//             <div className="text-right">
+//               <p className="font-bold text-sm text-[var(--primary-color)]">
+//                 {order.assignedTechnician?.fullName ?? "—"}
+//               </p>
+//               <div className="flex items-center gap-1">
+//                 <span className="text-xs text-gray-400">
+//                   {order.assignedTechnician?.averageRating ?? '0'}
+//                 </span>
+//                 <Star size={12} className="text-yellow-400 fill-yellow-400" />
+//               </div>
+//             </div>
+//           </div>
 
-        <div className="flex items-center justify-between mb-3">
-          <button className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-2 rounded-full">
-            دفع العربون
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              {/* {order.technicianReviews && ( */}
-              <span className="text-xs text-gray-400">
-                ({order.technicianReviews}) technicianReviews
-              </span>
-              {/* )} */}
-              {order.technicianRating && (
-                <>
-                  <span className="text-xs font-bold text-[var(--primary-color)]">
-                    {order.technicianRating} technicianRating
-                  </span>
-                  <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                </>
-              )}
-              <span className="font-bold text-sm text-[var(--primary-color)]">
-                {order.assignedTechnician?.fullName ?? "fullName"}
-              </span>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-[var(--primary-color)] flex items-center justify-center text-white text-sm font-bold">
-              {technicianInitial}
-            </div>
-          </div>
-        </div>
+//           <button className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-2.5 rounded-full whitespace-nowrap">
+//             دفع العربون
+//           </button>
+//         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-xs text-[var(--primary-color)]">
-            <Clock size={12} />
-            <span>يمكنه الوصول خلال 30 دقيقة</span> 
-          </div>
-          {order.technicianSpecialty && (
-            <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-full">
-              <span className="text-xs text-gray-500">
-                {order.technicianSpecialty}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+//         {/* الصف الثاني: محادثة */}
+//         <div className="flex justify-end gap-1 mb-4">
+//           <button className="flex items-center gap-1.5 text-xs text-gray-500 border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 transition-all">
+//             <span>محادثة</span>
+//           </button>
+//           <button className="flex items-center gap-1.5 text-xs text-gray-500 border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 transition-all">
+//             <User size={16} className="text-[var-(--primary-color)]"/>
+//           </button>
+//         </div>
+
+//         <p className="text-sm text-gray-500 text-right mb-3">
+//           خبرة {order.assignedTechnician?.yearsOfExperience ?? "5"} سنوات في أعمال {order.categoryId.name}
+//         </p>
+//       </div>
+//     </div>
+//   );
+// }
 
 // ─── Pending Card ─────────────────────────────────────────────────────────────
 function PendingOrderCard({ order }: { order: Order }) {
@@ -236,7 +265,10 @@ interface Props {
 
 export default function OngoingOrdersSection({ orders }: Props) {
   const ongoingOrders = orders.filter(
-    (o) => o.status === "in-progress" || o.status === "pending",
+    (o) =>
+      o.status === "accepted" ||
+      o.status === "in-progress" ||
+      o.status === "pending",
   );
 
   return (
@@ -253,7 +285,7 @@ export default function OngoingOrdersSection({ orders }: Props) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {ongoingOrders.map((order) =>
-            order.status === "in-progress" ? (
+            order.status === "accepted" || order.status === "in-progress" ? (
               <ActiveOrderCard key={order._id} order={order} />
             ) : (
               <PendingOrderCard key={order._id} order={order} />

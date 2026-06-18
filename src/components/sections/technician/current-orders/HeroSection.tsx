@@ -17,7 +17,7 @@ export default function HeroSection() {
       <div className="relative z-10 flex items-center justify-start px-8 md:px-16 lg:px-24 pb-16 pt-4">
         <div className="text-right">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-            الطلبات الحالية          
+            الطلبات الواردة          
           </h1>
           <p className="max-w-md text-white/80 text-sm md:text-base leading-relaxed">
             تصفح الطلبات الشائعة أو المخصصة وقدّم عرضك المناسب          

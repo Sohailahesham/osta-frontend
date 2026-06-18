@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserDashboard } from "@/api/services/Dashboard.service";
+import { api } from "@/api/axios";
 import OngoingOrdersSection, { Order } from "@/components/sections/client/current-orders/OngoingOrdersSection";
 import LatestCompletedOrdersSection from "@/components/sections/client/current-orders/LatestCompletedOrdersSection";
 import HeroSection from "@/components/sections/client/current-orders/HeroSection";
@@ -11,8 +11,8 @@ export default function OrdersPage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
-    getUserDashboard()
-      .then((res) => setOrders(res.data.data.recentRequests))
+    api.get("/requests/my")
+      .then((res) => setOrders(res.data.data))
       .catch(console.error)
       .finally(() => setLoadingOrders(false));
   }, []);
