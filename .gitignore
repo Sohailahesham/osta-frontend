@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Github
+git checkout main
+git pull origin main
+
+git checkout -b feature/home-page
+
+# شغل
+
+git add .
+git commit -m "setup project structure"
+
+git push origin feature/project-setup
