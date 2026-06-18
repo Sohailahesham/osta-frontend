@@ -274,12 +274,11 @@ function ActiveServiceCard({ request, onRetry }: { request: AssignedRequest; onR
               className="min-w-[110px] bg-[var(--accent-color)] px-5 py-2 text-sm font-bold text-[var(--primary-color)] hover:bg-[var(--accent-hover)]"
               onClick={async () => {
                 if (request.status === "in_progress") {
-                  console.log("requestId:", request._id);
-                  console.log("status:", request.status);
                   await markRequestOnTheWay(request._id.toString());
                   onRetry();
+                  router.push(`/technician/tracking/${request._id}`);
                 } else {
-                  router.push("/technician/orders");
+                  router.push(`/technician/tracking/${request._id}`);
                 }
               }}
             >

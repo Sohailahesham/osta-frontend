@@ -38,3 +38,7 @@ export const getAssignedRequests = async (): Promise<AssignedRequestsResult> => 
 
     return {data, meta};
 };
+
+export const markRequestOnTheWay = async (id: string) => {
+    return await api.patch(`/requests/${id}/on-the-way`);
+};
