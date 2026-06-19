@@ -68,14 +68,14 @@ export default function Navbar() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => router.push("/client/direct-messages")}
-              className="relative w-9 h-9 flex items-center justify-center"
+              onClick={() => router.push("/technician/direct-messages")}
+              className="relative flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
             >
               <Image src={dmsIcon} alt="DMs" width={24} height={24} />
 
               {total > 0 && (
-                <span className="absolute -top-1 -left-1 z-50 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
-                  {total}
+                <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                  {total > 9 ? "9+" : total}
                 </span>
               )}
             </button>
@@ -86,8 +86,9 @@ export default function Navbar() {
               <Image
                 src={bellIcon}
                 alt="Notifications"
-                width={24}
-                height={24}
+                width={20}
+                height={20}
+                className="text-gray-500 hover:text-[#112D27]"
               />
             </button>
             <button

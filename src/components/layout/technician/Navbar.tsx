@@ -143,7 +143,7 @@ export default function Navbar() {
             >
               <Image src={dmsIcon} alt="DMs" width={24} height={24} />
               {total > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
                   {total > 9 ? "9+" : total}
                 </span>
               )}
@@ -155,8 +155,8 @@ export default function Navbar() {
               <Image
                 src={bellIcon}
                 alt="Notifications"
-                width={24}
-                height={24}
+                width={20}
+                height={20}
               />
             </button>
             <button

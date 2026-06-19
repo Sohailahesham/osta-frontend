@@ -129,9 +129,6 @@ const getPriceLabel = (request: AssignedRequest) => {
   return "غير محدد";
 };
 
-const getDurationLabel = (request: AssignedRequest) =>
-  request.postId?.acceptedProposal?.estimatedTime || "المدة غير متاحة";
-
 const getPrimaryTitle = (request: AssignedRequest) =>
   request.serviceId?.name ||
   request.postId?.title ||
@@ -296,17 +293,11 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
       </div>
 
       {/* Location row */}
-      <div className="mt-4 flex items-center gap-2 text-sm text-[#70817C]">
-        <MapPin size={16} className="shrink-0 text-[#B3E718]" />
-        <span>{getLocationLabel(request)}</span>
-      </div>
-
-      {/* Bottom row */}
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#EEF2F1] pt-4">
-        <div className="flex items-center gap-1.5 text-sm text-[#70817C]">
-          <Clock3 size={15} className="shrink-0 text-[#95A4A0]" />
-          <span>{getDurationLabel(request)}</span>
-        </div>
+      <div className="mt-4 flex items-center justify-between gap-2 text-sm text-[#70817C]">
+        <span className="flex items-center gap-2">
+          <MapPin size={16} className="shrink-0 text-[#B3E718]" />
+          <span>{getLocationLabel(request)}</span>
+        </span>
         <ChatButton requestId={request._id} role="technician" />
       </div>
     </article>
