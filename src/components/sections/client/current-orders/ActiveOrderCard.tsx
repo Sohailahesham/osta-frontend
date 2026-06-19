@@ -39,7 +39,6 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
           </div>
         </div>
 
-        {/* Meta */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="bg-[#F8FAF9] rounded-xl p-2">
             <p className="text-xs text-gray-400 mb-1">نطاق السعر</p>
@@ -64,7 +63,6 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
           </div>
         </div>
 
-        {/* Technician */}
         <div>
           <p className="text-sm font-bold text-[var(--primary-color)] mb-3">
             عروض الفنيين
@@ -106,9 +104,7 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
           </div>
 
           <div className="flex justify-end gap-1 mb-3">
-            <button className="flex items-center gap-1.5 text-xs text-gray-500 border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 transition-all">
-              محادثة
-            </button>
+            <ChatButton requestId={order._id} role="client" />
             <button className="flex items-center gap-1.5 text-xs text-gray-500 border border-gray-200 px-3 py-2 rounded-full hover:bg-gray-50 transition-all">
               <User size={14} />
             </button>
@@ -121,7 +117,6 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
         </div>
       </div>
 
-      {/* Deposit Modal */}
       {showDepositModal && (
         <DepositModal
           requestId={order._id}
@@ -138,3 +133,4 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
     </>
   );
 }
+

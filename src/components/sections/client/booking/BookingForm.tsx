@@ -8,6 +8,7 @@ import visaLogo from "@/assets/images/visa.jpeg";
 import depositIcon from "@/assets/icons/depositIcon.svg";
 import Image from "next/image";
 import { validateBookingForm } from "@/validators/bookingForm.validators";
+import moneyIcon from "@/assets/icons/money.svg";
 
 interface Props {
   selectedDate: string;
@@ -90,6 +91,17 @@ export default function BookingForm({
   const [paymentMethod, setPaymentMethod] = useState("");
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
+  const todaySelected = isToday(selectedDate);
+  const currentHour = new Date().getHours();
+
+  // الـ slot بيتعتبر "فات" بس لو اليوم المختار النهاردة والساعة بتاعته
+  // أقل من أو تساوي الساعة الحالية (مش متاح تحجز نفس الساعة الجارية)
+  const isSlotPast = (slot: string) => {
+    if (!todaySelected) return false;
+    const slotHour = slotToHour24(slot);
+    return slotHour <= currentHour;
+  };
+
   const displayDate = selectedDate
     ? new Date(selectedDate).toLocaleDateString("ar-EG", {
         weekday: "long",
@@ -99,6 +111,16 @@ export default function BookingForm({
     : "";
 
   const handleSubmit = () => {
+    // لو الوقت المختار بقى في الماضي (مثلاً المستخدم سايب الفورم فاتح لفترة)
+    if (selectedTime && isSlotPast(selectedTime)) {
+      setErrors((prev) => ({
+        ...prev,
+        selectedTime: "هذا الموعد لم يعد متاحاً، اختر موعداً آخر",
+      }));
+      onTimeChange("");
+      return;
+    }
+
     const fieldErrors = validateBookingForm({
       district,
       fullAddress,
@@ -266,6 +288,7 @@ export default function BookingForm({
           <span className="text-sm text-gray-500">
             {service.depositAmount ?? "50"}
           </span>
+          <Image src={moneyIcon} alt="money" width={16} height={16} />
         </div>
       </div>
 
@@ -341,3 +364,4 @@ export default function BookingForm({
     </div>
   );
 }
+

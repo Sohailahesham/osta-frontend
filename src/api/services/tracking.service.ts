@@ -1,33 +1,65 @@
+import { api } from "@/api/axios";
 import { TechnicianRequest } from "@/types/tracking.types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ;
+type TrackingApiPayload<T> =
+  | T
+  | {
+      success?: boolean;
+      message?: string;
+      data?: T;
+    };
 
-function authHeaders() {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+function unwrapPayload<T>(payload: TrackingApiPayload<T>): T {
+  if (payload && typeof payload === "object" && "data" in payload && payload.data) {
+    return payload.data;
+  }
+
+  return payload as T;
 }
 
-async function patchRequest(url: string, body?: object): Promise<TechnicianRequest> {
-  const res = await fetch(url, {
-    method: "PATCH",
-    headers: authHeaders(),
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  const json = await res.json();
-  if (!res.ok || !json.success) throw new Error(json.message || "حصل خطأ");
-  return json.data;
+function getErrorMessage(error: unknown): string {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "data" in error.response
+  ) {
+    const responseData = error.response.data as { message?: string };
+    if (responseData?.message) {
+      return responseData.message;
+    }
+  }
+
+  return error instanceof Error ? error.message : "حصل خطأ";
+}
+
+async function patchRequest(
+  url: string,
+  body?: object,
+): Promise<TechnicianRequest> {
+  try {
+    const response = await api.patch<TrackingApiPayload<TechnicianRequest>>(url, body ?? {});
+    return unwrapPayload(response.data);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
 }
 
 export const trackingApi = {
-  onTheWay: (id: string) =>
-    patchRequest(`${BASE_URL}/requests/${id}/on-the-way`),
+  getById: async (id: string) => {
+    try {
+      const response = await api.get<TrackingApiPayload<TechnicianRequest>>(`/requests/${id}`);
+      return unwrapPayload(response.data);
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
 
-  start: (id: string) =>
-    patchRequest(`${BASE_URL}/requests/${id}/start`),
+  onTheWay: (id: string) => patchRequest(`/requests/${id}/on-the-way`),
+
+  start: (id: string) => patchRequest(`/requests/${id}/start`),
 
   complete: (
     id: string,
@@ -35,6 +67,6 @@ export const trackingApi = {
       servicePrice: number;
       completionNote?: string;
       extraMaterialsPrice?: number;
-    }
-  ) => patchRequest(`${BASE_URL}/requests/${id}/complete`, body),
+    },
+  ) => patchRequest(`/requests/${id}/complete`, body),
 };
