@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Camera } from "lucide-react";
+import { MapPin } from "lucide-react";
 import vodafoneLogo from "@/assets/images/vodafone-cash.jpeg";
 import instapayLogo from "@/assets/images/instapay.jpeg";
 import visaLogo from "@/assets/images/visa.jpeg";
+import depositIcon from "@/assets/icons/depositIcon.svg";
 import Image from "next/image";
 import { validateBookingForm } from "@/validators/bookingForm.validators";
 
@@ -19,9 +20,9 @@ interface Props {
     priceRange: {
       min: number | string;
       max: number | string;
-    },
-    depositAmount: number,
-  }
+    };
+    depositAmount: number;
+  };
 }
 
 export interface LocationData {
@@ -38,10 +39,42 @@ const PAYMENT_METHODS = [
 ];
 
 const TIME_SLOTS = [
-  "8:00 ص", "9:00 ص", "10:00 ص", "11:00 ص",
-  "12:00 م", "1:00 م", "2:00 م", "3:00 م",
-  "4:00 م", "5:00 م", "6:00 م", "7:00 م",
+  "8:00 ص",
+  "9:00 ص",
+  "10:00 ص",
+  "11:00 ص",
+  "12:00 م",
+  "1:00 م",
+  "2:00 م",
+  "3:00 م",
+  "4:00 م",
+  "5:00 م",
+  "6:00 م",
+  "7:00 م",
 ];
+
+// تحويل الوقت العربي لدقائق عشان نقدر نقارن
+const slotToMinutes = (slot: string): number => {
+  const isAM = slot.includes("ص");
+  const timePart = slot.replace("ص", "").replace("م", "").trim();
+  const [h] = timePart.split(":");
+  let hours = parseInt(h);
+  if (!isAM && hours !== 12) hours += 12;
+  if (isAM && hours === 12) hours = 0;
+  return hours * 60;
+};
+
+const isSlotDisabled = (slot: string, selectedDate: string): boolean => {
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
+  // لو التاريخ المختار مش النهارده، كل المواعيد متاحة
+  if (selectedDate !== todayStr) return false;
+
+  // لو النهارده، شيل المواعيد اللي فاتت
+  const nowMinutes = today.getHours() * 60 + today.getMinutes();
+  return slotToMinutes(slot) <= nowMinutes;
+};
 
 export default function BookingForm({
   selectedDate,
@@ -49,7 +82,7 @@ export default function BookingForm({
   onTimeChange,
   onSubmit,
   loading,
-  service
+  service,
 }: Props) {
   const [district, setDistrict] = useState("");
   const [fullAddress, setFullAddress] = useState("");
@@ -94,22 +127,36 @@ export default function BookingForm({
         المواعيد المتاحة
       </h3>
       <div className="grid grid-cols-4 gap-2 mb-1">
-        {TIME_SLOTS.map((slot) => (
-          <button
-            key={slot}
-            onClick={() => { onTimeChange(slot); clearError("selectedTime"); }}
-            className={`py-2.5 px-3 rounded-full border text-[var(--primary-color)] text-xs font-medium transition-all
-              ${selectedTime === slot
-                ? "border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)]"
-                : "border-gray-200 hover:border-gray-300"
-              }`}
-          >
-            {slot}
-          </button>
-        ))}
+        {TIME_SLOTS.map((slot) => {
+          const disabled = isSlotDisabled(slot, selectedDate);
+          return (
+            <button
+              key={slot}
+              onClick={() => {
+                if (!disabled) {
+                  onTimeChange(slot);
+                  clearError("selectedTime");
+                }
+              }}
+              disabled={disabled}
+              className={`py-2.5 px-3 rounded-full border text-xs font-medium transition-all
+        ${
+          disabled
+            ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
+            : selectedTime === slot
+              ? "border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--primary-color)]"
+              : "border-gray-200 text-[var(--primary-color)] hover:border-gray-300"
+        }`}
+            >
+              {slot}
+            </button>
+          );
+        })}
       </div>
       {errors.selectedTime && (
-        <p className="text-red-500 text-xs text-right mb-4 mt-1">{errors.selectedTime}</p>
+        <p className="text-red-500 text-xs text-right mb-4 mt-1">
+          {errors.selectedTime}
+        </p>
       )}
       {!errors.selectedTime && <div className="mb-6" />}
 
@@ -119,13 +166,17 @@ export default function BookingForm({
       </h3>
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-400 text-right">الحد الأدنى</label>
+          <label className="text-xs text-gray-400 text-right">
+            الحد الأدنى
+          </label>
           <div className="border border-gray-200 rounded-full px-4 py-3 text-center text-sm text-gray-500">
             {service.priceRange.min}
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-400 text-right">الحد الأقصى</label>
+          <label className="text-xs text-gray-400 text-right">
+            الحد الأقصى
+          </label>
           <div className="border border-gray-200 rounded-full px-4 py-3 text-center text-sm text-gray-500">
             {service.priceRange.max}
           </div>
@@ -140,12 +191,17 @@ export default function BookingForm({
           </label>
           <input
             value={district}
-            onChange={(e) => { setDistrict(e.target.value); clearError("district"); }}
+            onChange={(e) => {
+              setDistrict(e.target.value);
+              clearError("district");
+            }}
             placeholder="مثال: حي الزهرة"
             className={`border rounded-full px-4 py-3 text-sm text-right outline-none placeholder:text-gray-300 transition-all
               ${errors.district ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-[var(--accent-color)]"}`}
           />
-          {errors.district && <p className="text-red-500 text-xs text-right">{errors.district}</p>}
+          {errors.district && (
+            <p className="text-red-500 text-xs text-right">{errors.district}</p>
+          )}
         </div>
 
         {/* العنوان */}
@@ -155,18 +211,27 @@ export default function BookingForm({
           </label>
           <input
             value={fullAddress}
-            onChange={(e) => { setFullAddress(e.target.value); clearError("fullAddress"); }}
+            onChange={(e) => {
+              setFullAddress(e.target.value);
+              clearError("fullAddress");
+            }}
             placeholder="مثال: شارع الملك فهد، البناية 12"
             className={`border rounded-full px-4 py-3 text-sm text-right outline-none placeholder:text-gray-300 transition-all
               ${errors.fullAddress ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-[var(--accent-color)]"}`}
           />
-          {errors.fullAddress && <p className="text-red-500 text-xs text-right">{errors.fullAddress}</p>}
+          {errors.fullAddress && (
+            <p className="text-red-500 text-xs text-right">
+              {errors.fullAddress}
+            </p>
+          )}
         </div>
       </div>
 
       {/* الموقع التفصيلي */}
       <div className="flex flex-col gap-1.5 mb-4">
-        <label className="text-sm font-semibold text-[var(--primary-color)]">الموقع التفصيلي</label>
+        <label className="text-sm font-semibold text-[var(--primary-color)]">
+          الموقع التفصيلي
+        </label>
         <div className="border border-gray-200 rounded-full px-4 py-3 flex items-center gap-2">
           <MapPin size={16} className="text-gray-300 flex-shrink-0" />
           <input
@@ -179,7 +244,8 @@ export default function BookingForm({
       {/* ملاحظات */}
       <div className="flex flex-col gap-1.5 mb-4">
         <label className="text-sm font-semibold text-[var(--primary-color)]">
-          ملاحظات إضافية <span className="text-gray-400 font-normal">(اختياري)</span>
+          ملاحظات إضافية{" "}
+          <span className="text-gray-400 font-normal">(اختياري)</span>
         </label>
         <textarea
           value={notes}
@@ -196,9 +262,9 @@ export default function BookingForm({
           قيمة العربون <span className="text-gray-400 font-normal">(جنية)</span>
         </label>
         <div className="border border-gray-200 rounded-full px-6 py-3 flex items-center gap-2 w-52">
-          <Camera size={16} className="text-gray-400" />
+          <Image src={depositIcon} alt="depositIcon" width={16} height={16} />
           <span className="text-sm text-gray-500">
-            {service.depositAmount ?? "50" }
+            {service.depositAmount ?? "50"}
           </span>
         </div>
       </div>
@@ -212,15 +278,21 @@ export default function BookingForm({
           {PAYMENT_METHODS.map((method) => (
             <div key={method.id} className="relative">
               <button
-                onClick={() => { if (!method.disabled) { setPaymentMethod(method.id); clearError("paymentMethod"); } }}
+                onClick={() => {
+                  if (!method.disabled) {
+                    setPaymentMethod(method.id);
+                    clearError("paymentMethod");
+                  }
+                }}
                 className={`w-full h-16 border-2 rounded-2xl flex items-center justify-center transition-all
-                  ${method.disabled
-                    ? "cursor-not-allowed border-gray-200"
-                    : paymentMethod === method.id
-                      ? "border-[var(--accent-color)]"
-                      : errors.paymentMethod
-                        ? "border-red-300 hover:border-red-400"
-                        : "border-gray-200 hover:border-gray-300"
+                  ${
+                    method.disabled
+                      ? "cursor-not-allowed border-gray-200"
+                      : paymentMethod === method.id
+                        ? "border-[var(--accent-color)]"
+                        : errors.paymentMethod
+                          ? "border-red-300 hover:border-red-400"
+                          : "border-gray-200 hover:border-gray-300"
                   }`}
               >
                 <div className="relative w-full h-full px-3 py-2">
@@ -239,23 +311,28 @@ export default function BookingForm({
           ))}
         </div>
         {errors.paymentMethod && (
-          <p className="text-red-500 text-xs text-right">{errors.paymentMethod}</p>
+          <p className="text-red-500 text-xs text-right">
+            {errors.paymentMethod}
+          </p>
         )}
       </div>
 
       {/* ملخص الموعد + زرار الإرسال */}
       <div className="bg-[var(--secondary-color)] rounded-2xl p-4 flex items-center justify-between">
         <div className="text-right">
-          <p className="font-bold text-[var(--primary-color)] text-sm">{displayDate}</p>
+          <p className="font-bold text-[var(--primary-color)] text-sm">
+            {displayDate}
+          </p>
           <p className="text-gray-400 text-xs">الساعة {selectedTime}</p>
         </div>
         <button
           onClick={handleSubmit}
           disabled={loading}
           className={`px-8 py-3 rounded-full font-bold text-sm transition-all
-            ${!loading
-              ? "bg-[var(--accent-color)] text-[var(--primary-color)] hover:opacity-90"
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            ${
+              !loading
+                ? "bg-[var(--accent-color)] text-[var(--primary-color)] hover:opacity-90"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
         >
           {loading ? "جاري الإرسال..." : "إرسال الطلب"}
