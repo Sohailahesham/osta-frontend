@@ -11,15 +11,14 @@ interface Props {
 
 const doneLabels: Record<string, string> = {
   on_the_way: "وصلت وجهتك",
-  in_progress: "تم تنفيذ الخدمة",
+  started: "تم تنفيذ الخدمة",
   completed: "تم إنهاء العمل",
 };
 
 const activeHelp: Record<string, string> = {
   on_the_way: "في الطريق",
-  in_progress: "في انتظار انتهاء الخدمة...",
-  completed:
-    "بعد الانتهاء من تنفيذ الخدمة، اضغط على إنهاء العمل للانتقال إلى الخطوة التالية.",
+  started: "في انتظار انتهاء الخدمة...",
+  completed: "بعد الانتهاء من تنفيذ الخدمة، اضغط على إنهاء العمل للانتقال إلى الخطوة التالية.",
 };
 
 function formatTime(time?: string) {
@@ -40,14 +39,13 @@ export default function TrackingStepCards({ progress, request }: Props) {
   const address = request?.address?.fullAddress || request?.address?.district;
   const customerName = request?.userId?.fullName ?? " ";
   const serviceName = request?.serviceId?.name;
-  const finalPrice = request?.servicePrice ?? request?.totalPrice;
+  const finalPrice =
+    request?.totalPrice ??
+    ((request?.servicePrice ?? 0) + (request?.extraMaterialsPrice ?? 0));
   const time = formatTime(request?.preferredTime);
 
   return (
-    <section
-      dir="rtl"
-      className="-mx-4 mt-8 px-4 py-9 sm:-mx-6 sm:px-6"
-    >
+    <section dir="rtl" className="-mx-4 mt-8 px-4 py-9 sm:-mx-6 sm:px-6">
       <div className="mx-auto flex max-w-[805px] flex-col gap-9">
         {STEPS.map((step, index) => {
           const isComplete = progress >= STEPS.length;
@@ -122,7 +120,7 @@ export default function TrackingStepCards({ progress, request }: Props) {
 
                 {isActive ? (
                   <span className="rounded-full bg-[var(--primary-color)] px-4 py-1.5 text-xs font-bold text-white">
-                    جار الآن
+                    جاري الآن
                     <span className="ms-2 inline-block h-2 w-2 rounded-full bg-[var(--accent-color)] align-middle" />
                   </span>
                 ) : (
@@ -167,7 +165,7 @@ export default function TrackingStepCards({ progress, request }: Props) {
         })}
 
         {progress >= STEPS.length && (
-          <article className="rounded-[18px] border border-[var(--accent-color)] bg-[#E8F8BA] px-5 mt-10 py-5 shadow-[0_18px_34px_rgba(179,231,24,0.12)]">
+          <article className="mt-10 rounded-[18px] border border-[var(--accent-color)] bg-[#E8F8BA] px-5 py-5 shadow-[0_18px_34px_rgba(179,231,24,0.12)]">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-baseline gap-1 rounded-full px-5 py-3">
                 <span className="text-4xl font-extrabold text-[var(--primary-color)]">
@@ -182,7 +180,6 @@ export default function TrackingStepCards({ progress, request }: Props) {
                 <p className="text-sm font-bold text-[var(--gray-color)]">
                   الاجمالي
                 </p>
-                
               </div>
             </div>
           </article>

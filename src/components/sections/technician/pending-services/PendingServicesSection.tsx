@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { AssignedRequest, RequestStatus } from "@/types/request.types";
+import ChatButton from "../../client/direct-messages/ChatButton";
 
 type PendingFilter = "all" | "awaiting-client" | "awaiting-deposit";
 
@@ -20,10 +21,7 @@ const FILTER_RENDER_ORDER: PendingFilter[] = [
   "all",
 ];
 
-const PENDING_STATUSES: RequestStatus[] = [
-  "pending",
-  "accepted",
-];
+const PENDING_STATUSES: RequestStatus[] = ["pending", "accepted"];
 
 const FILTER_LABELS: Record<PendingFilter, string> = {
   all: "الكل",
@@ -131,11 +129,11 @@ const getPriceLabel = (request: AssignedRequest) => {
   return "غير محدد";
 };
 
-const getDurationLabel = (request: AssignedRequest) =>
-  request.postId?.acceptedProposal?.estimatedTime || "المدة غير متاحة";
-
 const getPrimaryTitle = (request: AssignedRequest) =>
-  request.serviceId?.name || request.postId?.title || request.title || "خدمة بدون عنوان";
+  request.serviceId?.name ||
+  request.postId?.title ||
+  request.title ||
+  "خدمة بدون عنوان";
 
 const getCategoryLabel = (request: AssignedRequest) =>
   request.serviceId?.name ? "خدمة شائعة" : "خدمة مخصصة";
@@ -143,7 +141,9 @@ const getCategoryLabel = (request: AssignedRequest) =>
 const getLocationLabel = (request: AssignedRequest) =>
   request.address?.district ||
   request.address?.fullAddress ||
-  [request.userId?.city, request.userId?.governorate].filter(Boolean).join("، ") ||
+  [request.userId?.city, request.userId?.governorate]
+    .filter(Boolean)
+    .join("، ") ||
   "العنوان غير متاح";
 
 const getRequestSummary = (request: AssignedRequest) =>
@@ -154,12 +154,16 @@ const getRequestSummary = (request: AssignedRequest) =>
 const isPendingRequest = (request: AssignedRequest) =>
   PENDING_STATUSES.includes(request.status);
 
-const isAwaitingClient = (request: AssignedRequest) => request.status === "pending";
+const isAwaitingClient = (request: AssignedRequest) =>
+  request.status === "pending";
 
 const isAwaitingDeposit = (request: AssignedRequest) =>
   request.status === "accepted" || request.depositStatus === "unpaid";
 
-const filterRequestByTab = (request: AssignedRequest, filter: PendingFilter) => {
+const filterRequestByTab = (
+  request: AssignedRequest,
+  filter: PendingFilter,
+) => {
   if (!isPendingRequest(request)) {
     return false;
   }
@@ -224,88 +228,79 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
 
   return (
     <article
-  dir="rtl"
-  className="rounded-[20px] border border-[#EAEAEA] bg-white p-5 text-right shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
->
-  {/* Header */}
-  <div className="flex items-center justify-between gap-2">
-    {/* Right side: title + category */}
-    <div className="flex min-w-0 flex-1 items-center gap-2">
-      <h3 className="truncate text-[18px] font-bold leading-tight text-[var(--primary-color)]">
-        {getPrimaryTitle(request)}
-      </h3>
-      <span className="shrink-0 rounded-full bg-[#F1F7E7] px-3 py-2 text-xs font-semibold text-[#1C4B41]">
-        {getCategoryLabel(request)}
-      </span>
-    </div>
-
-    {/* Left side: status + menu */}
-    <div className="flex shrink-0 items-center gap-2">
-      <span
-        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${statusStyle.className}`}
-      >
-        <span className={`h-2 w-2 rounded-full ${statusStyle.dotClassName}`} />
-        {statusStyle.label}
-      </span>
-      <button
-        type="button"
-        className="rounded-full p-1 text-[#A7B2AF] transition hover:bg-[#F6F8F7] hover:text-[#526661]"
-        aria-label="خيارات الطلب"
-      >
-        <MoreVertical size={18} />
-      </button>
-    </div>
-  </div>
-
-  {/* Description */}
-  <div className="mt-4">
-    <div className="rounded-2xl border border-[#EDF1EF] bg-[#F8FAF9] px-4 py-4 text-sm leading-7 text-[#5F6E69]">
-      {getRequestSummary(request)}
-    </div>
-  </div>
-
-  {/* Info grid */}
-  <div className="mt-4 grid grid-cols-3 gap-3">
-    <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
-      <p className="text-xs text-[#8B9995]">العميل</p>
-      <p className="mt-1.5 font-bold text-[var(--primary-color)]">{customerName}</p>
-    </div>
-    <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
-      <p className="text-xs text-[#8B9995]">نطاق السعر</p>
-      <p className="mt-1.5 font-bold text-[var(--primary-color)]">{getPriceLabel(request)}</p>
-    </div>
-    <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
-      <p className="text-xs text-[#8B9995]">تاريخ الطلب</p>
-      <p className="mt-1.5 font-bold text-[var(--primary-color)]">
-        {formatDateAndTime(request.preferredDate, request.preferredTime)}
-      </p>
-    </div>
-  </div>
-
-  {/* Location row */}
-  <div className="mt-4 flex items-center gap-2 text-sm text-[#70817C]">
-    <MapPin size={16} className="shrink-0 text-[#B3E718]" />
-    <span>{getLocationLabel(request)}</span>
-  </div>
-
-  {/* Bottom row */}
-  <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#EEF2F1] pt-4">
-    <div className="flex items-center gap-1.5 text-sm text-[#70817C]">
-      <Clock3 size={15} className="shrink-0 text-[#95A4A0]" />
-      <span>{getDurationLabel(request)}</span>
-    </div>
-    <Button
-      variant="outline"
-      className="!px-3 !text-xs !font-medium !text-[#636261] !border-[#EAE9E3] !hover:bg-[#F8FAF9]"
-      onClick={() => router.push("/technician/direct-messages")}
+      dir="rtl"
+      className="rounded-[20px] border border-[#EAEAEA] bg-white p-5 text-right shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
     >
-      <span className="inline-flex items-center gap-2">
-      <MessageCircle size={12} className="text-[#8B908D]" />
-        محادثة
-      </span>
-    </Button>
-  </div>
-</article>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Right side: title + category */}
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <h3 className="truncate text-[18px] font-bold leading-tight text-[var(--primary-color)]">
+            {getPrimaryTitle(request)}
+          </h3>
+          <span className="shrink-0 rounded-full bg-[#F1F7E7] px-3 py-2 text-xs font-semibold text-[#1C4B41]">
+            {getCategoryLabel(request)}
+          </span>
+        </div>
+
+        {/* Left side: status + menu */}
+        <div className="flex shrink-0 items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${statusStyle.className}`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${statusStyle.dotClassName}`}
+            />
+            {statusStyle.label}
+          </span>
+          <button
+            type="button"
+            className="rounded-full p-1 text-[#A7B2AF] transition hover:bg-[#F6F8F7] hover:text-[#526661]"
+            aria-label="خيارات الطلب"
+          >
+            <MoreVertical size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="mt-4">
+        <div className="rounded-2xl border border-[#EDF1EF] bg-[#F8FAF9] px-4 py-4 text-sm leading-7 text-[#5F6E69]">
+          {getRequestSummary(request)}
+        </div>
+      </div>
+
+      {/* Info grid */}
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
+          <p className="text-xs text-[#8B9995]">العميل</p>
+          <p className="mt-1.5 font-bold text-[var(--primary-color)]">
+            {customerName}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
+          <p className="text-xs text-[#8B9995]">نطاق السعر</p>
+          <p className="mt-1.5 font-bold text-[var(--primary-color)]">
+            {getPriceLabel(request)}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
+          <p className="text-xs text-[#8B9995]">تاريخ الطلب</p>
+          <p className="mt-1.5 font-bold text-[var(--primary-color)]">
+            {formatDateAndTime(request.preferredDate, request.preferredTime)}
+          </p>
+        </div>
+      </div>
+
+      {/* Location row */}
+      <div className="mt-4 flex items-center justify-between gap-2 text-sm text-[#70817C]">
+        <span className="flex items-center gap-2">
+          <MapPin size={16} className="shrink-0 text-[#B3E718]" />
+          <span>{getLocationLabel(request)}</span>
+        </span>
+        <ChatButton requestId={request._id} role="technician" />
+      </div>
+    </article>
   );
 }
 
@@ -320,7 +315,13 @@ function LoadingState() {
   );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
   return (
     <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-[#F4D9D9] bg-[#FFF8F8] p-8 text-center">
       <div className="max-w-md">
@@ -348,7 +349,8 @@ function EmptyState() {
           لا توجد خدمات معلقة الآن
         </h3>
         <p className="mt-3 text-sm leading-7 text-[#6B7A76]">
-          ستظهر هنا الطلبات التي ما زالت في انتظار استكمال الخطوات قبل بدء التنفيذ.
+          ستظهر هنا الطلبات التي ما زالت في انتظار استكمال الخطوات قبل بدء
+          التنفيذ.
         </p>
       </div>
     </div>
@@ -378,7 +380,10 @@ export default function PendingServicesSection({
   );
 
   const visibleRequests = useMemo(
-    () => pendingRequests.filter((request) => filterRequestByTab(request, activeFilter)),
+    () =>
+      pendingRequests.filter((request) =>
+        filterRequestByTab(request, activeFilter),
+      ),
     [activeFilter, pendingRequests],
   );
 

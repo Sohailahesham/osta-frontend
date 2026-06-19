@@ -11,7 +11,7 @@ export default function HeroSection() {
       </div>
 
       {/* overlay */}
-      <div className="absolute inset-0 bg-gradient-to-l from-black/60 via-black/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
 
       {/* المحتوى */}
       <div className="relative z-10 flex items-center justify-start px-8 md:px-16 lg:px-24 pb-16 pt-4">
