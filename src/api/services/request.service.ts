@@ -42,3 +42,19 @@ export const getAssignedRequests = async (): Promise<AssignedRequestsResult> => 
 export const markRequestOnTheWay = async (id: string) => {
     return await api.patch(`/requests/${id}/on-the-way`);
 };
+export const getMyRequests = async (): Promise<AssignedRequestsResult> => {
+  const response = await api.get("/requests/my");
+  const payload = response.data as AssignedRequestsApiShape | { data?: AssignedRequestsApiShape };
+
+  const nested = payload && "data" in payload ? payload.data : undefined;
+  const data = isAssignedRequestArray(nested)
+    ? nested
+    : isAssignedRequestArray(nested?.data)
+    ? nested.data
+    : [];
+
+  const meta =
+    nested && !Array.isArray(nested) && "meta" in nested ? nested.meta : undefined;
+
+  return { data, meta };
+};
