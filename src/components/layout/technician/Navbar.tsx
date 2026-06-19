@@ -9,6 +9,9 @@ import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
 import userIcon from "@/assets/icons/user.svg";
+import { useAuth } from "@/hooks/useAuth";
+import { useSocket } from "@/hooks/useSocket";
+import { useUnreadTotal } from "@/hooks/useUnreadTotal";
 
 const NAV_LINKS = [
   { label: "الطلبات الواردة", href: "/technician/orders" },
@@ -35,14 +38,18 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
   const workMenuRef = useRef<HTMLDivElement | null>(null);
+  const { token, userId } = useAuth();
 
   const isWorkRoute = pathname.startsWith("/technician/portfolio");
+
+  const { socket } = useSocket(token);
+  const { total, reset } = useUnreadTotal(socket, userId);
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       if (
-        workMenuRef.current
-        && !workMenuRef.current.contains(event.target as Node)
+        workMenuRef.current &&
+        !workMenuRef.current.contains(event.target as Node)
       ) {
         setWorkMenuOpen(false);
       }
@@ -103,9 +110,9 @@ export default function Navbar() {
                     {WORK_LINKS.map((link) => {
                       const Icon = link.icon;
                       const active =
-                        pathname === link.href
-                        || (link.href === "/technician/portfolio/current"
-                          && pathname === "/technician/portfolio");
+                        pathname === link.href ||
+                        (link.href === "/technician/portfolio/current" &&
+                          pathname === "/technician/portfolio");
 
                       return (
                         <Link
@@ -135,6 +142,11 @@ export default function Navbar() {
               className="flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
             >
               <Image src={dmsIcon} alt="DMs" width={24} height={24} />
+              {total > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                  {total > 9 ? "9+" : total}
+                </span>
+              )}
             </button>
             <button
               onClick={() => router.push("")}

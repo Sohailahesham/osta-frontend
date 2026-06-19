@@ -9,6 +9,9 @@ import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
 import userIcon from "@/assets/icons/user.svg";
+import { useSocket } from "@/hooks/useSocket";
+import { useUnreadTotal } from "@/hooks/useUnreadTotal";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV_LINKS = [
   { label: "الرئيسية", href: "/client/home" },
@@ -20,9 +23,13 @@ const NAV_LINKS = [
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { token, userId } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  
+
+  const { socket } = useSocket(token);
+  const { total, reset } = useUnreadTotal(socket, userId);
+
   return (
     <nav
       className="w-full lg:w-[90%] mx-auto bg-[#FEFEFE70]/50 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
@@ -60,17 +67,28 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => router.push("/client/direct-messages")}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
+              className="relative w-9 h-9 flex items-center justify-center"
             >
               <Image src={dmsIcon} alt="DMs" width={24} height={24} />
+
+              {total > 0 && (
+                <span className="absolute -top-1 -left-1 z-50 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
+                  {total}
+                </span>
+              )}
             </button>
-            <button 
-             onClick={() => router.push("")}
-             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
+            <button
+              onClick={() => router.push("")}
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
             >
-              <Image src={bellIcon} alt="Notifications" width={24} height={24} />
+              <Image
+                src={bellIcon}
+                alt="Notifications"
+                width={24}
+                height={24}
+              />
             </button>
             <button
               onClick={() => router.push("/client/profile")}
