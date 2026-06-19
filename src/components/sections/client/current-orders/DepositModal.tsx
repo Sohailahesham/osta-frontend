@@ -2,6 +2,7 @@
 
 import { api } from "@/api/axios";
 import { X, Star } from "lucide-react";
+import { useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,14 +31,31 @@ export default function DepositModal({
   depositAmount,
   onClose,
 }: DepositModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const handleProceed = async () => {
+    setLoading(true);
+    setError("");
     try {
       const { data } = await api.post(`/payment/deposit/${requestId}`);
-      console.log(data);
-      window.location.href = data.paymentUrl;
-    } catch (error: any) {
-      const message = error.response?.data?.message;
-      console.error(message || "حدث خطأ في الدفع");
+      // الـ response: { success, message, data: { paymentUrl, paymentId } }
+      const paymentUrl = data?.data?.paymentUrl;
+
+      if (!paymentUrl) {
+        setError("لم يتم الحصول على رابط الدفع");
+        setLoading(false);
+        return;
+      }
+
+      // نحفظ الـ requestId عشان نستخدمه بعد ما اليوزر يرجع من بوابة الدفع
+      sessionStorage.setItem("pendingDepositRequestId", requestId);
+
+      window.location.href = paymentUrl;
+    } catch (err: any) {
+      const message = err.response?.data?.message;
+      setError(message || "حدث خطأ في الدفع");
+      setLoading(false);
     }
   };
 
@@ -91,7 +109,7 @@ export default function DepositModal({
                   key={star}
                   size={12}
                   className={
-                    star <= Math.round(technicianRating)
+                    star <= Math.round(technicianRating ?? 0)
                       ? "text-yellow-400 fill-yellow-400"
                       : "text-gray-200 fill-gray-200"
                   }
@@ -135,6 +153,11 @@ export default function DepositModal({
           </div>
         </div>
 
+        {/* Error */}
+        {error && (
+          <p className="text-red-500 text-xs text-center mb-3">{error}</p>
+        )}
+
         {/* Note */}
         <p className="text-xs text-gray-400 text-center mb-5">
           سيتم تحويلك لبوابة الدفع الآمنة لإتمام العملية
@@ -143,10 +166,14 @@ export default function DepositModal({
         {/* CTA */}
         <button
           onClick={handleProceed}
-          className="w-full py-4 rounded-full bg-[var(--accent-color)] text-[var(--primary-color)] font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 transition-all"
+          disabled={loading}
+          className={`w-full py-4 rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all
+            ${loading
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-[var(--accent-color)] text-[var(--primary-color)] hover:opacity-90"
+            }`}
         >
-          متابعة الدفع
-          <span></span>
+          {loading ? "جاري التحويل..." : "متابعة الدفع"}
         </button>
       </div>
     </div>

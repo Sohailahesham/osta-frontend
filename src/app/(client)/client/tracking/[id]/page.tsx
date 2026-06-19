@@ -16,37 +16,48 @@ import {
 /* ============================================================
    Types
    - status القادم من السيرفر بقى 3 قيم بس: on_the_way / started / completed
-   - assignedTechnician دلوقتي بيحمل rating كمان عشان نعرض تقييم الفني
-   - invoice: البيانات اللي الفني بعتها في /complete (السعر + المستلزمات + الملاحظة)
-     + prepaidAmount لو فيه عربون مدفوع قبل كذا، و remainingAmount المطلوب دفعه دلوقتي.
-     عدّل الحقول دي على حسب الشكل الفعلي اللي السيرفر بيرجعه عندك.
+   - الشكل ده مطابق لما بيرجعه GET /requests/my فعليًا
    ============================================================ */
 
 interface AssignedTechnician {
+  _id: string;
   fullName: string;
-  rating?: number;
-}
-
-interface RequestInvoice {
-  servicePrice: number;
-  extraMaterialsPrice?: number;
-  completionNote?: string | null;
-  totalAmount?: number;
-  prepaidAmount?: number;
-  remainingAmount?: number;
+  phone?: string;
+  averageRating?: number;
+  yearsOfExperience?: number;
 }
 
 interface ClientRequest {
   _id: string;
-  serviceId: { name: string };
+  serviceId: { name: string; priceRange?: { min: number; max: number } };
   categoryId: { name: string };
   status: "on_the_way" | "started" | "completed";
   assignedTechnician: AssignedTechnician | null;
-  address: { fullAddress: string };
+  address: { fullAddress: string; district?: string };
   preferredDate: string;
   preferredTime: string;
   notes: string | null;
-  invoice?: RequestInvoice | null;
+  completionNote?: string | null;
+  servicePrice?: number;
+  extraMaterialsPrice?: number;
+  totalPrice?: number;
+  depositAmount?: number;
+  depositStatus?: "paid" | "unpaid";
+  isFullyPaid?: boolean;
+}
+
+// بيرجع تفاصيل الفاتورة جاهزة من بيانات الطلب (نفس الحقول اللي راجعة من /requests/my)
+function getInvoiceAmounts(request: ClientRequest) {
+  const servicePrice = request.servicePrice ?? 0;
+  const materialsPrice = request.extraMaterialsPrice ?? 0;
+  const total = request.totalPrice ?? servicePrice + materialsPrice;
+  const prepaid = request.depositStatus === "paid" ? request.depositAmount ?? 0 : 0;
+  const remaining = request.isFullyPaid ? 0 : Math.max(total - prepaid, 0);
+  const completionNote =
+    request.completionNote && request.completionNote.trim() !== "" && request.completionNote !== "لا يوجد"
+      ? request.completionNote
+      : null;
+  return { servicePrice, materialsPrice, total, prepaid, remaining, completionNote };
 }
 
 const BASE_URL = "http://localhost:3000";
@@ -115,19 +126,28 @@ export default function ClientTrackingPage({
     async (showLoader: boolean) => {
       if (showLoader) setLoadingInitial(true);
       try {
-        // عدّل المسار ده لو عندك endpoint مختلف لجلب تفاصيل الطلب من جهة الكلاينت
-        const res = await fetch(`${BASE_URL}/requests/${requestId}`, {
+        // مفيش endpoint لسه لجلب طلب واحد بالـ id، فبنجيب قايمة طلبات الكلاينت
+        // ونلاقي الطلب المطلوب فيها. لو فيه صفحات كتير (meta.totalPages) والطلب
+        // مش في الصفحة الأولى، هنا المكان اللي تحتاج تضيف فيه ?page=.. أو endpoint مخصص.
+        const res = await fetch(`${BASE_URL}/requests/my`, {
           headers: authHeaders(),
         });
         const json = await res.json();
         if (!res.ok || !json.success) {
           throw new Error(json.message || "حصل خطأ في تحميل الطلب");
         }
-        setRequest(json.data);
+
+        const list = Array.isArray(json.data) ? (json.data as ClientRequest[]) : [];
+        const found = list.find((r) => r._id === requestId);
+        if (!found) {
+          throw new Error("الطلب غير موجود");
+        }
+
+        setRequest(found);
         setError("");
 
         // أول ما الطلب يخلص، نفتح شاشة الفاتورة تلقائيًا
-        if (json.data.status === "completed") {
+        if (found.status === "completed") {
           setFlow((prev) => (prev === "tracking" ? "invoice" : prev));
         }
       } catch (e) {
@@ -151,27 +171,41 @@ export default function ClientTrackingPage({
   }, [request, fetchRequest]);
 
   // ===== دفع الفاتورة =====
-  const handlePay = async () => {
-    setPaying(true);
-    setPayError("");
-    try {
-      // عدّل المسار/الـ body ده على حسب نظام الدفع عندك (أونلاين / كاش عند الفني...)
-      const res = await fetch(`${BASE_URL}/requests/${requestId}/pay`, {
-        method: "PATCH",
-        headers: authHeaders(),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.message || "حصل خطأ في الدفع");
-      }
-      setRequest(json.data);
-      setFlow("rate");
-    } catch (e) {
-      setPayError(e instanceof Error ? e.message : "حصل خطأ، حاول تاني");
-    } finally {
-      setPaying(false);
+const handlePay = async () => {
+  if (!request) return;
+
+  const { remaining } = getInvoiceAmounts(request);
+  if (remaining <= 0) {
+    setFlow("rate");
+    return;
+  }
+
+  setPaying(true);
+  setPayError("");
+  try {
+    const res = await fetch(`${BASE_URL}/payment/remaining/${requestId}`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || "حصل خطأ في الدفع");
     }
-  };
+
+    // الـ response بيرجع paymentUrl زي عملية العربون بالظبط
+    const paymentUrl = json.data?.paymentUrl;
+    if (paymentUrl) {
+      window.location.href = paymentUrl;
+      return;
+    }
+
+    throw new Error("لم يتم الحصول على رابط الدفع");
+  } catch (e) {
+    setPayError(e instanceof Error ? e.message : "حصل خطأ، حاول تاني");
+  } finally {
+    setPaying(false);
+  }
+};
 
   // ===== إرسال التقييم =====
   const handleSubmitRating = async (rating: number, comment: string) => {
@@ -368,20 +402,23 @@ export default function ClientTrackingPage({
                                 {request.assignedTechnician?.fullName ??
                                   "لسه مفيش فني متعين"}
                               </span>
-                              {typeof request.assignedTechnician?.rating ===
-                                "number" && (
-                                <span
-                                  className="flex items-center gap-1 text-xs font-bold"
-                                  style={{ color: COLORS.primary }}
-                                >
-                                  <Star
-                                    className="w-3.5 h-3.5"
-                                    style={{ color: COLORS.gold }}
-                                    fill={COLORS.gold}
-                                  />
-                                  {request.assignedTechnician.rating.toFixed(1)}
-                                </span>
-                              )}
+                              {typeof request.assignedTechnician
+                                ?.averageRating === "number" &&
+                                request.assignedTechnician.averageRating > 0 && (
+                                  <span
+                                    className="flex items-center gap-1 text-xs font-bold"
+                                    style={{ color: COLORS.primary }}
+                                  >
+                                    <Star
+                                      className="w-3.5 h-3.5"
+                                      style={{ color: COLORS.gold }}
+                                      fill={COLORS.gold}
+                                    />
+                                    {request.assignedTechnician.averageRating.toFixed(
+                                      1
+                                    )}
+                                  </span>
+                                )}
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -474,12 +511,8 @@ function InvoiceScreen({
   paying: boolean;
   error: string;
 }) {
-  const invoice = request.invoice;
-  const servicePrice = invoice?.servicePrice ?? 0;
-  const materialsPrice = invoice?.extraMaterialsPrice ?? 0;
-  const total = invoice?.totalAmount ?? servicePrice + materialsPrice;
-  const prepaid = invoice?.prepaidAmount ?? 0;
-  const remaining = invoice?.remainingAmount ?? Math.max(total - prepaid, 0);
+  const { servicePrice, materialsPrice, total, prepaid, remaining, completionNote } =
+    getInvoiceAmounts(request);
 
   return (
     <div
@@ -528,7 +561,7 @@ function InvoiceScreen({
             <span>{total} جنيه</span>
           </div>
 
-          {invoice?.completionNote && (
+          {completionNote && (
             <div
               className="rounded-lg px-3 py-2.5"
               style={{ backgroundColor: COLORS.secondary }}
@@ -540,7 +573,7 @@ function InvoiceScreen({
                 ملاحظة الفني
               </p>
               <p className="text-xs text-gray-600 leading-6">
-                &quot;{invoice.completionNote}&quot;
+                &quot;{completionNote}&quot;
               </p>
             </div>
           )}
@@ -555,20 +588,32 @@ function InvoiceScreen({
             </div>
           )}
 
-          <div
-            className="flex items-center justify-between rounded-xl px-4 py-3"
-            style={{ backgroundColor: COLORS.primary }}
-          >
-            <span className="text-sm font-bold text-white">
-              المطلوب دفعه الآن
-            </span>
-            <span
-              className="text-xl font-extrabold"
-              style={{ color: COLORS.accent }}
+          {remaining > 0 ? (
+            <div
+              className="flex items-center justify-between rounded-xl px-4 py-3"
+              style={{ backgroundColor: COLORS.primary }}
             >
-              {remaining} جنيه
-            </span>
-          </div>
+              <span className="text-sm font-bold text-white">
+                المطلوب دفعه الآن
+              </span>
+              <span
+                className="text-xl font-extrabold"
+                style={{ color: COLORS.accent }}
+              >
+                {remaining} جنيه
+              </span>
+            </div>
+          ) : (
+            <div
+              className="flex items-center justify-between rounded-xl px-4 py-3"
+              style={{ backgroundColor: COLORS.secondary }}
+            >
+              <span className="text-sm font-bold" style={{ color: COLORS.primary }}>
+                تم سداد الفاتورة بالكامل
+              </span>
+              <Check className="w-4 h-4" style={{ color: COLORS.primary }} />
+            </div>
+          )}
 
           {error && (
             <p className="text-red-500 text-sm text-center">{error}</p>
@@ -580,8 +625,14 @@ function InvoiceScreen({
             className="mt-1 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-bold disabled:opacity-50"
             style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}
           >
-            <CreditCard className="w-4 h-4" />
-            {paying ? "بيتم الدفع..." : `ادفع ${remaining} جنيه`}
+            {remaining > 0 ? (
+              <>
+                <CreditCard className="w-4 h-4" />
+                {paying ? "بيتم الدفع..." : `ادفع ${remaining} جنيه`}
+              </>
+            ) : (
+              "متابعة لتقييم الخدمة"
+            )}
           </button>
         </div>
       </div>
