@@ -23,12 +23,12 @@ const NAV_LINKS = [
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { token, userId } = useAuth();
+  const { token, userId, role } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { socket } = useSocket(token);
-  const { total, reset } = useUnreadTotal(socket, userId);
+  const { total } = useUnreadTotal(socket, userId, role);
 
   return (
     <nav

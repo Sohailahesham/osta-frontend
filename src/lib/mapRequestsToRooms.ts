@@ -1,6 +1,6 @@
 import {AssignedRequest, RequestStatus} from "@/types/request.types";
 import {Room} from "@/types/chat.types";
-import {api} from "@/api/axios";
+import {chatService} from "@/api/services/chat.service";
 
 // ── الطلبات اللي الشات متاح ليها (نفس allowedStatuses في الباك اند) ──────────
 const CHATTABLE_STATUSES: RequestStatus[] = ["accepted", "in_progress", "on_the_way", "started"];
@@ -14,11 +14,12 @@ async function fetchUnreadInfo(
     requestId: string
 ): Promise<{unreadCount: number; lastMessage?: string; lastMessageTime?: string}> {
     try {
-        const res = await api.get(`/chat/${requestId}/unread`);
-        const {count, lastMessage} = res.data.data;
+        const {count, lastMessage} = await chatService.getUnreadInfo(requestId);
         return {
             unreadCount: count ?? 0,
-            lastMessage: lastMessage?.content,
+            lastMessage:
+                lastMessage?.content?.trim() ||
+                (lastMessage?.imageUrl ? "صورة" : undefined),
             // ⚠️ دي الساعة بتاعت آخر رسالة فعلية — مش تاريخ تحديث الـ request
             lastMessageTime: lastMessage?.createdAt,
         };

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { Message, SenderRole } from "@/types/chat.types";
@@ -17,6 +18,11 @@ function formatTime(iso: string): string {
   const m = String(date.getMinutes()).padStart(2, "0");
   const ampm = h >= 12 ? "م" : "ص";
   return `${h % 12 || 12}:${m} ${ampm}`;
+}
+
+function resolveImageUrl(src: string): string {
+  if (src.startsWith("http://") || src.startsWith("https://")) return src;
+  return `${process.env.NEXT_PUBLIC_API_URL}${src}`;
 }
 
 export default function MessageBubble({ message, currentUserId }: Props) {
@@ -43,10 +49,19 @@ export default function MessageBubble({ message, currentUserId }: Props) {
           className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
             isMine
               ? "bg-[#1C4B41] text-white rounded-bl-sm"
-              : "bg-[#FFFFFF] text-[#112D27] rounded-br-sm"
+              : "bg-[#FFFFFF] text-[#112D27] rounded-br-sm shadow-sm"
           }`}
         >
-          {message.content}
+          {message.imageUrl ? (
+            <img
+              src={resolveImageUrl(message.imageUrl)}
+              alt="مرفق المحادثة"
+              className="max-h-56 w-auto max-w-full rounded-xl object-cover"
+            />
+          ) : null}
+          {message.content ? (
+            <p className={message.imageUrl ? "mt-2" : ""}>{message.content}</p>
+          ) : null}
         </div>
 
         <div

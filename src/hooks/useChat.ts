@@ -3,12 +3,11 @@
 import {useEffect, useRef, useState, useCallback} from "react";
 import {Socket} from "socket.io-client";
 import {
+    ChatComposerPayload,
     Message,
     Room,
     NewMessagePayload,
     MessagesReadPayload,
-    RoomClosedPayload,
-    CustomRoomClosedPayload,
     JoinedRoomPayload,
 } from "@/types/chat.types";
 import {chatService} from "@/api/services/chat.service";
@@ -16,73 +15,122 @@ import {chatService} from "@/api/services/chat.service";
 interface UseChatOptions {
     socket: Socket | null;
     room: Room | null;
-    /** userId من الـ token عشان نحدد mine/theirs */
     currentUserId: string;
+    onHistoryLoaded?: () => void;
 }
 
-export function useChat({socket, room, currentUserId}: UseChatOptions) {
+function getErrorMessage(error: unknown, fallback: string): string {
+    if (typeof error === "object" && error !== null) {
+        const responseMessage = (error as {response?: {data?: {message?: unknown}}}).response?.data?.message;
+        if (typeof responseMessage === "string" && responseMessage.trim()) return responseMessage;
+        if (Array.isArray(responseMessage) && typeof responseMessage[0] === "string") return responseMessage[0];
+
+        const directMessage = (error as {message?: unknown}).message;
+        if (typeof directMessage === "string" && directMessage.trim()) return directMessage;
+    }
+
+    return fallback;
+}
+
+export function useChat({socket, room, currentUserId, onHistoryLoaded}: UseChatOptions) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [isClosed, setIsClosed] = useState(false);
+    const [isSending, setIsSending] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [error, setError] = useState<string | null>(null);
     const joinedRoomRef = useRef<string | null>(null);
 
-    // ── جلب الـ history من REST ───────────────────────────────────────────────
-    const fetchHistory = useCallback(async (r: Room) => {
-        setIsLoadingHistory(true);
-        try {
-            let msgs: Message[];
-            if (r.variant === "fixed" && r.requestId) {
-                msgs = await chatService.getRequestMessages(r.requestId);
-            } else if (r.variant === "custom" && r.postId && r.technicianId) {
-                msgs = await chatService.getCustomMessages(r.postId, r.technicianId);
-            } else {
-                msgs = [];
-            }
-            setMessages(msgs);
-        } catch {
-            setMessages([]);
-        } finally {
-            setIsLoadingHistory(false);
-        }
-    }, []);
+    const fetchHistory = useCallback(
+        async (targetRoom: Room) => {
+            setIsLoadingHistory(true);
+            setError(null);
 
-    // ── Join Room عبر socket ──────────────────────────────────────────────────
+            try {
+                let msgs: Message[];
+
+                if (targetRoom.variant === "fixed" && targetRoom.requestId) {
+                    msgs = await chatService.getRequestMessages(targetRoom.requestId);
+                } else if (
+                    targetRoom.variant === "custom" &&
+                    targetRoom.postId &&
+                    targetRoom.technicianId
+                ) {
+                    msgs = await chatService.getCustomMessages(
+                        targetRoom.postId,
+                        targetRoom.technicianId
+                    );
+                } else {
+                    msgs = [];
+                }
+
+                setMessages(msgs);
+                onHistoryLoaded?.();
+            } catch (error) {
+                setMessages([]);
+                setError(getErrorMessage(error, "تعذر تحميل الرسائل حالياً."));
+            } finally {
+                setIsLoadingHistory(false);
+            }
+        },
+        [onHistoryLoaded]
+    );
+
     const joinRoom = useCallback(
-        (r: Room) => {
+        (targetRoom: Room) => {
             if (!socket) return;
 
-            if (r.variant === "fixed" && r.requestId) {
-                socket.emit("joinRoom", {requestId: r.requestId});
-            } else if (r.variant === "custom" && r.postId) {
+            if (targetRoom.variant === "fixed" && targetRoom.requestId) {
+                socket.emit("joinRoom", {requestId: targetRoom.requestId});
+            } else if (targetRoom.variant === "custom" && targetRoom.postId) {
                 socket.emit("joinCustomRoom", {
-                    postId: r.postId,
-                    ...(r.technicianId ? {technicianId: r.technicianId} : {}),
+                    postId: targetRoom.postId,
+                    ...(targetRoom.technicianId ? {technicianId: targetRoom.technicianId} : {}),
                 });
             }
         },
         [socket]
     );
 
-    // ── إرسال رسالة ──────────────────────────────────────────────────────────
     const sendMessage = useCallback(
-        (content: string) => {
-            if (!socket || !room || !content.trim()) return;
+        async ({content, image}: ChatComposerPayload) => {
+            if (!room) return false;
 
-            if (room.variant === "fixed" && room.requestId) {
-                socket.emit("sendMessage", {requestId: room.requestId, content});
-            } else if (room.variant === "custom" && room.postId) {
-                socket.emit("sendCustomMessage", {
-                    postId: room.postId,
-                    ...(room.technicianId ? {technicianId: room.technicianId} : {}),
-                    content,
-                });
+            const trimmedContent = content.trim();
+            if (!trimmedContent && !image) return false;
+
+            setError(null);
+            setIsSending(true);
+
+            try {
+                if (room.variant === "fixed" && room.requestId) {
+                    await chatService.sendRequestMessage(room.requestId, {
+                        content: trimmedContent,
+                        image,
+                    });
+                } else if (
+                    room.variant === "custom" &&
+                    room.postId &&
+                    room.technicianId
+                ) {
+                    await chatService.sendCustomMessage(room.postId, room.technicianId, {
+                        content: trimmedContent,
+                        image,
+                    });
+                } else {
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                setError(getErrorMessage(error, "تعذر إرسال الرسالة حالياً."));
+                return false;
+            } finally {
+                setIsSending(false);
             }
         },
-        [socket, room]
+        [room]
     );
 
-    // ── Mark as Read ──────────────────────────────────────────────────────────
     const markAsRead = useCallback(() => {
         if (!socket || !room) return;
 
@@ -96,7 +144,6 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
         }
     }, [socket, room]);
 
-    // ── Effect: لما الـ room يتغير ─────────────────────────────────────────────
     useEffect(() => {
         if (!room) return;
 
@@ -107,20 +154,24 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
         setMessages([]);
         setIsClosed(false);
         setUnreadCount(0);
+        setError(null);
 
-        fetchHistory(room);
+        void fetchHistory(room);
         joinRoom(room);
     }, [room, fetchHistory, joinRoom]);
 
-    // ── Effect: socket event listeners ───────────────────────────────────────
     useEffect(() => {
         if (!socket || !room) return;
 
         const onJoinedRoom = ({unreadCount}: JoinedRoomPayload) => {
-            setUnreadCount(unreadCount);
+            setUnreadCount(
+                typeof unreadCount === "number" ? unreadCount : unreadCount?.count ?? 0
+            );
         };
 
         const onNewMessage = (payload: NewMessagePayload) => {
+            setError(null);
+
             const msg: Message = {
                 _id: payload._id,
                 roomId: payload.roomId,
@@ -128,12 +179,13 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
                 senderId: payload.senderId,
                 senderRole: payload.senderRole,
                 content: payload.content,
+                imageUrl: payload.imageUrl ?? null,
                 isRead: payload.isRead,
                 createdAt: payload.createdAt,
             };
+
             setMessages((prev) => [...prev, msg]);
 
-            // لو الرسالة مش منك → mark as read أوتوماتيك
             if (payload.senderId !== currentUserId) {
                 markAsRead();
             }
@@ -142,14 +194,14 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
         const onMessagesRead = ({readBy}: MessagesReadPayload) => {
             if (readBy !== currentUserId) {
                 setMessages((prev) =>
-                    prev.map((m) =>
-                        typeof m.senderId === "string"
-                            ? m.senderId === currentUserId
-                                ? {...m, isRead: true}
-                                : m
-                            : m.senderId._id === currentUserId
-                            ? {...m, isRead: true}
-                            : m
+                    prev.map((message) =>
+                        typeof message.senderId === "string"
+                            ? message.senderId === currentUserId
+                                ? {...message, isRead: true}
+                                : message
+                            : message.senderId._id === currentUserId
+                              ? {...message, isRead: true}
+                              : message
                     )
                 );
             }
@@ -157,6 +209,9 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
 
         const onRoomClosed = () => setIsClosed(true);
         const onCustomRoomClosed = () => setIsClosed(true);
+        const onSocketError = (payload: {message?: string}) => {
+            setError(payload.message?.trim() || "حدث خطأ في المحادثة.");
+        };
 
         socket.on("joinedRoom", onJoinedRoom);
         socket.on("joinedCustomRoom", onJoinedRoom);
@@ -165,6 +220,7 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
         socket.on("messagesRead", onMessagesRead);
         socket.on("roomClosed", onRoomClosed);
         socket.on("customRoomClosed", onCustomRoomClosed);
+        socket.on("error", onSocketError);
 
         return () => {
             socket.off("joinedRoom", onJoinedRoom);
@@ -174,6 +230,7 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
             socket.off("messagesRead", onMessagesRead);
             socket.off("roomClosed", onRoomClosed);
             socket.off("customRoomClosed", onCustomRoomClosed);
+            socket.off("error", onSocketError);
         };
     }, [socket, room, currentUserId, markAsRead]);
 
@@ -181,8 +238,11 @@ export function useChat({socket, room, currentUserId}: UseChatOptions) {
         messages,
         isLoadingHistory,
         isClosed,
+        isSending,
         unreadCount,
+        error,
         sendMessage,
         markAsRead,
+        retryHistory: room ? () => fetchHistory(room) : undefined,
     };
 }

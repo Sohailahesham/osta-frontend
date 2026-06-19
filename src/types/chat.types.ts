@@ -18,6 +18,7 @@ export interface Message {
     senderId: string | {_id: string; fullName: string};
     senderRole: SenderRole;
     content: string;
+    imageUrl?: string | null;
     isRead: boolean;
     isFlagged?: boolean;
     createdAt: string;
@@ -60,7 +61,12 @@ export interface SendCustomMessagePayload {
 
 export interface JoinedRoomPayload {
     roomId: string;
-    unreadCount: number;
+    unreadCount: number | {count?: number};
+}
+
+export interface ChatComposerPayload {
+    content: string;
+    image?: File | null;
 }
 
 export interface NewMessagePayload {
@@ -70,6 +76,7 @@ export interface NewMessagePayload {
     senderId: string;
     senderRole: SenderRole;
     content: string;
+    imageUrl?: string | null;
     isRead: boolean;
     createdAt: string;
 }
@@ -95,6 +102,7 @@ export interface UnreadInfo {
     count: number;
     lastMessage: {
         content: string;
+        imageUrl?: string | null;
         createdAt: string;
         senderId: string;
         senderRole: SenderRole;

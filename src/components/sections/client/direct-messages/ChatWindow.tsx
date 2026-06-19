@@ -11,6 +11,7 @@ interface Props {
   socket: Socket | null;
   room: Room | null;
   currentUserId: string;
+  onHistoryLoaded?: () => void;
 }
 
 function getInitials(name: string): string {
@@ -39,11 +40,25 @@ function groupByDate(messages: ReturnType<typeof useChat>["messages"]) {
   return groups;
 }
 
-export default function ChatWindow({ socket, room, currentUserId }: Props) {
-  const { messages, isLoadingHistory, isClosed, sendMessage } = useChat({
+export default function ChatWindow({
+  socket,
+  room,
+  currentUserId,
+  onHistoryLoaded,
+}: Props) {
+  const {
+    messages,
+    isLoadingHistory,
+    isClosed,
+    isSending,
+    sendMessage,
+    error,
+    retryHistory,
+  } = useChat({
     socket,
     room,
     currentUserId,
+    onHistoryLoaded,
   });
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -120,6 +135,19 @@ export default function ChatWindow({ socket, room, currentUserId }: Props) {
           <div className="flex-1 flex items-center justify-center">
             <div className="w-6 h-6 border-2 border-[#7CB342] border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : error && messages.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+            <p className="text-sm text-[#A05A5A]">{error}</p>
+            {retryHistory ? (
+              <button
+                type="button"
+                onClick={retryHistory}
+                className="text-xs text-[#1C4B41] hover:underline"
+              >
+                إعادة المحاولة
+              </button>
+            ) : null}
+          </div>
         ) : messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center py-12">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
@@ -170,7 +198,12 @@ export default function ChatWindow({ socket, room, currentUserId }: Props) {
           </p>
         </div>
       ) : (
-        <ChatInput onSend={sendMessage} disabled={isClosed} />
+        <div className="flex flex-col">
+          {error && messages.length > 0 ? (
+            <div className="px-5 pt-3 text-xs text-[#A05A5A]">{error}</div>
+          ) : null}
+          <ChatInput onSend={sendMessage} disabled={isClosed || isSending} />
+        </div>
       )}
     </div>
   );

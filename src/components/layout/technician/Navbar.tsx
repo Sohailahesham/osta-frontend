@@ -38,12 +38,12 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
   const workMenuRef = useRef<HTMLDivElement | null>(null);
-  const { token, userId } = useAuth();
+  const { token, userId, role } = useAuth();
 
   const isWorkRoute = pathname.startsWith("/technician/portfolio");
 
   const { socket } = useSocket(token);
-  const { total, reset } = useUnreadTotal(socket, userId);
+  const { total } = useUnreadTotal(socket, userId, role);
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -139,7 +139,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => router.push("/technician/direct-messages")}
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
             >
               <Image src={dmsIcon} alt="DMs" width={24} height={24} />
               {total > 0 && (

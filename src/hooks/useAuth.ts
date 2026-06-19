@@ -14,6 +14,7 @@ interface AuthState {
     userId: string | null;
     role: DecodedToken["role"] | null;
     token: string | null;
+    isReady: boolean;
 }
 
 function decodeToken(token: string): DecodedToken | null {
@@ -36,20 +37,32 @@ export function useAuth(): AuthState {
         userId: null,
         role: null,
         token: null,
+        isReady: false,
     });
 
     useEffect(() => {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
+        const timeoutId = window.setTimeout(() => {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                setAuth((prev) => ({...prev, isReady: true}));
+                return;
+            }
 
-        const decoded = decodeToken(token);
-        if (!decoded) return;
+            const decoded = decodeToken(token);
+            if (!decoded) {
+                setAuth((prev) => ({...prev, isReady: true}));
+                return;
+            }
 
-        setAuth({
-            userId: decoded.sub,
-            role: decoded.role,
-            token,
-        });
+            setAuth({
+                userId: decoded.sub,
+                role: decoded.role,
+                token,
+                isReady: true,
+            });
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
     }, []);
 
     return auth;

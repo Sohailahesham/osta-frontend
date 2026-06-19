@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { chatService } from "@/api/services/chat.service";
 import Button from "@/components/ui/Button";
@@ -55,7 +54,7 @@ export default function ChatButton({ requestId, role }: Props) {
 
     <Button
       variant="outline"
-      className="!px-3 !text-xs !font-medium !text-[#636261] !border-[#EAE9E3] !hover:bg-[#F8FAF9]"
+      className="!relative !px-3 !text-xs !font-medium !text-[#636261] !border-[#EAE9E3] !hover:bg-[#F8FAF9]"
       onClick={() => router.push(href)}
     >
       <span className="inline-flex items-center gap-2">

@@ -2,50 +2,79 @@
 
 import {useEffect, useState, useCallback} from "react";
 import {Socket} from "socket.io-client";
+import {api} from "@/api/axios";
+import {getAssignedRequests} from "@/api/services/request.service";
+import {mapRequestsToRooms} from "@/lib/mapRequestsToRooms";
+import {AssignedRequest} from "@/types/request.types";
 
-/**
- * بيتتبع إجمالي الرسايل الغير مقروءة من كل الـ rooms.
- * بيزيد لما تيجي رسالة جديدة مش منك،
- * وبيصفر لما تفتحي الصفحة أو تعملي markAsRead.
- */
-export function useUnreadTotal(socket: Socket | null, currentUserId: string | null) {
+type ViewerRole = "client" | "technician" | "admin";
+
+export function useUnreadTotal(
+    socket: Socket | null,
+    currentUserId: string | null,
+    role: ViewerRole | null
+) {
     const [total, setTotal] = useState(0);
 
-    const increment = useCallback(() => {
-        setTotal((prev) => prev + 1);
-    }, []);
+    const refreshTotal = useCallback(async () => {
+        if (!currentUserId || !role || role === "admin") {
+            setTotal(0);
+            return;
+        }
 
-    const reset = useCallback(() => {
-        setTotal(0);
-    }, []);
+        try {
+            let requests: AssignedRequest[] = [];
+
+            if (role === "client") {
+                const res = await api.get("/requests/my");
+                requests = res.data?.data ?? [];
+            } else {
+                const result = await getAssignedRequests();
+                requests = result.data;
+            }
+
+            const rooms = await mapRequestsToRooms(requests, role);
+            setTotal(rooms.reduce((sum, room) => sum + room.unreadCount, 0));
+        } catch {
+            setTotal(0);
+        }
+    }, [currentUserId, role]);
 
     useEffect(() => {
-        if (!socket || !currentUserId) return;
+        const timeoutId = window.setTimeout(() => {
+            void refreshTotal();
+        }, 0);
 
-        const onNewMessage = (payload: {senderId: string}) => {
-            if (payload.senderId !== currentUserId) {
-                increment();
-            }
+        return () => window.clearTimeout(timeoutId);
+    }, [refreshTotal]);
+
+    useEffect(() => {
+        if (!socket || !currentUserId || !role || role === "admin") return;
+
+        const syncTotal = () => {
+            void refreshTotal();
         };
 
-        const onNewCustomMessage = (payload: {senderId: string}) => {
-            if (payload.senderId !== currentUserId) {
-                increment();
-            }
-        };
-
-        const onMessagesRead = () => {
-            // لما الطرف التاني يقرأ مش بنغير الـ total
-        };
-
-        socket.on("newMessage", onNewMessage);
-        socket.on("newCustomMessage", onNewCustomMessage);
+        socket.on("connect", syncTotal);
+        socket.on("newMessage", syncTotal);
+        socket.on("newCustomMessage", syncTotal);
+        socket.on("messagesRead", syncTotal);
+        socket.on("joinedRoom", syncTotal);
+        socket.on("joinedCustomRoom", syncTotal);
+        socket.on("roomClosed", syncTotal);
+        socket.on("customRoomClosed", syncTotal);
 
         return () => {
-            socket.off("newMessage", onNewMessage);
-            socket.off("newCustomMessage", onNewCustomMessage);
+            socket.off("connect", syncTotal);
+            socket.off("newMessage", syncTotal);
+            socket.off("newCustomMessage", syncTotal);
+            socket.off("messagesRead", syncTotal);
+            socket.off("joinedRoom", syncTotal);
+            socket.off("joinedCustomRoom", syncTotal);
+            socket.off("roomClosed", syncTotal);
+            socket.off("customRoomClosed", syncTotal);
         };
-    }, [socket, currentUserId, increment]);
+    }, [socket, currentUserId, role, refreshTotal]);
 
-    return {total, reset};
+    return {total, refreshTotal};
 }
