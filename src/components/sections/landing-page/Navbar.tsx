@@ -7,7 +7,7 @@ import logo from "@/assets/images/logo.svg";
 
 const navLinks = [
   { label: "الرئيسية", href: "/", active: true },
-  { label: "الأقسام", href: "/categories" },
+  { label: "الأقسام", href: "client/categories" },
   { label: "من نحن", href: "/about" },
   { label: "اتصل بنا", href: "/contact" },
 ];
