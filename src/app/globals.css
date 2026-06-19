@@ -20,6 +20,14 @@
   background: linear-gradient(to bottom, #1C4B41, #112D27);
 }
 
+.danger-gradient {
+  background: linear-gradient(
+    to bottom,
+    #7F1D1D 0%,
+    #B91C1C 100%
+  );
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
