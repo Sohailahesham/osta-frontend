@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { User, Star } from "lucide-react";
 import DepositModal from "./DepositModal";
 import { Order } from "./OngoingOrdersSection";
+import ChatButton from "../direct-messages/ChatButton";
 
 export default function ActiveOrderCard({ order }: { order: Order }) {
   const router = useRouter();

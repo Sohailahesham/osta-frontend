@@ -68,7 +68,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => router.push("/technician/direct-messages")}
+              onClick={() => router.push("/client/direct-messages")}
               className="relative flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
             >
               <Image src={dmsIcon} alt="DMs" width={24} height={24} />
