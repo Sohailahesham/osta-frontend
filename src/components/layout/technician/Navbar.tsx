@@ -13,6 +13,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
 import { useUnreadTotal } from "@/hooks/useUnreadTotal";
 
+
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { useNotifications } from "@/hooks/useNotifications";
+import NotificationPanel from "@/components/notifications/NotificationPanel";
+
+
 const NAV_LINKS = [
   { label: "الطلبات الواردة", href: "/technician/orders" },
   { label: "المحلات", href: "/technician/stores" },
@@ -44,6 +50,26 @@ export default function Navbar() {
 
   const { socket } = useSocket(token);
   const { total } = useUnreadTotal(socket, userId, role);
+
+
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+
+
+  const { socket: notificationSocket } = useNotificationSocket(userId);
+  const { notifications, isLoading, unreadCount, markAllAsRead } =
+    useNotifications(notificationSocket, userId);
+
+  const handleBellClick = () => {
+    setNotificationPanelOpen((prev) => {
+      const next = !prev;
+ 
+      if (next && unreadCount > 0) {
+        void markAllAsRead();
+      }
+      return next;
+    });
+  };
+  // ─────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -148,17 +174,38 @@ export default function Navbar() {
                 </span>
               )}
             </button>
-            <button
-              onClick={() => router.push("")}
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
-            >
-              <Image
-                src={bellIcon}
-                alt="Notifications"
-                width={20}
-                height={20}
-              />
-            </button>
+
+            {/* ── NOTIFICATION BELL ─────────────────────────────────────────────── */}
+            <div className="relative">
+              <button
+                onClick={handleBellClick}
+                className="relative flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
+              >
+                <Image
+                  src={bellIcon}
+                  alt="Notifications"
+                  width={20}
+                  height={20}
+                />
+
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notificationPanelOpen && (
+                <NotificationPanel
+                  notifications={notifications}
+                  isLoading={isLoading}
+                  onClose={() => setNotificationPanelOpen(false)}
+                  targetRoute="/technician/orders"
+                />
+              )}
+            </div>
+            {/* ─────────────────────────────────────────────────────────────────────── */}
+
             <button
               onClick={() => router.push("/technician/profile")}
               className="flex h-9 w-9 items-center justify-center rounded-full text-[#112D27] transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"

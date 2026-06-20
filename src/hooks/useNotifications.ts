@@ -1,97 +1,78 @@
+"use client";
 
-'use client';
+import { useEffect, useState, useCallback } from "react";
+import { Socket } from "socket.io-client";
+import { api } from "@/api/axios";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppNotification } from '@/types/notification';
-import {
-  fetchNotifications,
-  fetchUnreadCount,
-  markAllNotificationsRead,
-  markNotificationRead,
-} from '@/lib/notification-api';
-import { connectNotificationSocket } from '@/lib/notification-socket';
-
-interface UseNotificationsOptions {
-  userId: string | null | undefined;
+export interface NotificationItem {
+    _id: string;
+    title: string;
+    body: string;
+    type: string;
+    requestId?: string;
+    metadata?: Record<string, unknown>;
+    isRead: boolean;
+    createdAt: string;
 }
 
-export function useNotifications({ userId }: UseNotificationsOptions) {
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const hasLoadedOnce = useRef(false);
+export function useNotifications(socket: Socket | null, currentUserId: string | null) {
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
-  // ── Initial load over REST ─────────────────────────────────────────────
-  const loadNotifications = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const [listRes, count] = await Promise.all([
-        fetchNotifications(1, 20),
-        fetchUnreadCount(),
-      ]);
-      setNotifications(listRes.data);
-      setUnreadCount(count);
-    } catch (err) {
-      console.error('Failed to load notifications:', err);
-    } finally {
-      setIsLoading(false);
-      hasLoadedOnce.current = true;
-    }
-  }, []);
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  useEffect(() => {
-    if (!userId) return;
-    loadNotifications();
-  }, [userId, loadNotifications]);
+    const refreshList = useCallback(async () => {
+        if (!currentUserId) {
+            setNotifications([]);
+            return;
+        }
 
-  // ── Live WebSocket updates ──────────────────────────────────────────────
-  useEffect(() => {
-    if (!userId) return;
+        try {
+            setIsLoading(true);
+            const res = await api.get("/notifications", {
+                params: { page: 1, limit: 20 },
+            });
+            setNotifications(res.data?.data ?? []);
+        } catch {
+            setNotifications([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentUserId]);
 
-    const socket = connectNotificationSocket(userId);
+    // Initial load
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            void refreshList();
+        }, 0);
 
-    const handleIncoming = (payload: AppNotification) => {
-      setNotifications((prev) => [payload, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-    };
+        return () => window.clearTimeout(timeoutId);
+    }, [refreshList]);
 
-    socket.on('notification', handleIncoming);
+ 
+    useEffect(() => {
+        if (!socket || !currentUserId) return;
 
-    return () => {
-      socket.off('notification', handleIncoming);
-    };
-  }, [userId]);
+        const onNewNotification = (payload: NotificationItem) => {
+            setNotifications((prev) => [payload, ...prev]);
+        };
 
-  // ── Actions ──────────────────────────────────────────────────────────────
-  const markAsRead = useCallback(async (id: string) => {
-    // optimistic update
-    setNotifications((prev) =>
-      prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)),
-    );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
-    try {
-      await markNotificationRead(id);
-    } catch (err) {
-      console.error('Failed to mark notification as read:', err);
-    }
-  }, []);
+        socket.on("notification", onNewNotification);
 
-  const markAllAsRead = useCallback(async () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    setUnreadCount(0);
-    try {
-      await markAllNotificationsRead();
-    } catch (err) {
-      console.error('Failed to mark all notifications as read:', err);
-    }
-  }, []);
+        return () => {
+            socket.off("notification", onNewNotification);
+        };
+    }, [socket, currentUserId]);
 
-  return {
-    notifications,
-    unreadCount,
-    isLoading: isLoading && !hasLoadedOnce.current,
-    markAsRead,
-    markAllAsRead,
-    refresh: loadNotifications,
-  };
+   
+    const markAllAsRead = useCallback(async () => {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        try {
+            await api.patch("/notifications/read-all");
+        } catch {
+            
+        }
+    }, []);
+
+    return { notifications, isLoading, unreadCount, refreshList, markAllAsRead };
 }
