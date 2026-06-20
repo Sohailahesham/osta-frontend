@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Camera } from "lucide-react";
-import vodafoneLogo from "@/assets/images/vodafone-cash.jpeg";
-import instapayLogo from "@/assets/images/instapay.jpeg";
-import visaLogo from "@/assets/images/visa.jpeg";
+import { MapPin } from "lucide-react";
 import Image from "next/image";
 import { validateBookingForm } from "@/validators/bookingForm.validators";
 import moneyIcon from "@/assets/icons/money.svg";
@@ -29,14 +26,7 @@ export interface LocationData {
   district: string;
   fullAddress: string;
   notes: string;
-  paymentMethod: string;
 }
-
-const PAYMENT_METHODS = [
-  { id: "vodafone", logo: vodafoneLogo, alt: "Vodafone Cash", disabled: true },
-  { id: "instapay", logo: instapayLogo, alt: "InstaPay", disabled: true },
-  { id: "visa", logo: visaLogo, alt: "Visa", disabled: false },
-];
 
 const TIME_SLOTS = [
   "8:00 ص",
@@ -52,10 +42,6 @@ const TIME_SLOTS = [
   "6:00 م",
   "7:00 م",
   "8:00 م",
-  "9:00 م",
-  "10:00 م",
-  "11:00 م",
-  "12:00 ص",
 ];
 
 // بيحول الـ slot (زي "8:00 ص" أو "12:00 ص") لساعة 24 ساعة
@@ -94,7 +80,6 @@ export default function BookingForm({
   const [district, setDistrict] = useState("");
   const [fullAddress, setFullAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
   const todaySelected = isToday(selectedDate);
@@ -131,7 +116,6 @@ export default function BookingForm({
       district,
       fullAddress,
       notes,
-      paymentMethod,
       selectedTime,
     });
 
@@ -141,7 +125,7 @@ export default function BookingForm({
     }
 
     setErrors({});
-    onSubmit({ district, fullAddress, notes, paymentMethod });
+    onSubmit({ district, fullAddress, notes });
   };
 
   const clearError = (field: string) => {
