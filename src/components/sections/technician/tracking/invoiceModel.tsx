@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Check, FileText, X } from "lucide-react";
+import { FileText, X } from "lucide-react";
 import { COLORS } from "@/constants/tracking";
 import { trackingApi } from "@/api/services/tracking.service";
 import type { TechnicianRequest } from "@/types/tracking.types";
@@ -41,11 +41,7 @@ export default function InvoiceModal({
   const handleSubmit = async () => {
     const parsedServicePrice = Number(price);
 
-    if (
-      !price.trim() ||
-      Number.isNaN(parsedServicePrice) ||
-      parsedServicePrice <= 0
-    ) {
+    if (!price.trim() || Number.isNaN(parsedServicePrice) || parsedServicePrice <= 0) {
       setError("سعر الخدمة مطلوب");
       return;
     }
@@ -68,14 +64,9 @@ export default function InvoiceModal({
         servicePrice: number;
         completionNote?: string;
         extraMaterialsPrice?: number;
-      } = {
-        servicePrice: parsedServicePrice,
-      };
+      } = { servicePrice: parsedServicePrice };
 
-      if (notes.trim()) {
-        body.completionNote = notes.trim();
-      }
-
+      if (notes.trim()) body.completionNote = notes.trim();
       if (hasSupplies && extraMaterialsPrice.trim()) {
         body.extraMaterialsPrice = Number(extraMaterialsPrice) || 0;
       }
@@ -98,10 +89,10 @@ export default function InvoiceModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
       <div
         dir="rtl"
-        className="flex w-full sm:max-w-5xl flex-col overflow-hidden bg-white shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]"
+        className="flex w-full sm:max-w-3xl flex-col overflow-hidden bg-gray-50 shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 sm:px-8 py-6">
+        <div className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-4 sm:px-8 py-6">
           <button
             onClick={onClose}
             className="absolute left-4 sm:left-8 top-6 text-gray-400 transition hover:text-gray-600"
@@ -117,7 +108,6 @@ export default function InvoiceModal({
               فاتورة الخدمة
               <FileText size={18} />
             </h2>
-
             <p className="mt-1 text-sm text-gray-400">
               {request.userId?.fullName}
             </p>
@@ -126,41 +116,29 @@ export default function InvoiceModal({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-xl">
             <div className="flex flex-col gap-5">
+
+              {/* عنوان الخدمة */}
               <div>
-                <label className="mb-2 block text-sm text-gray-500">
+                <label className="mb-2 block text-sm font-bold text-gray-500">
                   عنوان الخدمة
                 </label>
-
-                <div className="flex items-center justify-between rounded-xl bg-[#F8FAF9] px-4 py-3">
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: COLORS.primary }}
-                  >
+                <div className="flex items-center justify-between rounded-xl bg-gray-100 px-4 py-3">
+                  <span className="text-sm font-medium" style={{ color: COLORS.primary }}>
                     {request.serviceId?.name}
                   </span>
-
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: COLORS.accent }}
-                  />
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS.accent }} />
                 </div>
               </div>
 
+              {/* السعر */}
               <div className="flex items-center justify-between gap-3">
                 <label className="text-sm text-gray-500">
-                  السعر النهائي للخدمة (جنيه)
+                  <span className="font-bold">السعر النهائي للخدمة </span>
+                  (جنيه)
                 </label>
-
-                <div className="flex w-40 items-center gap-2 rounded-xl border border-gray-200 px-2 py-1.5">
-                  <button
-                    type="button"
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100"
-                  >
-                    <Camera className="h-4 w-4 text-gray-500" />
-                  </button>
-
+                <div className="flex w-64 items-center gap-2 rounded-2xl border border-gray-200 px-3 py-2">
                   <input
                     type="number"
                     min="1"
@@ -169,15 +147,19 @@ export default function InvoiceModal({
                     placeholder="0"
                     className="w-full bg-transparent text-sm outline-none"
                   />
+                  <button type="button" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full">
+                    <Image src={moneyIcon} alt="money" width={16} height={16} />
+                  </button>
                 </div>
               </div>
 
+              {/* المستلزمات */}
               <div>
                 <div className="mb-3 flex items-center justify-between">
                   <label className="text-sm text-gray-500">
-                    مستلزمات إضافية (اختياري)
+                    <span className="font-bold">مستلزمات إضافية </span>
+                    (اختياري)
                   </label>
-
                   <button
                     type="button"
                     onClick={() => setHasSupplies((v) => !v)}
@@ -190,7 +172,6 @@ export default function InvoiceModal({
                     <span className="h-5 w-5 rounded-full bg-white shadow" />
                   </button>
                 </div>
-
                 {hasSupplies && (
                   <input
                     type="number"
@@ -203,11 +184,11 @@ export default function InvoiceModal({
                 )}
               </div>
 
+              {/* الملاحظات */}
               <div>
-                <label className="mb-2 block text-sm text-gray-500">
+                <label className="mb-2 block text-sm font-bold text-gray-500">
                   ملاحظات إضافية
                 </label>
-
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -217,18 +198,14 @@ export default function InvoiceModal({
                 />
               </div>
 
-              <div className="rounded-xl border border-gray-100 bg-[#F8FAF9] p-4">
+              {/* الإجمالي */}
+              <div className="rounded-xl border border-gray-100 bg-gray-100 p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">الإجمالي</span>
-
                   <div className="flex items-end gap-1">
-                    <span
-                      className="text-3xl font-bold"
-                      style={{ color: COLORS.primary }}
-                    >
+                    <span className="text-3xl font-bold" style={{ color: COLORS.primary }}>
                       {total}
                     </span>
-
                     <span className="text-sm text-gray-500">جنيه</span>
                   </div>
                 </div>
@@ -247,10 +224,7 @@ export default function InvoiceModal({
             onClick={handleSubmit}
             disabled={submitting}
             className="w-full rounded-2xl py-4 text-sm font-bold transition disabled:opacity-50"
-            style={{
-              backgroundColor: COLORS.accent,
-              color: COLORS.primary,
-            }}
+            style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}
           >
             {submitting ? "بيتبعث..." : "إرسال الفاتورة"}
           </button>

@@ -199,9 +199,9 @@ export default function BookOtherServiceModal({
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
       dir="rtl"
     >
-      <div className="flex w-full sm:max-w-3xl flex-col overflow-hidden bg-white shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]">
+      <div className="flex w-full sm:max-w-3xl flex-col overflow-hidden bg-gray-100  shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-gray-100 px-4 sm:px-8 py-6">
+        <div className="flex items-start justify-between border-b bg-gray-50 border-gray-200 px-4 sm:px-8 py-6">
           <div className="text-right">
             <h2 className="text-xl font-extrabold text-[var(--primary-color)]">طلب خدمة مخصصة</h2>
             <p className="mt-0.5 text-sm text-gray-400">اكمل البيانات وسنوصلك بالفني المناسب</p>
@@ -211,7 +211,7 @@ export default function BookOtherServiceModal({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-8">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 bg-gray-50">
           <div className="mx-auto max-w-2xl sm:px-12">
             {step === 1 ? (
               <div className="flex flex-col gap-5">
@@ -401,7 +401,7 @@ export default function BookOtherServiceModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-100 px-4 sm:px-8 py-5">
+        <div className="border-t bg-white border-gray-100 px-4 sm:px-8 py-5">
           {step === 1 ? (
             <button
               onClick={() => { if (handleValidateStep1()) setStep(2); }}

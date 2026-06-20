@@ -288,7 +288,7 @@ export default function CategoriesSection() {
                     >
                       <Star
                         size={14}
-                        className="fill-[#5D508D] text-[#5D508D] group-hover:fill-white group-hover:text-white transition-colors"
+                        className="fill-current transition-colors"
                       />
                       اطلب خدمة مخصصة
                     </button>
