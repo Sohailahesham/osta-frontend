@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
+import { Menu, X, User, CreditCard, LogOut } from "lucide-react";
 import { Menu, X, User, CreditCard, LogOut } from "lucide-react";
 import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
@@ -313,3 +315,4 @@ export default function Navbar() {
         </nav>
     );
 }
+

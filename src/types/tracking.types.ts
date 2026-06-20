@@ -1,6 +1,6 @@
 export interface TechnicianRequest {
   _id: string;
-  serviceId: { name: string };
+  serviceId: { name: string; priceRange?: { min: number; max: number } };
   categoryId: { name: string };
   userId: { fullName: string };
   status: "accepted" | "on_the_way" | "started" | "completed" | string;

@@ -22,18 +22,22 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
         className="border-2 border-[var(--accent-color)] rounded-2xl p-5 bg-white"
         dir="rtl"
       >
+        {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="font-bold text-[var(--primary-color)] text-base">
               {order.serviceId?.name}
             </h3>
             {order.categoryId?.name && (
-              <span className="text-xs text-gray-400">{order.categoryId.name}</span>
+              <span className="text-xs text-gray-400">
+                {order.categoryId.name}
+              </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full ${badge.className}`}>
-              {badge.label}
+            <span
+              className="text-xs font-bold px-3 py-1 rounded-full bg-[var(--accent-color)] text-[var(--primary-color)]">
+              {order.status === "in_progress" ? "تم الدفع" : "تمت المطابقة"}
             </span>
             <button className="text-gray-300 hover:text-gray-500">⋮</button>
           </div>
@@ -44,7 +48,8 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
             <p className="text-xs text-gray-400 mb-1">نطاق السعر</p>
             {order.serviceId?.priceRange ? (
               <p className="font-bold text-[var(--primary-color)] text-sm">
-                {order.serviceId.priceRange.min} - {order.serviceId.priceRange.max}{" "}
+                {order.serviceId.priceRange.min} -{" "}
+                {order.serviceId.priceRange.max}{" "}
                 <span className="font-normal text-xs">جنية</span>
               </p>
             ) : (
@@ -83,7 +88,14 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
               </div>
             </div>
 
-            {canPayDeposit ? (
+            {order.status === "in_progress" ? (
+              <button
+                onClick={() => router.push(`/client/tracking/${order._id}`)}
+                className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-2.5 rounded-full whitespace-nowrap hover:opacity-90 transition-all"
+              >
+                تتبع الطلب
+              </button>
+            ) : (
               <button
                 onClick={() => setShowDepositModal(true)}
                 className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-2.5 rounded-full whitespace-nowrap hover:opacity-90 transition-all"
@@ -112,8 +124,8 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
           </div>
 
           <p className="text-sm text-gray-500 text-right">
-            خبرة {order.assignedTechnician?.yearsOfExperience ?? "0"} سنوات في أعمال{" "}
-            {order.categoryId.name}
+            خبرة {order.assignedTechnician?.yearsOfExperience ?? "0"} سنوات في
+            أعمال {order.categoryId.name}
           </p>
         </div>
       </div>
@@ -134,3 +146,4 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
     </>
   );
 }
+

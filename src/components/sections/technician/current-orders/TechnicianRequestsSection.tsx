@@ -72,7 +72,6 @@ function SuccessModal({
   onClose: () => void;
 }) {
   const router = useRouter();
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
@@ -610,6 +609,7 @@ export default function TechnicianRequestsPage() {
         <div className="lg:col-span-1">
           <TipCard />
         </div>
+
       </div>
 
       {successContent ? (
