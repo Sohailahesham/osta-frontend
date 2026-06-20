@@ -11,6 +11,7 @@ const cairo = Cairo({
   subsets: ["arabic"],
 });
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
