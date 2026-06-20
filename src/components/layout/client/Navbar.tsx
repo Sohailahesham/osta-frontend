@@ -15,6 +15,10 @@ import { api } from "@/api/axios";
 import { useSocket } from "@/hooks/useSocket";
 import { useUnreadTotal } from "@/hooks/useUnreadTotal";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { useNotifications } from "@/hooks/useNotifications";
+import NotificationPanel from "@/components/notifications/NotificationPanel";
+
 
 
 const NAV_LINKS = [
@@ -82,8 +86,28 @@ export default function Navbar() {
   const userInitial = currentUser?.fullName?.charAt(0) ?? "؟";
 
 
+  // ── NOTIFICATION STATE ──────────────────────────────────────────────────────
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const { socket } = useSocket(token);
   const { total } = useUnreadTotal(socket, userId, role);
+
+  const { socket: notificationSocket } = useNotificationSocket(userId);
+  const { notifications, isLoading, unreadCount, markAllAsRead } =
+    useNotifications(notificationSocket, userId);
+
+  const handleBellClick = () => {
+    setNotificationPanelOpen((prev) => {
+      const next = !prev;
+ 
+      if (next && unreadCount > 0) {
+        void markAllAsRead();
+      }
+      return next;
+    });
+  };
+  // ─────────────────────────────────────────────────────────────────────────────
 
 
   return (
@@ -136,18 +160,39 @@ export default function Navbar() {
               )}
             </button>
 
-            <button
-              onClick={() => router.push("")}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
-            >
-              <Image
-                src={bellIcon}
-                alt="Notifications"
-                width={20}
-                height={20}
-                className="text-gray-500 hover:text-[#112D27]"
-              />
-            </button>
+
+            {/* ── NOTIFICATION BELL ─────────────────────────────────────────────── */}
+            <div className="relative">
+              <button
+                onClick={handleBellClick}
+                className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
+              >
+                <Image
+                  src={bellIcon}
+                  alt="Notifications"
+                  width={20}
+                  height={20}
+                  className="text-gray-500 hover:text-[#112D27]"
+                />
+
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+
+              {notificationPanelOpen && (
+                <NotificationPanel
+                  notifications={notifications}
+                  isLoading={isLoading}
+                  onClose={() => setNotificationPanelOpen(false)}
+                  targetRoute="/client/orders"
+                />
+              )}
+            </div>
+            {/* ─────────────────────────────────────────────────────────────────────── */}
 
             <button
               onClick={() => router.push("")}
@@ -265,3 +310,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
