@@ -13,7 +13,8 @@ export default function PaymentSuccessModal({ depositAmount, onClose }: Props) {
 
   const handleContinue = () => {
     onClose();
-    router.push("/client/tracking"); 
+    const requestId = sessionStorage.getItem("pendingDepositRequestId");
+    router.push(requestId ? `/client/tracking/${requestId}` : "/client/orders");
   };
 
   return (

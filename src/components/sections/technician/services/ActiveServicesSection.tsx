@@ -13,8 +13,13 @@ import {
 import Button from "@/components/ui/Button";
 import type { AssignedRequest, RequestStatus } from "@/types/request.types";
 import { markRequestOnTheWay } from "@/api/services/request.service";
+import ChatButton from "../../client/direct-messages/ChatButton";
 
-const ACTIVE_STATUSES: RequestStatus[] = ["in_progress", "on_the_way", "started"];
+const ACTIVE_STATUSES: RequestStatus[] = [
+  "in_progress",
+  "on_the_way",
+  "started",
+];
 
 const formatCurrency = (value?: number) => {
   if (typeof value !== "number") {
@@ -96,18 +101,25 @@ const getPriceLabel = (request: AssignedRequest) => {
 };
 
 const getPrimaryTitle = (request: AssignedRequest) =>
-  request.serviceId?.name || request.postId?.title || request.title || "خدمة بدون عنوان";
+  request.serviceId?.name ||
+  request.postId?.title ||
+  request.title ||
+  "خدمة بدون عنوان";
 
 const getCategoryLabel = (request: AssignedRequest) =>
   request.serviceId?.name ? "خدمة شائعة" : "خدمة مخصصة";
 
 const getSummary = (request: AssignedRequest) =>
-  request.notes || request.completionNote || "لا توجد تفاصيل إضافية متاحة لهذا الطلب.";
+  request.notes ||
+  request.completionNote ||
+  "لا توجد تفاصيل إضافية متاحة لهذا الطلب.";
 
 const getLocationLabel = (request: AssignedRequest) =>
   request.address?.district ||
   request.address?.fullAddress ||
-  [request.userId?.city, request.userId?.governorate].filter(Boolean).join("، ") ||
+  [request.userId?.city, request.userId?.governorate]
+    .filter(Boolean)
+    .join("، ") ||
   "العنوان غير متاح";
 
 const getCustomerName = (request: AssignedRequest) =>
@@ -150,7 +162,13 @@ function LoadingState() {
   );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
   return (
     <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-[#F4D9D9] bg-[#FFF8F8] p-8 text-center">
       <div className="max-w-md">
@@ -185,7 +203,13 @@ function EmptyState() {
   );
 }
 
-function ActiveServiceCard({ request, onRetry }: { request: AssignedRequest; onRetry: () => void }) {
+function ActiveServiceCard({
+  request,
+  onRetry,
+}: {
+  request: AssignedRequest;
+  onRetry: () => void;
+}) {
   const router = useRouter();
   const statusBadge = getStatusBadge(request.status);
   const progressBadge = getProgressBadge(request.status);
@@ -212,7 +236,10 @@ function ActiveServiceCard({ request, onRetry }: { request: AssignedRequest; onR
           </span>
         </div>
 
-        <div className="ml-auto inline-flex max-w-[74%] items-center justify-end gap-2" dir="rtl">
+        <div
+          className="ml-auto inline-flex max-w-[74%] items-center justify-end gap-2"
+          dir="rtl"
+        >
           <h3 className="truncate text-[20px] font-bold leading-9 text-[var(--primary-color)] md:text-[18px]">
             {getPrimaryTitle(request)}
           </h3>
@@ -229,7 +256,9 @@ function ActiveServiceCard({ request, onRetry }: { request: AssignedRequest; onR
       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
           <p className="text-xs text-[#8B9995]">نطاق السعر</p>
-          <p className="mt-2 font-bold text-[var(--primary-color)]">{getPriceLabel(request)}</p>
+          <p className="mt-2 font-bold text-[var(--primary-color)]">
+            {getPriceLabel(request)}
+          </p>
         </div>
         <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
           <p className="text-xs text-[#8B9995]">تاريخ الطلب</p>
@@ -260,16 +289,8 @@ function ActiveServiceCard({ request, onRetry }: { request: AssignedRequest; onR
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              className="!px-3 !text-xs !font-medium !text-[#636261] !border-[#EAE9E3] !hover:bg-[#F8FAF9]"
-              onClick={() => router.push("/technician/direct-messages")}
-            >
-              <span className="inline-flex items-center gap-2">
-              <MessageCircle size={12} className="text-[#8B908D]" />
-                محادثة
-              </span>
-            </Button>
+            <ChatButton requestId={request._id} role="technician" />
+
             <Button
               className="min-w-[110px] bg-[var(--accent-color)] px-5 py-2 text-sm font-bold text-[var(--primary-color)] hover:bg-[var(--accent-hover)]"
               onClick={async () => {
@@ -288,7 +309,10 @@ function ActiveServiceCard({ request, onRetry }: { request: AssignedRequest; onR
         </div>
 
         <div className="mt-4 flex w-full justify-end">
-          <div className="ml-auto flex items-center gap-3 text-right text-sm text-[#6A7A75]" dir="rtl">
+          <div
+            className="ml-auto flex items-center gap-3 text-right text-sm text-[#6A7A75]"
+            dir="rtl"
+          >
             {progressBadge ? (
               <span className="inline-flex items-center gap-2 rounded-full bg-[#F1F7E7] px-4 py-2 text-sm font-semibold text-[#5E7D55]">
                 <span className="h-2 w-2 rounded-full bg-[#B3E718]" />
@@ -320,7 +344,8 @@ export default function ActiveServicesSection({
   onRetry,
 }: ActiveServicesSectionProps) {
   const activeRequests = useMemo(
-    () => requests.filter((request) => ACTIVE_STATUSES.includes(request.status)),
+    () =>
+      requests.filter((request) => ACTIVE_STATUSES.includes(request.status)),
     [requests],
   );
 
@@ -336,7 +361,6 @@ export default function ActiveServicesSection({
 
   return (
     <section className="section-wrapper !max-w-[1220px] !px-0" dir="rtl">
-
       {loading ? (
         <LoadingState />
       ) : error ? (
@@ -346,7 +370,11 @@ export default function ActiveServicesSection({
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" dir="rtl">
           {activeRequests.map((request) => (
-            <ActiveServiceCard key={request._id} request={request} onRetry={onRetry} />
+            <ActiveServiceCard
+              key={request._id}
+              request={request}
+              onRetry={onRetry}
+            />
           ))}
         </div>
       )}
