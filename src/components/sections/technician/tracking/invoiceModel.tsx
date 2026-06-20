@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Check, FileText, X } from "lucide-react";
+import { FileText, X } from "lucide-react";
 import { COLORS } from "@/constants/tracking";
 import { trackingApi } from "@/api/services/tracking.service";
 import type { TechnicianRequest } from "@/types/tracking.types";
@@ -41,11 +41,7 @@ export default function InvoiceModal({
   const handleSubmit = async () => {
     const parsedServicePrice = Number(price);
 
-    if (
-      !price.trim() ||
-      Number.isNaN(parsedServicePrice) ||
-      parsedServicePrice <= 0
-    ) {
+    if (!price.trim() || Number.isNaN(parsedServicePrice) || parsedServicePrice <= 0) {
       setError("سعر الخدمة مطلوب");
       return;
     }
@@ -68,14 +64,9 @@ export default function InvoiceModal({
         servicePrice: number;
         completionNote?: string;
         extraMaterialsPrice?: number;
-      } = {
-        servicePrice: parsedServicePrice,
-      };
+      } = { servicePrice: parsedServicePrice };
 
-      if (notes.trim()) {
-        body.completionNote = notes.trim();
-      }
-
+      if (notes.trim()) body.completionNote = notes.trim();
       if (hasSupplies && extraMaterialsPrice.trim()) {
         body.extraMaterialsPrice = Number(extraMaterialsPrice) || 0;
       }
@@ -95,190 +86,149 @@ export default function InvoiceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(32,71,52,0.72)] px-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
       <div
         dir="rtl"
-        className={`relative w-full rounded-[32px] bg-white p-8 shadow-2xl ${
-          submitted ? "max-w-lg" : "max-w-4xl"
-        }`}
+        className="flex w-full sm:max-w-3xl flex-col overflow-hidden bg-gray-50 shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]"
       >
-        <button
-          onClick={onClose}
-          className="absolute left-8 top-8 text-gray-700 transition-colors hover:text-[var(--primary-color)]"
-          aria-label="إغلاق"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        {/* Header */}
+        <div className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-4 sm:px-8 py-6">
+          <button
+            onClick={onClose}
+            className="absolute left-4 sm:left-8 top-6 text-gray-400 transition hover:text-gray-600"
+          >
+            <X size={22} />
+          </button>
 
-        {submitted ? (
-          <div className="flex flex-col items-center px-4 pb-2 pt-12 text-center">
-            <h2 className="text-3xl font-extrabold text-[var(--primary-color)]">
-              تم إرسال الفاتورة!
-            </h2>
-            <p className="mt-5 max-w-md text-sm leading-7 text-[var(--gray-color)]">
-              تم إرسال الفاتورة إلى العميل لمراجعتها واعتمادها. سيتم إشعارك فور
-              اتخاذ أي إجراء.
-            </p>
-
-            <div className="my-8 flex h-32 w-32 items-center justify-center rounded-full bg-[rgba(179,231,24,0.22)]">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--accent-color)] text-[var(--primary-color)]">
-                <Check className="h-10 w-10 stroke-[3]" />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={goToOrders}
-              className="min-w-64 rounded-full bg-[var(--accent-color)] px-8 py-3 text-sm font-extrabold text-[var(--primary-color)] shadow-[0_12px_24px_rgba(179,231,24,0.24)]"
-            >
-              العودة إلى الطلبات الواردة
-            </button>
-          </div>
-        ) : (
           <div>
-            <div className="border-b border-gray-200">
-              <div className="mb-1 flex items-center gap-2">
-                <h2
-                  className="text-xl font-bold"
-                  style={{ color: COLORS.primary }}
-                >
-                  فاتورة الخدمة
-                </h2>
-                <FileText
-                  className="h-4 w-4"
-                  style={{ color: COLORS.primary }}
-                />
+            <h2
+              className="flex items-center gap-2 text-xl font-extrabold"
+              style={{ color: COLORS.primary }}
+            >
+              فاتورة الخدمة
+              <FileText size={18} />
+            </h2>
+            <p className="mt-1 text-sm text-gray-400">
+              {request.userId?.fullName}
+            </p>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
+          <div className="mx-auto max-w-xl">
+            <div className="flex flex-col gap-5">
+
+              {/* عنوان الخدمة */}
+              <div>
+                <label className="mb-2 block text-sm font-bold text-gray-500">
+                  عنوان الخدمة
+                </label>
+                <div className="flex items-center justify-between rounded-xl bg-gray-100 px-4 py-3">
+                  <span className="text-sm font-medium" style={{ color: COLORS.primary }}>
+                    {request.serviceId?.name}
+                  </span>
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS.accent }} />
+                </div>
               </div>
-              <p className="mb-6 text-sm text-gray-400">
-                {request.userId?.fullName}
-              </p>
-            </div>
-            <div className="mx-auto max-w-2xl">
-              <div className="flex flex-col gap-5 pt-5">
-                <div>
-                  <label className="mb-2 block text-sm text-gray-500">
-                    عنوان الخدمة
-                  </label>
-                  <div className="flex items-center justify-between rounded-lg px-4 py-3 bg-[#F8FAF9]">
-                    <span className="text-sm" style={{ color: COLORS.primary }}>
-                      {request.serviceId?.name}
-                    </span>
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: COLORS.accent }}
-                    />
-                  </div>
-                </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <label className="text-sm text-gray-500">
-                      السعر النهائي للخدمة (جنيه)
-                    </label>
-                    <div className="flex w-40 items-center gap-2 rounded-lg border border-gray-200 px-2 py-1.5">
-                      <input
-                        type="number"
-                        min={priceMin ?? 1}
-                        max={priceMax}
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        placeholder="0"
-                        className="w-full bg-transparent text-sm outline-none"
-                      />
-                      <Image
-                        src={moneyIcon}
-                        alt="money"
-                        width={16}
-                        height={16}
-                      />
-                    </div>
-                  </div>
-                  {(priceMin !== undefined || priceMax !== undefined) && (
-                    <p className="text-xs text-gray-400 text-left">
-                      النطاق المسموح:{" "}
-                      {priceMin !== undefined ? `${priceMin}` : "0"} -{" "}
-                      {priceMax !== undefined ? `${priceMax}` : "∞"} جنيه
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm text-gray-500">
-                      مستلزمات إضافية (اختياري)
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setHasSupplies((value) => !value)}
-                      className="flex h-6 w-10 rounded-full p-0.5 transition-colors"
-                      style={{
-                        backgroundColor: hasSupplies
-                          ? COLORS.accent
-                          : "#E5E7EB",
-                        justifyContent: hasSupplies ? "flex-end" : "flex-start",
-                      }}
-                    >
-                      <span className="h-5 w-5 rounded-full bg-white shadow" />
-                    </button>
-                  </div>
-
-                  {hasSupplies && (
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm text-gray-500 mt-3">
-                        سعر المستلزمات الإضافية (جنيه)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={extraMaterialsPrice}
-                        onChange={(e) => setExtraMaterialsPrice(e.target.value)}
-                        placeholder="0"
-                        className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm text-gray-500">
-                    ملاحظات إضافية (اختياري)
-                  </label>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="أي تفاصيل إضافية تود إضافتها..."
-                    rows={3}
-                    className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none"
+              {/* السعر */}
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm text-gray-500">
+                  <span className="font-bold">السعر النهائي للخدمة </span>
+                  (جنيه)
+                </label>
+                <div className="flex w-64 items-center gap-2 rounded-2xl border border-gray-200 px-3 py-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="0"
+                    className="w-full bg-transparent text-sm outline-none"
                   />
+                  <button type="button" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full">
+                    <Image src={moneyIcon} alt="money" width={16} height={16} />
+                  </button>
                 </div>
+              </div>
 
-                <div className="flex items-center justify-between border-t bg-[#F8FAF9] rounded-lg p-3 border-gray-100 pt-4">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold ">{total}</span>
-                    <span className="text-sm text-gray-500">جنيه</span>
-                  </div>
-                  <span className="text-sm text-gray-500">الإجمالي</span>
+              {/* المستلزمات */}
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <label className="text-sm text-gray-500">
+                    <span className="font-bold">مستلزمات إضافية </span>
+                    (اختياري)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setHasSupplies((v) => !v)}
+                    className="flex h-6 w-10 rounded-full p-0.5 transition-colors"
+                    style={{
+                      backgroundColor: hasSupplies ? COLORS.accent : "#E5E7EB",
+                      justifyContent: hasSupplies ? "flex-end" : "flex-start",
+                    }}
+                  >
+                    <span className="h-5 w-5 rounded-full bg-white shadow" />
+                  </button>
                 </div>
-
-                {error && (
-                  <p className="text-center text-sm text-red-500">{error}</p>
+                {hasSupplies && (
+                  <input
+                    type="number"
+                    min="0"
+                    value={extraMaterialsPrice}
+                    onChange={(e) => setExtraMaterialsPrice(e.target.value)}
+                    placeholder="سعر المستلزمات"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none"
+                  />
                 )}
               </div>
 
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="w-full rounded-full py-3 text-sm font-bold disabled:opacity-50"
-                style={{
-                  backgroundColor: COLORS.accent,
-                  color: COLORS.primary,
-                }}
-              >
-                {submitting ? "بيتبعث..." : "إرسال الفاتورة"}
-              </button>
+              {/* الملاحظات */}
+              <div>
+                <label className="mb-2 block text-sm font-bold text-gray-500">
+                  ملاحظات إضافية
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={4}
+                  placeholder="أي تفاصيل إضافية..."
+                  className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none"
+                />
+              </div>
+
+              {/* الإجمالي */}
+              <div className="rounded-xl border border-gray-100 bg-gray-100 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">الإجمالي</span>
+                  <div className="flex items-end gap-1">
+                    <span className="text-3xl font-bold" style={{ color: COLORS.primary }}>
+                      {total}
+                    </span>
+                    <span className="text-sm text-gray-500">جنيه</span>
+                  </div>
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-center text-sm text-red-500">{error}</p>
+              )}
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Footer */}
+        <div className="sticky bottom-0 border-t border-gray-200 bg-white p-4 sm:p-6">
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full rounded-2xl py-4 text-sm font-bold transition disabled:opacity-50"
+            style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}
+          >
+            {submitting ? "بيتبعث..." : "إرسال الفاتورة"}
+          </button>
+        </div>
       </div>
     </div>
   );
