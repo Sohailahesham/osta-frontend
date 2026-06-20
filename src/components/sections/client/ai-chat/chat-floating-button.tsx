@@ -10,6 +10,7 @@ export default function ChatFloatingButton() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -21,12 +22,9 @@ export default function ChatFloatingButton() {
 
   const msgId = useRef(2);
 
-  // Lock body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
   const addMsg = (msg: Omit<ChatMessage, "id">) =>
@@ -34,52 +32,87 @@ export default function ChatFloatingButton() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return;
+
+    // Handle "أنا بخير شكراً" — close gracefully without API call
+    if (text.includes("أنا بخير")) {
+      addMsg({ role: "user", text });
+      setTimeout(() => {
+        addMsg({
+          role: "ai",
+          text: "يسعدنا ذلك! 😊 إذا احتجت أي مساعدة في المستقبل أنا هنا.",
+        });
+      }, 400);
+      return;
+    }
+
     addMsg({ role: "user", text });
     setInput("");
     setLoading(true);
 
     try {
-      const { data } = await api.post("/chat", { message: text });
+      const { data } = await api.post("/chat", {
+        message: text,
+        conversationId,
+      });
       const res = data.data;
 
-      if (res.isEmergency) {
+      // Persist conversation ID
+      if (res.conversationId && !conversationId) {
+        setConversationId(res.conversationId);
+      }
+
+      // ── Emergency ──────────────────────────────────────────────────────────
+      // ONE message: emergency bubble with dynamic tips inside
+      if (res.emergency === true || res.isEmergency === true) {
         addMsg({
           role: "ai",
           emergencyData: {
             type: res.type,
             severity: res.severity ?? "عالية",
             contacts: res.contacts ?? {},
+            tips: res.tips ?? [],   // dynamic tips from backend
           },
         });
         return;
       }
 
-      if (res.service) {
+      // ── Out of scope ───────────────────────────────────────────────────────
+      if (res.outOfScope === true) {
+        addMsg({ role: "ai", isOutOfScope: true });
+        return;
+      }
+
+      // ── Clarification needed ───────────────────────────────────────────────
+      if (res.needsClarification && res.question) {
         addMsg({
           role: "ai",
-          text: "وجدت الخدمة المناسبة لك:",
-          serviceCard: {
-            _id: res.service._id,
-            name: res.service.name,
-            image: res.service.image,
-            rating: res.service.averageRating ?? 4.5,
-            category: res.category,
-            priceRange: res.service.priceRange,
-            fixingSteps: res.service.fixingSteps,
-          },
+          text: res.question,
+          isClarification: true,
         });
         return;
       }
 
-      if (res.category) {
-        addMsg({ role: "ai", text: res.message, isNoService: true });
-        return;
-      }
-
+      // ── Normal flow — ALL in ONE message ───────────────────────────────────
+      // Order: tip → service card (or no-service) → AI question/message → follow-up chips
       addMsg({
         role: "ai",
-        text: res.message ?? "عذراً، لم أفهم طلبك. حاول وصف المشكلة بشكل أوضح.",
+        tip: res.tip,
+        serviceCard: res.service
+          ? {
+              _id: res.service._id,
+              name: res.service.name,
+              image: res.service.image,
+              rating: res.service.averageRating ?? 4.5,
+              category: res.category,
+              priceRange: res.service.priceRange,
+              fixingSteps: res.service.fixingSteps,
+            }
+          : undefined,
+        isNoService: !res.service && !!res.category,
+        text: res.message,   // AI question / conversational reply
+        showFollowUp: true,
       });
+
     } catch {
       addMsg({ role: "ai", text: "حدث خطأ في الاتصال. حاول مجدداً." });
     } finally {
@@ -89,7 +122,6 @@ export default function ChatFloatingButton() {
 
   return (
     <>
-      {/* ── Floating Button ── */}
       <button
         onClick={() => setOpen(true)}
         aria-label="افتح المساعد الذكي"
@@ -101,7 +133,6 @@ export default function ChatFloatingButton() {
         </span>
       </button>
 
-      {/* ── Modal ── */}
       {open && (
         <ChatModal
           messages={messages}

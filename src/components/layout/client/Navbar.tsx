@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, CreditCard, LogOut } from "lucide-react";
 import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
 import userIcon from "@/assets/icons/user.svg";
+
+import { api } from "@/api/axios";
+
 import { useSocket } from "@/hooks/useSocket";
 import { useUnreadTotal } from "@/hooks/useUnreadTotal";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { useNotifications } from "@/hooks/useNotifications";
+import NotificationPanel from "@/components/notifications/NotificationPanel";
+
+
 
 const NAV_LINKS = [
   { label: "الرئيسية", href: "/client/home" },
@@ -20,6 +28,11 @@ const NAV_LINKS = [
   { label: "الدعم والمساعدة", href: "/client/support" },
 ];
 
+interface CurrentUser {
+  fullName: string;
+  email: string;
+}
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -27,8 +40,75 @@ export default function Navbar() {
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Fetch logged-in user from GET /users/me
+  useEffect(() => {
+    api
+      .get<{ data: CurrentUser }>("/users/me")
+      .then((res) => {
+        const user = res.data?.data ?? (res.data as unknown as CurrentUser);
+        setCurrentUser({ fullName: user.fullName, email: user.email });
+      })
+      .catch(() => {
+        // token invalid or expired — interceptor will handle redirect
+      });
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    setProfileOpen(false);
+    try {
+      // POST /auth/logout — clears refreshToken on backend
+      await api.post("/auth/logout");
+    } catch {
+      // proceed with local cleanup even if request fails
+    } finally {
+      localStorage.removeItem("access_token");
+      router.push("/login");
+    }
+  };
+
+  const userInitial = currentUser?.fullName?.charAt(0) ?? "؟";
+
+
+  // ── NOTIFICATION STATE ──────────────────────────────────────────────────────
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const { socket } = useSocket(token);
   const { total } = useUnreadTotal(socket, userId, role);
+
+  const { socket: notificationSocket } = useNotificationSocket(userId);
+  const { notifications, isLoading, unreadCount, markAllAsRead } =
+    useNotifications(notificationSocket, userId);
+
+  const handleBellClick = () => {
+    setNotificationPanelOpen((prev) => {
+      const next = !prev;
+ 
+      if (next && unreadCount > 0) {
+        void markAllAsRead();
+      }
+      return next;
+    });
+  };
+  // ─────────────────────────────────────────────────────────────────────────────
+
 
   return (
     <nav
@@ -79,6 +159,41 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+
+
+            {/* ── NOTIFICATION BELL ─────────────────────────────────────────────── */}
+            <div className="relative">
+              <button
+                onClick={handleBellClick}
+                className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
+              >
+                <Image
+                  src={bellIcon}
+                  alt="Notifications"
+                  width={20}
+                  height={20}
+                  className="text-gray-500 hover:text-[#112D27]"
+                />
+
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+
+              {notificationPanelOpen && (
+                <NotificationPanel
+                  notifications={notifications}
+                  isLoading={isLoading}
+                  onClose={() => setNotificationPanelOpen(false)}
+                  targetRoute="/client/orders"
+                />
+              )}
+            </div>
+            {/* ─────────────────────────────────────────────────────────────────────── */}
+
             <button
               onClick={() => router.push("")}
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
@@ -86,17 +201,85 @@ export default function Navbar() {
               <Image
                 src={bellIcon}
                 alt="Notifications"
-                width={20}
-                height={20}
-                className="text-gray-500 hover:text-[#112D27]"
+                width={24}
+                height={24}
               />
             </button>
-            <button
-              onClick={() => router.push("/client/profile")}
-              className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
-            >
-              <Image src={userIcon} alt="Profile" width={24} height={24} />
-            </button>
+
+            {/* زرار البروفايل + الـ dropdown */}
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen((prev) => !prev)}
+                className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
+              >
+                <Image src={userIcon} alt="Profile" width={24} height={24} />
+              </button>
+
+              {profileOpen && (
+                <div
+                  dir="rtl"
+                  className="absolute end-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-50"
+                >
+                  {/* User info */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <div className="w-10 h-10 rounded-full bg-[#F1F7E7] text-[var(--primary-color)] flex items-center justify-center font-bold text-lg flex-shrink-0">
+                      {currentUser ? (
+                        userInitial
+                      ) : (
+                        <span className="w-5 h-5 rounded-full bg-gray-200 animate-pulse block" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      {currentUser ? (
+                        <>
+                          <p className="text-sm font-semibold text-[#112D27] truncate">
+                            {currentUser.fullName}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">
+                            {currentUser.email}
+                          </p>
+                        </>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-2.5 w-36 bg-gray-100 rounded animate-pulse" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100" />
+
+                  <Link
+                    href="/client/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+                  >
+                    <User size={18} className="text-gray-400" />
+                    الملف الشخصي
+                  </Link>
+
+                  <Link
+                    href="/client/orders-history"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+                  >
+                    <CreditCard size={18} className="text-gray-400" />
+                    سجل الطلبات
+                  </Link>
+
+                  <div className="border-t border-gray-100" />
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-all"
+                  >
+                    <LogOut size={18} />
+                    تسجيل الخروج
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* زرار الموبايل */}
             <button
@@ -127,3 +310,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
