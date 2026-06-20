@@ -16,6 +16,7 @@ import plumbingIcon from "@/assets/icons/plumbing.svg";
 import carpentryIcon from "@/assets/icons/carpentry.svg";
 import acIcon from "@/assets/icons/aircondition.svg";
 import { api } from "@/api/axios";
+import BookOtherServiceModal from "@/components/sections/client/otherService/BookOtherServiceModal";
 
 const categoryIcons = {
   كهرباء: electricalIcon,
@@ -49,6 +50,11 @@ export default function CategoriesSection() {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const [loadingServices, setLoadingServices] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -165,7 +171,10 @@ export default function CategoriesSection() {
                       <div className="w-7 h-7 border-2 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin" />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" dir="rtl">
+                    <div
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                      dir="rtl"
+                    >
                       {cat.services?.map((service) => {
                         return (
                           <div
@@ -209,7 +218,10 @@ export default function CategoriesSection() {
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-1 justify-end mb-2 group-hover:hidden" dir="ltr">
+                              <div
+                                className="flex items-center gap-1 justify-end mb-2 group-hover:hidden"
+                                dir="ltr"
+                              >
                                 <p className="text-xs text-gray-500">
                                   {/* {service.averageRating > 0
                                     ? service.averageRating
@@ -227,7 +239,10 @@ export default function CategoriesSection() {
                               </p>
 
                               {/* السعر والوقت — يختفو على الهوفر */}
-                              <div className="flex items-center justify-center gap-2 group-hover:hidden" dir="ltr">
+                              <div
+                                className="flex items-center justify-center gap-2 group-hover:hidden"
+                                dir="ltr"
+                              >
                                 <div
                                   className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-white text-[var(--primary-color)]"
                                   dir="rtl"
@@ -252,12 +267,44 @@ export default function CategoriesSection() {
                       })}
                     </div>
                   )}
+
+                  <div
+                    className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100"
+                    dir="rtl"
+                  >
+                    <p className="text-sm text-gray-500">
+                      لم تجد ما تحتاجه في قسم{" "}
+                      <span className="font-bold text-[var(--primary-color)]">
+                        {cat.name}
+                      </span>
+                      ؟
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setModalOpen(true);
+                      }}
+                      className="group flex items-center gap-2 border border-[var(--purple-dark)] bg-[var(--purple-light)] hover:bg-[var(--purple-dark)] hover:text-white text-[var(--purple-dark)] text-sm font-bold px-6 py-3 rounded-full transition-all"
+                    >
+                      <Star
+                        size={14}
+                        className="fill-[#5D508D] text-[#5D508D] group-hover:fill-white group-hover:text-white transition-colors"
+                      />
+                      اطلب خدمة مخصصة
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
       </div>
+      <BookOtherServiceModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        categoryId={selectedCategory?._id || ""}
+        categoryName={selectedCategory?.name || ""}
+      />
     </section>
   );
 }
