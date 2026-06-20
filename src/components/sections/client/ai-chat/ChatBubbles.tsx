@@ -1,12 +1,12 @@
 "use client";
 
-import { Star, ArrowUpLeft, ArrowLeft, Phone } from "lucide-react";
+import { Star, ArrowUpLeft, ArrowLeft, Phone, Ban } from "lucide-react";
 import Image from "next/image";
 import electricIcon from "@/assets/icons/electricicon.svg";
 import pin from "@/assets/icons/pin.svg";
 import time from "@/assets/icons/time.svg";
 
-// ─── Types (re-exported so other files can import from here) ─────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface ServiceCard {
   _id: string;
@@ -31,9 +31,10 @@ export interface EmergencyData {
     fire?: EmergencyContact;
     ambulance?: EmergencyContact;
   };
+  tips?: string[]; // dynamic from backend, falls back to generic if empty
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 export const QUICK_CHIPS = [
   "عطل في غسالة أو ثلاجة",
@@ -41,6 +42,11 @@ export const QUICK_CHIPS = [
   "يوجد تسريب مياه",
   "باب أو نافذة معطلة",
   "جهاز التكييف لا يرد",
+];
+
+export const FOLLOW_UP_CHIPS = [
+  "ساعدني أكثر حتى يصل الفني 🛠️",
+  "أنا بخير، شكراً! ✅",
 ];
 
 export const SIDEBAR_TIPS = [
@@ -67,19 +73,19 @@ export const COMMON_ISSUES = [
 ];
 
 const NO_SERVICE_BULLETS = [
-  "الوصول الي الفني المختص ",
-  "سهوله التواصل و مناقشه التفاصيل",
-  "الدقه و الامان في العمل",
+  "الوصول الى الفني المختص",
+  "سهولة التواصل ومناقشة التفاصيل",
+  "الدقة والأمان في العمل",
 ];
 
-const EMERGENCY_TIPS = [
+const EMERGENCY_TIPS_FALLBACK = [
   "لا تضغط على أي مفتاح كهرباء أو تشغل ولاعة",
   "افتح كل الشبابيك والأبواب فوراً",
   "أغلق صمام الغاز الرئيسي إن كان في متناولك",
   "اخرج من المكان وابتعد عن المبنى",
 ];
 
-// ─── Sparkle SVG ──────────────────────────────────────────────────────────────
+// ─── Sparkle SVG ─────────────────────────────────────────────────────────────
 
 export function SparkleSvg({
   size = 22,
@@ -89,7 +95,7 @@ export function SparkleSvg({
   color?: string;
 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" >
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <path
         d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"
         fill={color}
@@ -114,7 +120,7 @@ export function AiLabel() {
   return (
     <div className="flex items-center justify-end gap-2 mb-2">
       <span className="text-[11px] font-bold text-[var(--primary-color)]">
-    AI أسطى 
+        AI أسطى
       </span>
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--primary-color)] to-[var(--accent-color)] flex items-center justify-center shrink-0">
         <SparkleSvg size={13} color="#B3E718" />
@@ -123,7 +129,67 @@ export function AiLabel() {
   );
 }
 
-// ─── Scenario 1: Service Card ─────────────────────────────────────────────────
+// ─── Tip Pill ─────────────────────────────────────────────────────────────────
+
+export function TipPill({ tip }: { tip: string }) {
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2.5 text-xs text-amber-800 leading-6 text-right max-w-[88%]">
+      {tip}
+    </div>
+  );
+}
+
+// ─── Follow-up chips ──────────────────────────────────────────────────────────
+
+export function FollowUpChipsBubble({
+  onSelect,
+}: {
+  onSelect: (text: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 items-end">
+      <p className="text-xs text-gray-500 text-right">
+        هل تريد مساعدة إضافية حتى يصل الفني؟
+      </p>
+      <div className="flex flex-wrap gap-2 justify-end">
+        {FOLLOW_UP_CHIPS.map((chip) => (
+          <button
+            key={chip}
+            onClick={() => onSelect(chip)}
+            className="bg-[var(--primary-color)]/8 border border-[var(--primary-color)]/20 rounded-full px-4 py-2 text-xs text-[var(--primary-color)] font-semibold hover:bg-[var(--primary-color)] hover:text-white transition-colors"
+          >
+            {chip}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Out of scope bubble ──────────────────────────────────────────────────────
+
+export function OutOfScopeBubble() {
+  return (
+    <div
+      className="w-full max-w-[300px] rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 shadow-sm"
+      dir="rtl"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <Ban size={14} className="text-gray-400 shrink-0" />
+        <p className="text-xs font-bold text-gray-500">خارج نطاق الخدمة</p>
+      </div>
+      <p className="text-sm text-gray-600 leading-6">
+        أنا متخصص فقط في مشاكل المنازل مثل السباكة والكهرباء والتكييف والنجارة
+        وإصلاح الأجهزة. لا أستطيع المساعدة في هذا الموضوع.
+      </p>
+      <p className="text-xs text-gray-400 mt-2">
+        جرب تصف مشكلة في منزلك وسأساعدك 🏠
+      </p>
+    </div>
+  );
+}
+
+// ─── Service Card ─────────────────────────────────────────────────────────────
 
 export function ServiceCardBubble({
   card,
@@ -192,7 +258,7 @@ export function ServiceCardBubble({
   );
 }
 
-// ─── Scenario 2: Emergency bubble ────────────────────────────────────────────
+// ─── Emergency bubble ─────────────────────────────────────────────────────────
 
 export function EmergencyBubble({ data }: { data: EmergencyData }) {
   const contacts = Object.entries(data.contacts).filter(([, v]) => v) as [
@@ -200,56 +266,33 @@ export function EmergencyBubble({ data }: { data: EmergencyData }) {
     EmergencyContact,
   ][];
 
+  const tips =
+    data.tips && data.tips.length > 0 ? data.tips : EMERGENCY_TIPS_FALLBACK;
+
   const contactIcon = (key: string) => {
     if (key === "ambulance")
       return (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          className="text-red-400"
-        >
-          <rect
-            x="3"
-            y="7"
-            width="18"
-            height="13"
-            rx="2"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path
-            d="M8 7V5a4 4 0 0 1 8 0v2"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path
-            d="M12 12v4M10 14h4"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-red-400">
+          <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+          <path d="M8 7V5a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="2" />
+          <path d="M12 12v4M10 14h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
     return <Phone size={14} className="text-red-400" />;
   };
 
   return (
-    <div
-      className="w-full max-w-[320px] rounded-2xl bg-white border border-red-100 overflow-hidden"
-      dir="rtl"
-    >
+    <div className="w-full max-w-[320px] rounded-2xl bg-white border border-red-100 overflow-hidden" dir="rtl">
       <div className="px-5 pt-4 pb-3">
         <p className="text-red-500 font-bold text-sm mb-3">
           🚨 حالة طارئة — تصرف فوراً!
         </p>
 
         <p className="text-red-500 font-bold text-xs mb-2">
-          نصائح سريعة قبل وصول المساعدة:
+          نصائح سريعة بناءً على مشكلتك:
         </p>
         <ul className="space-y-2 mb-4">
-          {EMERGENCY_TIPS.map((tip, i) => (
+          {tips.map((tip, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
               <span className="mt-1 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
               {tip}
@@ -259,9 +302,7 @@ export function EmergencyBubble({ data }: { data: EmergencyData }) {
 
         <div className="border-t border-gray-100 mb-3" />
 
-        <p className="text-gray-700 font-bold text-xs mb-2.5">
-          اتصل بالطوارئ الآن:
-        </p>
+        <p className="text-gray-700 font-bold text-xs mb-2.5">اتصل بالطوارئ الآن:</p>
         <div className="space-y-2">
           {contacts.map(([key, c]) => (
             <a
@@ -287,24 +328,21 @@ export function EmergencyBubble({ data }: { data: EmergencyData }) {
   );
 }
 
-// ─── Scenario 3: No-service bubble ───────────────────────────────────────────
+// ─── No-service bubble ────────────────────────────────────────────────────────
 
-export function NoServiceBubble({
-  text,
-  onBrowse,
-}: {
-  text: string;
-  onBrowse: () => void;
-}) {
+export function NoServiceBubble({ onBrowse }: { onBrowse: () => void }) {
   return (
     <div
-      className="w-full max-w-[320px] rounded-2xl bg-white border border-gray-100 p-4 shadow-sm"
+      className="w-full max-w-[300px] rounded-2xl bg-white border border-gray-100 p-4 shadow-sm"
       dir="rtl"
     >
-      <p className="text-sm text-gray-700 leading-7 mb-3 text-right">{text}</p>
+      <p className="text-sm text-gray-700 leading-7 mb-3 text-right">
+        لم نجد خدمة مطابقة تماماً في المنصة، لكن يمكنك تقديم طلب مخصص وسيتواصل
+        معك فني متخصص.
+      </p>
 
       <p className="font-bold text-[var(--primary-color)] text-xs mb-2">
-        تشمل الخدمات المتخصصه :
+        تشمل الخدمات المتخصصة:
       </p>
       <ul className="space-y-2 mb-4" dir="ltr">
         {NO_SERVICE_BULLETS.map((b, i) => (
@@ -320,10 +358,10 @@ export function NoServiceBubble({
 
       <button
         onClick={onBrowse}
-        className="w-full bg-indigo-600 text-white font-bold rounded-xl py-2.5 text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors"
+        className="w-full bg-[var(--primary-color)] text-white font-bold rounded-xl py-2.5 text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
       >
         <ArrowUpLeft size={15} />
-        اطلب خدمة مخصصة
+        تصفح الخدمات المتخصصة
       </button>
     </div>
   );
