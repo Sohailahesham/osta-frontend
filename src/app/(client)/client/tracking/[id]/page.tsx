@@ -1,5 +1,6 @@
 "use client";
 
+import { api } from "@/api/axios";
 import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -12,12 +13,6 @@ import {
   Star,
   CreditCard,
 } from "lucide-react";
-
-/* ============================================================
-   Types
-   - status القادم من السيرفر بقى 3 قيم بس: on_the_way / started / completed
-   - الشكل ده مطابق لما بيرجعه GET /requests/my فعليًا
-   ============================================================ */
 
 interface AssignedTechnician {
   _id: string;
@@ -46,7 +41,6 @@ interface ClientRequest {
   isFullyPaid?: boolean;
 }
 
-// بيرجع تفاصيل الفاتورة جاهزة من بيانات الطلب (نفس الحقول اللي راجعة من /requests/my)
 function getInvoiceAmounts(request: ClientRequest) {
   const servicePrice = request.servicePrice ?? 0;
   const materialsPrice = request.extraMaterialsPrice ?? 0;
@@ -54,13 +48,14 @@ function getInvoiceAmounts(request: ClientRequest) {
   const prepaid = request.depositStatus === "paid" ? request.depositAmount ?? 0 : 0;
   const remaining = request.isFullyPaid ? 0 : Math.max(total - prepaid, 0);
   const completionNote =
-    request.completionNote && request.completionNote.trim() !== "" && request.completionNote !== "لا يوجد"
+    request.completionNote &&
+    request.completionNote.trim() !== "" &&
+    request.completionNote !== "لا يوجد"
       ? request.completionNote
       : null;
+
   return { servicePrice, materialsPrice, total, prepaid, remaining, completionNote };
 }
-
-const BASE_URL = "http://localhost:3000";
 
 const COLORS = {
   primary: "#1C4B41",
@@ -76,29 +71,33 @@ const STEPS = [
   { key: "completed", title: "تم انجاز العمل" },
 ] as const;
 
-// تحويل status السيرفر لعدد الخطوات المكتملة (نفس منطق صفحة الفني)
 const STATUS_PROGRESS: Record<ClientRequest["status"], number> = {
   on_the_way: 1,
   started: 2,
   completed: 3,
 };
 
-// كل قد ايه نعمل polling لمتابعة تحديثات الفني (لحد ما يتوفر سوكيت/ريل تايم)
 const POLL_INTERVAL_MS = 8000;
 
-function getToken() {
-  return localStorage.getItem("access_token") || null;
-}
-
-function authHeaders() {
-  const token = getToken();
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
 type Flow = "tracking" | "invoice" | "rate" | "rateSuccess";
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "data" in error.response
+  ) {
+    const responseData = error.response.data as { message?: string };
+    if (responseData?.message) {
+      return responseData.message;
+    }
+  }
+
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function ClientTrackingPage({
   params,
@@ -111,47 +110,35 @@ export default function ClientTrackingPage({
   const [request, setRequest] = useState<ClientRequest | null>(null);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [error, setError] = useState("");
-
   const [flow, setFlow] = useState<Flow>("tracking");
   const [givenRating, setGivenRating] = useState(0);
-
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
-
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [ratingError, setRatingError] = useState("");
 
-  // ===== تحميل الطلب =====
   const fetchRequest = useCallback(
     async (showLoader: boolean) => {
       if (showLoader) setLoadingInitial(true);
+
       try {
-        // مفيش endpoint لسه لجلب طلب واحد بالـ id، فبنجيب قايمة طلبات الكلاينت
-        // ونلاقي الطلب المطلوب فيها. لو فيه صفحات كتير (meta.totalPages) والطلب
-        // مش في الصفحة الأولى، هنا المكان اللي تحتاج تضيف فيه ?page=.. أو endpoint مخصص.
-        const res = await fetch(`${BASE_URL}/requests/my`, {
-          headers: authHeaders(),
-        });
-        const json = await res.json();
-        if (!res.ok || !json.success) {
-          throw new Error(json.message || "حصل خطأ في تحميل الطلب");
-        }
+        const response = await api.get<ClientRequest | { data?: ClientRequest }>(
+          `/requests/${requestId}`
+        );
+        const payload = response.data;
+        const nextRequest =
+          payload && typeof payload === "object" && "data" in payload && payload.data
+            ? payload.data
+            : (payload as ClientRequest);
 
-        const list = Array.isArray(json.data) ? (json.data as ClientRequest[]) : [];
-        const found = list.find((r) => r._id === requestId);
-        if (!found) {
-          throw new Error("الطلب غير موجود");
-        }
-
-        setRequest(found);
+        setRequest(nextRequest);
         setError("");
 
-        // أول ما الطلب يخلص، نفتح شاشة الفاتورة تلقائيًا
-        if (found.status === "completed") {
+        if (nextRequest.status === "completed") {
           setFlow((prev) => (prev === "tracking" ? "invoice" : prev));
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : "حصل خطأ في تحميل الطلب");
+        setError(getErrorMessage(e, "حصل خطأ في تحميل الطلب"));
       } finally {
         setLoadingInitial(false);
       }
@@ -160,74 +147,66 @@ export default function ClientTrackingPage({
   );
 
   useEffect(() => {
-    fetchRequest(true);
+    const timeoutId = window.setTimeout(() => {
+      void fetchRequest(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchRequest]);
 
-  // polling لحد ما الطلب يكتمل (التحديثات بتيجي من تحركات الفني)
   useEffect(() => {
     if (!request || request.status === "completed") return;
-    const interval = setInterval(() => fetchRequest(false), POLL_INTERVAL_MS);
+    const interval = setInterval(() => {
+      void fetchRequest(false);
+    }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [request, fetchRequest]);
 
-  // ===== دفع الفاتورة =====
-const handlePay = async () => {
-  if (!request) return;
+  const handlePay = async () => {
+    if (!request) return;
 
-  const { remaining } = getInvoiceAmounts(request);
-  if (remaining <= 0) {
-    setFlow("rate");
-    return;
-  }
-
-  setPaying(true);
-  setPayError("");
-  try {
-    const res = await fetch(`${BASE_URL}/payment/remaining/${requestId}`, {
-      method: "POST",
-      headers: authHeaders(),
-    });
-    const json = await res.json();
-    if (!res.ok || !json.success) {
-      throw new Error(json.message || "حصل خطأ في الدفع");
-    }
-
-    // الـ response بيرجع paymentUrl زي عملية العربون بالظبط
-    const paymentUrl = json.data?.paymentUrl;
-    if (paymentUrl) {
-      window.location.href = paymentUrl;
+    const { remaining } = getInvoiceAmounts(request);
+    if (remaining <= 0) {
+      setFlow("rate");
       return;
     }
 
-    throw new Error("لم يتم الحصول على رابط الدفع");
-  } catch (e) {
-    setPayError(e instanceof Error ? e.message : "حصل خطأ، حاول تاني");
-  } finally {
-    setPaying(false);
-  }
-};
+    setPaying(true);
+    setPayError("");
 
-  // ===== إرسال التقييم =====
+    try {
+      const response = await api.post<{ data?: { paymentUrl?: string } }>(
+        `/payment/remaining/${requestId}`
+      );
+      const paymentUrl = response.data?.data?.paymentUrl;
+
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+        return;
+      }
+
+      throw new Error("لم يتم الحصول على رابط الدفع");
+    } catch (e) {
+      setPayError(getErrorMessage(e, "حصل خطأ، حاول تاني"));
+    } finally {
+      setPaying(false);
+    }
+  };
+
   const handleSubmitRating = async (rating: number, comment: string) => {
     setRatingSubmitting(true);
     setRatingError("");
+
     try {
-      const res = await fetch(`${BASE_URL}/requests/${requestId}/rate`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          rating,
-          ...(comment.trim() ? { comment: comment.trim() } : {}),
-        }),
+      await api.post("/reviews", {
+        requestId,
+        rating,
+        ...(comment.trim() ? { comment: comment.trim() } : {}),
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.message || "حصل خطأ في إرسال التقييم");
-      }
       setGivenRating(rating);
       setFlow("rateSuccess");
     } catch (e) {
-      setRatingError(e instanceof Error ? e.message : "حصل خطأ، حاول تاني");
+      setRatingError(getErrorMessage(e, "حصل خطأ، حاول تاني"));
     } finally {
       setRatingSubmitting(false);
     }
@@ -239,7 +218,6 @@ const handlePay = async () => {
   return (
     <>
       <div dir="rtl" className="max-w-2xl mx-auto px-4 py-10">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-lg font-bold" style={{ color: COLORS.primary }}>
             {request?.serviceId?.name ?? "تتبع الطلب"}
@@ -259,7 +237,6 @@ const handlePay = async () => {
 
         {request && (
           <>
-            {/* ===== Stepper ===== */}
             <div className="relative mb-10">
               <div className="absolute top-7 left-0 right-0 h-0.5 bg-gray-200" />
               <div
@@ -306,7 +283,6 @@ const handlePay = async () => {
                       >
                         {step.title}
                       </span>
-                      {/* بادج حالة للقراءة فقط - مفيش أكشن من جهة الكلاينت */}
                       <span
                         className="text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-1.5 rounded-full"
                         style={{
@@ -326,7 +302,6 @@ const handlePay = async () => {
               </div>
             </div>
 
-            {/* ===== كروت تفاصيل كل خطوة ===== */}
             <div className="flex flex-col gap-3">
               {STEPS.map((step, i) => {
                 const isLive = !isFullyCompleted && i === progress - 1;
@@ -373,14 +348,13 @@ const handlePay = async () => {
                             className="w-1.5 h-1.5 rounded-full"
                             style={{ backgroundColor: COLORS.accent }}
                           />
-                          جار الآن
+                          جاري الآن
                         </span>
                       ) : (
                         <span />
                       )}
                     </div>
 
-                    {/* في الكارد المباشر بتاع الكلاينت بنعرض اسم الفني وتقييمه، مش اسم الكلاينت */}
                     {isLive && (
                       <div className="px-4 pb-4 flex flex-col gap-3">
                         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -402,8 +376,7 @@ const handlePay = async () => {
                                 {request.assignedTechnician?.fullName ??
                                   "لسه مفيش فني متعين"}
                               </span>
-                              {typeof request.assignedTechnician
-                                ?.averageRating === "number" &&
+                              {typeof request.assignedTechnician?.averageRating === "number" &&
                                 request.assignedTechnician.averageRating > 0 && (
                                   <span
                                     className="flex items-center gap-1 text-xs font-bold"
@@ -414,9 +387,7 @@ const handlePay = async () => {
                                       style={{ color: COLORS.gold }}
                                       fill={COLORS.gold}
                                     />
-                                    {request.assignedTechnician.averageRating.toFixed(
-                                      1
-                                    )}
+                                    {request.assignedTechnician.averageRating.toFixed(1)}
                                   </span>
                                 )}
                             </div>
@@ -497,9 +468,6 @@ const handlePay = async () => {
   );
 }
 
-/* ============================================================
-   شاشة الفاتورة (Bill)
-   ============================================================ */
 function InvoiceScreen({
   request,
   onPay,
@@ -593,9 +561,7 @@ function InvoiceScreen({
               className="flex items-center justify-between rounded-xl px-4 py-3"
               style={{ backgroundColor: COLORS.primary }}
             >
-              <span className="text-sm font-bold text-white">
-                المطلوب دفعه الآن
-              </span>
+              <span className="text-sm font-bold text-white">المطلوب دفعه الآن</span>
               <span
                 className="text-xl font-extrabold"
                 style={{ color: COLORS.accent }}
@@ -615,9 +581,7 @@ function InvoiceScreen({
             </div>
           )}
 
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <button
             onClick={onPay}
@@ -640,9 +604,6 @@ function InvoiceScreen({
   );
 }
 
-/* ============================================================
-   شاشة التقييم (Rate)
-   ============================================================ */
 function RateScreen({
   technicianName,
   onSubmit,
@@ -729,7 +690,7 @@ function RateScreen({
             className="w-full py-3 rounded-full font-bold text-sm disabled:opacity-50"
             style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}
           >
-            {submitting ? "بيتبعت..." : "نشر التقييم"}
+            {submitting ? "بيتبعث..." : "نشر التقييم"}
           </button>
         </div>
       </div>
@@ -737,9 +698,6 @@ function RateScreen({
   );
 }
 
-/* ============================================================
-   شاشة نجاح التقييم (Rate Success)
-   ============================================================ */
 function RateSuccessScreen({
   rating,
   onBackToHome,

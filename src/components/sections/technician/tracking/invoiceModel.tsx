@@ -6,6 +6,8 @@ import { Camera, Check, FileText, X } from "lucide-react";
 import { COLORS } from "@/constants/tracking";
 import { trackingApi } from "@/api/services/tracking.service";
 import type { TechnicianRequest } from "@/types/tracking.types";
+import moneyIcon from "@/assets/icons/money.svg";
+import Image from "next/image";
 
 interface Props {
   request: TechnicianRequest;
@@ -33,6 +35,9 @@ export default function InvoiceModal({
   const materialsPrice = hasSupplies ? Number(extraMaterialsPrice) || 0 : 0;
   const total = servicePrice + materialsPrice;
 
+  const priceMin = request.serviceId?.priceRange?.min;
+  const priceMax = request.serviceId?.priceRange?.max;
+
   const handleSubmit = async () => {
     const parsedServicePrice = Number(price);
 
@@ -42,6 +47,16 @@ export default function InvoiceModal({
       parsedServicePrice <= 0
     ) {
       setError("سعر الخدمة مطلوب");
+      return;
+    }
+
+    if (priceMin !== undefined && parsedServicePrice < priceMin) {
+      setError(`سعر الخدمة لازم يكون ${priceMin} جنيه على الأقل`);
+      return;
+    }
+
+    if (priceMax !== undefined && parsedServicePrice > priceMax) {
+      setError(`سعر الخدمة لازم يكون ${priceMax} جنيه كحد أقصى`);
       return;
     }
 
