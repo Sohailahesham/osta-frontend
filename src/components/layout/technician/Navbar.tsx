@@ -4,7 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { BriefcaseBusiness, Menu, WalletCards, X } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  Menu,
+  WalletCards,
+  X,
+  Ticket,
+  MessageCircle,
+  HelpCircle,
+} from "lucide-react";
 import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
@@ -13,16 +21,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
 import { useUnreadTotal } from "@/hooks/useUnreadTotal";
 
-
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPanel from "@/components/notifications/NotificationPanel";
+import SupportMenuPanel from "@/components/layout/support/SupportMenuPanel";
 
+const SUPPORT_PATH = "/technician/support";
 
 const NAV_LINKS = [
   { label: "الطلبات الواردة", href: "/technician/orders" },
   { label: "المحلات", href: "/technician/stores" },
-  { label: "الدعم و المساعدة", href: "/technician/support" },
 ];
 
 const WORK_LINKS = [
@@ -43,17 +51,18 @@ export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
+  const [supportMenuOpen, setSupportMenuOpen] = useState(false);
   const workMenuRef = useRef<HTMLDivElement | null>(null);
+  const supportMenuRef = useRef<HTMLDivElement | null>(null);
   const { token, userId, role } = useAuth();
 
   const isWorkRoute = pathname.startsWith("/technician/portfolio");
+  const isSupportRoute = pathname.startsWith(SUPPORT_PATH);
 
   const { socket } = useSocket(token);
   const { total } = useUnreadTotal(socket, userId, role);
 
-
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
-
 
   const { socket: notificationSocket } = useNotificationSocket(userId);
   const { notifications, isLoading, unreadCount, markAllAsRead } =
@@ -62,7 +71,7 @@ export default function Navbar() {
   const handleBellClick = () => {
     setNotificationPanelOpen((prev) => {
       const next = !prev;
- 
+
       if (next && unreadCount > 0) {
         void markAllAsRead();
       }
@@ -78,6 +87,12 @@ export default function Navbar() {
         !workMenuRef.current.contains(event.target as Node)
       ) {
         setWorkMenuOpen(false);
+      }
+      if (
+        supportMenuRef.current &&
+        !supportMenuRef.current.contains(event.target as Node)
+      ) {
+        setSupportMenuOpen(false);
       }
     };
 
@@ -116,6 +131,29 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            {/* ── SUPPORT DROPDOWN ───────────────────────────────────────────── */}
+            <div className="relative" ref={supportMenuRef}>
+              <button
+                type="button"
+                onClick={() => setSupportMenuOpen((open) => !open)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  isSupportRoute
+                    ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                    : "text-[#112D27] hover:bg-[#F6F5F1] hover:text-[var(--primary-color)]"
+                }`}
+              >
+                الدعم و المساعدة
+              </button>
+
+              {supportMenuOpen ? (
+                <SupportMenuPanel
+                  basePath={SUPPORT_PATH}
+                  onClose={() => setSupportMenuOpen(false)}
+                />
+              ) : null}
+            </div>
+            {/* ─────────────────────────────────────────────────────────────────── */}
 
             <div className="relative" ref={workMenuRef}>
               <button
@@ -271,6 +309,60 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+
+          {/* ── SUPPORT (mobile) ──────────────────────────────────────────────── */}
+          <div className="rounded-2xl border border-[#EEF1EF] p-2">
+            <button
+              type="button"
+              onClick={() => setSupportMenuOpen((open) => !open)}
+              className={`w-full rounded-xl px-4 py-2.5 text-right text-sm font-medium transition-all ${
+                isSupportRoute
+                  ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                  : "text-[#112D27] hover:bg-gray-50 hover:text-[var(--primary-color)]"
+              }`}
+            >
+              الدعم و المساعدة
+            </button>
+
+            {supportMenuOpen ? (
+              <div className="mt-2 flex flex-col gap-1">
+                <Link
+                  href={`${SUPPORT_PATH}?tab=tickets`}
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>التذاكر</span>
+                  <Ticket size={16} />
+                </Link>
+
+                <div className="flex w-full cursor-not-allowed items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#9AA8A3]">
+                  <span className="flex items-center gap-2">
+                    المحادثة المباشرة
+                    <span className="rounded-full bg-[#F1F4F2] px-2 py-0.5 text-[11px]">
+                      قريباً
+                    </span>
+                  </span>
+                  <MessageCircle size={16} className="text-[#C7CFCB]" />
+                </div>
+
+                <Link
+                  href={`${SUPPORT_PATH}?tab=help`}
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>مركز المساعدة</span>
+                  <HelpCircle size={16} />
+                </Link>
+              </div>
+            ) : null}
+          </div>
+          {/* ─────────────────────────────────────────────────────────────────────── */}
         </div>
       ) : null}
     </nav>
