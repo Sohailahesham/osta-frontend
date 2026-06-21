@@ -86,7 +86,7 @@ export default function Footer() {
 
           <div className="flex items-center gap-2 w-fit mt-2">
             <Button
-              onClick={() => router.push("/emergency")}
+              onClick={() => router.push("/client/emergency")}
               className="!text-white !bg-[#D5433E] hover:!bg-[#B83530]"
             >
               ارقام الطوارئ
