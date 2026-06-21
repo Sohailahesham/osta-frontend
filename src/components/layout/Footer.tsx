@@ -7,6 +7,7 @@ import phoneIcon from "@/assets/icons/phone.svg";
 import Image from "next/image";
 import logoImage from "@/assets/images/logo-light.svg";
 import Button from "../ui/Button";
+import { useAuth } from "@/hooks/useAuth";
 
 const QUICK_LINKS_COL1 = [
   { label: "من نحن", href: "/about" },
@@ -22,6 +23,9 @@ const QUICK_LINKS_COL2 = [
 
 export default function Footer() {
   const router = useRouter();
+  const { role, isReady } = useAuth();
+
+  const showEmergencyButton = isReady && role === "client";
 
   return (
     <footer className="primary-gradient" dir="rtl">
@@ -84,17 +88,19 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-fit mt-2">
-            <Button
-              onClick={() => router.push("/client/emergency")}
-              className="!text-white !bg-[#D5433E] hover:!bg-[#B83530]"
-            >
-              ارقام الطوارئ
-            </Button>
-            <div className="w-9 h-9 rounded-full border-[#D5433E] bg-[#D5433E] hover:bg-[#B83530] flex items-center justify-center">
-              <ArrowUpLeft size={16} className="text-white" />
+          {showEmergencyButton && (
+            <div className="flex items-center gap-2 w-fit mt-2">
+              <Button
+                onClick={() => router.push("/client/emergency")}
+                className="!text-white !bg-[#D5433E] hover:!bg-[#B83530]"
+              >
+                ارقام الطوارئ
+              </Button>
+              <div className="w-9 h-9 rounded-full border-[#D5433E] bg-[#D5433E] hover:bg-[#B83530] flex items-center justify-center">
+                <ArrowUpLeft size={16} className="text-white" />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
