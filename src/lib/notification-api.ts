@@ -1,8 +1,3 @@
-// src/lib/notification-api.ts
-//
-// Thin wrappers around the notification REST endpoints.
-// Adjust API_BASE_URL / auth header logic to match how the rest of your
-// app already calls the backend (axios instance, fetch wrapper, etc).
 
 import { AppNotification, NotificationListResponse } from '@/types/notification';
 
