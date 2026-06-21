@@ -85,9 +85,14 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-2 w-fit mt-2">
-            <Button onClick={() => router.push("/register")}>إنشاء حساب</Button>
-            <div className="w-9 h-9 rounded-full border bg-[var(--accent-color)] hover:bg[var(--accent-hover)] flex items-center justify-center">
-              <ArrowUpLeft size={16} className="text-[var(--primary-color)]" />
+            <Button
+              onClick={() => router.push("/emergency")}
+              className="!text-white !bg-[#D5433E] hover:!bg-[#B83530]"
+            >
+              ارقام الطوارئ
+            </Button>
+            <div className="w-9 h-9 rounded-full border-[#D5433E] bg-[#D5433E] hover:bg-[#B83530] flex items-center justify-center">
+              <ArrowUpLeft size={16} className="text-white" />
             </div>
           </div>
         </div>
