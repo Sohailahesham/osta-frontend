@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import { loginUser } from "@/services/auth.service";
 import logoImage from "@/assets/images/logo.svg";
 import { loginSchema, validateSchema } from "@/validators/auth.validators";
+import { getPostLoginRoute } from "@/lib/auth-redirect";
 
 interface LoginForm {
   email: string;
@@ -47,19 +48,14 @@ export default function LoginPage() {
       });
 
       localStorage.setItem("access_token", data.data.access_token);
+      localStorage.setItem("refresh_token", data.data.refresh_token);
       localStorage.setItem("user", JSON.stringify(data.data.user));
-
-      // وديه حسب الـ role
-      if (data.data.user.role === "technician") {
-        router.push("/technician/orders");
-      } else {
-        router.push("/client/home");
-      }
-    } catch (error: any) {
-      alert(JSON.stringify(error?.response?.data ?? error?.message ?? "unknown error"));
+      router.push(getPostLoginRoute(data.data.user));
+    } catch {
       setErrors({ email: "البريد أو كلمة المرور غلط" });
     }
   };
+
   const handleGoogleLogin = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
@@ -75,23 +71,19 @@ export default function LoginPage() {
         className="object-cover object-right"
       />
 
-      {/* overlay موبايل */}
       <div className="absolute inset-0 bg-black/25 lg:hidden" />
 
-      {/* Logo */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
         <div className="flex items-center gap-2">
           <Image
             src={logoImage}
             alt="Logo"
             width={120}
-            // height={60}
             className="h-auto"
           />
         </div>
       </div>
 
-      {/* الكارت — على الشمال */}
       <div
         className="
         flex items-center justify-center z-10
@@ -134,7 +126,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* نسيت كلمة المرور */}
           <button
             onClick={() => router.push("/forgot-password")}
             className="text-xs text-[var(--primary-color)] font-semibold mt-3 hover:underline block"
@@ -142,25 +133,15 @@ export default function LoginPage() {
             نسيت كلمة المرور؟
           </button>
 
-          {/* زرار تسجيل الدخول */}
           <Button fullWidth onClick={handleSubmit} className="mt-6">
             تسجيل الدخول
           </Button>
 
-          {/* أو */}
           <div className="flex items-center gap-3 my-4">
             <div className="flex-1 h-px bg-gray-200" />
             <span className="text-xs text-gray-400">أو</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
-
-          {/* Google */}
-          {/* <button className="w-full py-2.5 rounded-full border border-gray-200 flex items-center justify-center gap-2 bg-[#F1F7E7] hover:bg-[#E7F1D8] transition-all">
-            <Image src={googleIcon} alt="Google" width={18} height={18} />
-            <span className="text-sm text-gray-600 font-medium">
-              سجل الدخول عبر جوجل
-            </span>
-          </button> */}
 
           <button
             onClick={handleGoogleLogin}
@@ -172,7 +153,6 @@ export default function LoginPage() {
             </span>
           </button>
 
-          {/* لينك إنشاء حساب */}
           <p className="text-center text-xs sm:text-sm text-gray-400 mt-5">
             لا يوجد لديك حساب؟ قم{" "}
             <span

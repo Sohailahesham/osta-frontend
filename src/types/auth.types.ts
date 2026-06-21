@@ -1,4 +1,22 @@
-export type UserRole = 'technician' | 'client';
+export type UserRole = 'technician' | 'client' | 'admin';
+export type AuthProvider = 'local' | 'google';
+
+export interface TechnicianData {
+  currentStep: number;
+  isProfileComplete: boolean;
+  verificationStatus: string;
+}
+
+export interface AuthUser {
+  id: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
+  provider: AuthProvider;
+  isVerified: boolean;
+  profileComplete: boolean;
+  technicianData?: TechnicianData;
+}
 
 // Register
 export interface RegisterUserData {
@@ -21,11 +39,5 @@ export interface LoginData {
 export interface AuthResponse {
   access_token: string;
   refresh_token: string;
-  user: {
-    id: string;
-    fullName: string;
-    email: string;
-    role: UserRole;
-    currentStep: number;
-  };
+  user: AuthUser;
 }

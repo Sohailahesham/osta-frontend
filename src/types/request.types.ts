@@ -50,6 +50,10 @@ export interface AssignedRequestAddress {
 
 export interface AssignedRequest {
   _id: string;
+  requestId?: string | null;
+  chatRequestId?: string | null;
+  proposalId?: string;
+  pendingSource?: "request" | "proposal";
   title?: string;
   status: RequestStatus;
   depositAmount?: number;

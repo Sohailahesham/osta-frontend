@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Star } from "lucide-react";
 import DepositModal from "./DepositModal";
-import { Order } from "./OngoingOrdersSection";
+import { getClientOrderStatusBadge, Order } from "./OngoingOrdersSection";
 import ChatButton from "../direct-messages/ChatButton";
 
 const formatTime = (timeStr: string): string => {
@@ -23,6 +23,13 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const technicianInitial =
     order.assignedTechnician?.fullName?.charAt(0) ?? "?";
+  const badge = getClientOrderStatusBadge(order);
+  const canPayDeposit =
+    order.status === "accepted" && order.depositStatus === "unpaid";
+  const canTrackOrder =
+    order.status === "in_progress" ||
+    order.status === "on_the_way" ||
+    order.status === "started";
 
   return (
     <>
@@ -118,13 +125,26 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
               >
                 تتبع الطلب
               </button>
-            ) : (
+            ) : canPayDeposit ? (
               <button
                 onClick={() => setShowDepositModal(true)}
                 className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-2.5 rounded-full hover:opacity-90 transition-all"
               >
                 ادفع العربون
               </button>
+            ) : canTrackOrder ? (
+              <button
+                onClick={() => router.push(`/client/tracking/${order._id}`)}
+                className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-2.5 rounded-full whitespace-nowrap hover:opacity-90 transition-all"
+              >
+                تتبع الطلب
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400 whitespace-nowrap">
+                {order.depositStatus === "pending"
+                  ? "جاري تأكيد الدفع"
+                  : "تم دفع العربون"}
+              </span>
             )}
 
           </div>

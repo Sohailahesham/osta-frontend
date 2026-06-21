@@ -2,13 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertCircle,
-  Clock3,
-  MapPin,
-  MessageCircle,
-  MoreVertical,
-} from "lucide-react";
+import { AlertCircle, Clock3, MapPin, MoreVertical } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { AssignedRequest, RequestStatus } from "@/types/request.types";
 import ChatButton from "../../client/direct-messages/ChatButton";
@@ -36,7 +30,7 @@ const STATUS_STYLES: Record<
   pending: {
     label: "بانتظار رد العميل",
     className: "bg-[#EDE9FE] text-[#6668C4]",
-    dotClassName: "bg-[##6668C4]",
+    dotClassName: "bg-[#6668C4]",
   },
   accepted: {
     label: "بانتظار دفع العربون",
@@ -126,6 +120,10 @@ const getPriceLabel = (request: AssignedRequest) => {
     return formatCurrency(request.postId.budget);
   }
 
+  if (typeof request.totalPrice === "number" && request.totalPrice > 0) {
+    return formatCurrency(request.totalPrice);
+  }
+
   return "غير محدد";
 };
 
@@ -151,19 +149,21 @@ const getRequestSummary = (request: AssignedRequest) =>
   request.completionNote ||
   "لا توجد تفاصيل إضافية متاحة لهذا الطلب حاليًا.";
 
+const getChatRequestId = (request: AssignedRequest) => {
+  if (request.chatRequestId) return request.chatRequestId;
+  if (request.pendingSource === "proposal") return null;
+  return request._id;
+};
+
 const isPendingRequest = (request: AssignedRequest) =>
   PENDING_STATUSES.includes(request.status);
 
-const isAwaitingClient = (request: AssignedRequest) =>
-  request.status === "pending";
+const isAwaitingClient = (request: AssignedRequest) => request.status === "pending";
 
 const isAwaitingDeposit = (request: AssignedRequest) =>
   request.status === "accepted" || request.depositStatus === "unpaid";
 
-const filterRequestByTab = (
-  request: AssignedRequest,
-  filter: PendingFilter,
-) => {
+const filterRequestByTab = (request: AssignedRequest, filter: PendingFilter) => {
   if (!isPendingRequest(request)) {
     return false;
   }
@@ -225,15 +225,20 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
   const router = useRouter();
   const statusStyle = STATUS_STYLES[request.status] || STATUS_STYLES.pending;
   const customerName = request.userId?.fullName || "عميل غير معروف";
+  const chatRequestId = getChatRequestId(request);
+  const isCustomRequest = !request.serviceId?.name && Boolean(request.postId?._id);
+
+  const openOrderDetails = () => {
+    const detailsId = request.requestId ?? request._id;
+    router.push(`/technician/portfolio/pending/${detailsId}`);
+  };
 
   return (
     <article
       dir="rtl"
       className="rounded-[20px] border border-[#EAEAEA] bg-white p-5 text-right shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
     >
-      {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        {/* Right side: title + category */}
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <h3 className="truncate text-[18px] font-bold leading-tight text-[var(--primary-color)]">
             {getPrimaryTitle(request)}
@@ -243,14 +248,11 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
           </span>
         </div>
 
-        {/* Left side: status + menu */}
         <div className="flex shrink-0 items-center gap-2">
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${statusStyle.className}`}
           >
-            <span
-              className={`h-2 w-2 rounded-full ${statusStyle.dotClassName}`}
-            />
+            <span className={`h-2 w-2 rounded-full ${statusStyle.dotClassName}`} />
             {statusStyle.label}
           </span>
           <button
@@ -263,14 +265,12 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
         </div>
       </div>
 
-      {/* Description */}
       <div className="mt-4">
         <div className="rounded-2xl border border-[#EDF1EF] bg-[#F8FAF9] px-4 py-4 text-sm leading-7 text-[#5F6E69]">
           {getRequestSummary(request)}
         </div>
       </div>
 
-      {/* Info grid */}
       <div className="mt-4 grid grid-cols-3 gap-3">
         <div className="rounded-2xl bg-[#F8FAF9] px-4 py-4 text-right">
           <p className="text-xs text-[#8B9995]">العميل</p>
@@ -292,14 +292,36 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
         </div>
       </div>
 
-      {/* Location row */}
       <div className="mt-4 flex items-center justify-between gap-2 text-sm text-[#70817C]">
         <span className="flex items-center gap-2">
           <MapPin size={16} className="shrink-0 text-[#B3E718]" />
           <span>{getLocationLabel(request)}</span>
         </span>
-        <ChatButton requestId={request._id} role="technician" />
+        {chatRequestId ? (
+          <ChatButton requestId={chatRequestId} role="technician" />
+        ) : isCustomRequest ? (
+          <ChatButton
+            role="technician"
+            customChat={{
+              postId: request.postId!._id!,
+              title: getPrimaryTitle(request),
+              clientName: customerName,
+            }}
+          />
+        ) : null}
       </div>
+
+      {isCustomRequest ? (
+        <div className="mt-4">
+          <Button
+            className="!w-full !justify-between !rounded-2xl !bg-[#F2EEFC] !px-5 !py-3 !text-sm !font-bold !text-[var(--primary-color)] hover:!bg-[#ECE6FB]"
+            onClick={openOrderDetails}
+          >
+            <span className="text-[#8B80B8]">‹</span>
+            <span>عرض تفاصيل الطلب</span>
+          </Button>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -309,7 +331,7 @@ function LoadingState() {
     <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-[#EEF1EF] bg-white shadow-[0_12px_32px_rgba(28,75,65,0.05)]">
       <div className="flex flex-col items-center gap-4 text-center">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--accent-color)] border-t-transparent" />
-        <p className="text-sm text-[#6E7E79]">جاري تحميل الخدمات المعلقة...</p>
+        <p className="text-sm text-[#6E7E79]">جارٍ تحميل الخدمات المعلقة...</p>
       </div>
     </div>
   );
@@ -349,8 +371,7 @@ function EmptyState() {
           لا توجد خدمات معلقة الآن
         </h3>
         <p className="mt-3 text-sm leading-7 text-[#6B7A76]">
-          ستظهر هنا الطلبات التي ما زالت في انتظار استكمال الخطوات قبل بدء
-          التنفيذ.
+          ستظهر هنا الطلبات التي ما زالت في انتظار استكمال الخطوات قبل بدء التنفيذ.
         </p>
       </div>
     </div>

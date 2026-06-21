@@ -19,8 +19,6 @@ import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPanel from "@/components/notifications/NotificationPanel";
 
-
-
 const NAV_LINKS = [
   { label: "الرئيسية", href: "/client/home" },
   { label: "الطلبات الحالية", href: "/client/orders" },
@@ -85,7 +83,6 @@ export default function Navbar() {
 
   const userInitial = currentUser?.fullName?.charAt(0) ?? "؟";
 
-
   // ── NOTIFICATION STATE ──────────────────────────────────────────────────────
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
   // ─────────────────────────────────────────────────────────────────────────────
@@ -100,7 +97,7 @@ export default function Navbar() {
   const handleBellClick = () => {
     setNotificationPanelOpen((prev) => {
       const next = !prev;
- 
+
       if (next && unreadCount > 0) {
         void markAllAsRead();
       }
@@ -108,7 +105,6 @@ export default function Navbar() {
     });
   };
   // ─────────────────────────────────────────────────────────────────────────────
-
 
   return (
     <nav
@@ -160,7 +156,6 @@ export default function Navbar() {
               )}
             </button>
 
-
             {/* ── NOTIFICATION BELL ─────────────────────────────────────────────── */}
             <div className="relative">
               <button
@@ -182,7 +177,6 @@ export default function Navbar() {
                 )}
               </button>
 
-
               {notificationPanelOpen && (
                 <NotificationPanel
                   notifications={notifications}
@@ -193,18 +187,6 @@ export default function Navbar() {
               )}
             </div>
             {/* ─────────────────────────────────────────────────────────────────────── */}
-
-            <button
-              onClick={() => router.push("")}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
-            >
-              <Image
-                src={bellIcon}
-                alt="Notifications"
-                width={24}
-                height={24}
-              />
-            </button>
 
             {/* زرار البروفايل + الـ dropdown */}
             <div className="relative" ref={profileRef}>
@@ -310,4 +292,3 @@ export default function Navbar() {
     </nav>
   );
 }
-

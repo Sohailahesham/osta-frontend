@@ -8,6 +8,9 @@ import walletIcon from "@/assets/icons/wallet.svg";
 import arrowIcon from "@/assets/icons/arrow.svg";
 import Button from "@/components/ui/Button";
 import Image from "next/image";
+
+type Tab = "popular" | "custom";
+
 interface PendingRequest {
   _id: string;
   userId: { _id: string; fullName: string; phone?: string } | null;
@@ -51,6 +54,11 @@ interface CustomPostWithCount extends CustomPost {
   proposalCount: number;
 }
 
+interface SuccessContent {
+  title: string;
+  description: string;
+}
+
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("ar-EG", {
     day: "numeric",
@@ -69,7 +77,15 @@ const formatTime = (timeStr: string): string => {
   return `${h}:${m} ${label}`;
 };
 
-function SuccessModal({ onClose }: { onClose: () => void }) {
+function SuccessModal({
+  title,
+  description,
+  onClose,
+}: {
+  title: string;
+  description: string;
+  onClose: () => void;
+}) {
   const router = useRouter();
   return (
     <div
@@ -88,11 +104,10 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
           <X size={18} />
         </button>
         <h2 className="text-xl font-bold text-[var(--primary-color)] mb-3">
-          تم استلام الطلب بنجاح!
+          {title}
         </h2>
         <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-          تم إسناد الطلب إليك بنجاح. يمكنك الآن التواصل مع العميل ومتابعة تفاصيل
-          الخدمة.
+          {description}
         </p>
         <div className="w-20 h-20 rounded-full bg-[#F0F9E8] flex items-center justify-center mb-8">
           <div className="w-14 h-14 rounded-full bg-[var(--accent-color)] flex items-center justify-center">
@@ -151,15 +166,21 @@ function RequestCard({
           <span className="text-gray-500">{request.notes}</span>
         </p>
       )}
-      {request.userId && (
-        <div className="bg-[#F8FAF9] rounded-xl p-4 flex flex-row-reverse items-center justify-between">
+
+      {request.userId ? (
+        <div className="flex flex-row-reverse items-center justify-between rounded-xl bg-[#F8FAF9] p-4">
           <button
             onClick={() => onAccept(request._id)}
             disabled={accepting === request._id}
-            className={`min-w-[110px] h-10 rounded-full font-bold text-sm transition-all ${accepting === request._id ? "bg-gray-200 text-gray-400" : "bg-[var(--accent-color)] text-[var(--primary-color)]"}`}
+            className={`h-10 min-w-[110px] rounded-full text-sm font-bold transition-all ${
+              accepting === request._id
+                ? "bg-gray-200 text-gray-400"
+                : "bg-[var(--accent-color)] text-[var(--primary-color)]"
+            }`}
           >
-            {accepting === request._id ? "جاري التقديم..." : "تقديم"}
+            {accepting === request._id ? "جارٍ التقديم..." : "تقديم"}
           </button>
+
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-[#D9F06A] flex items-center justify-center shrink-0">
               <span className="font-bold text-[var(--primary-color)]">
@@ -184,7 +205,7 @@ function RequestCard({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -324,70 +345,85 @@ function TipCard() {
   );
 }
 
-type Tab = "popular" | "custom";
-
 export default function TechnicianRequestsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("popular");
-  const [requests, setRequests] = useState<PendingRequest[]>([]);
+  const [popularRequests, setPopularRequests] = useState<PendingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
+
+  const [successContent, setSuccessContent] = useState<SuccessContent | null>(
+    null,
+  );
 
   const [customPosts, setCustomPosts] = useState<CustomPostWithCount[]>([]);
   const [loadingCustom, setLoadingCustom] = useState(false);
   const [submittingPost, setSubmittingPost] = useState<string | null>(null);
 
   useEffect(() => {
-    if (activeTab === "popular") {
+    if (activeTab !== "popular") return;
+
+    const loadRequests = async () => {
       setLoading(true);
-      api
-        .get("/requests/pending")
-        .then((res) => setRequests(res.data.data))
-        .catch(console.error)
-        .finally(() => setLoading(false));
-    }
+      try {
+        const res = await api.get("/requests/pending");
+        setPopularRequests(res.data.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRequests();
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab === "custom") {
-      setLoadingCustom(true);
-      api
-        .get("/posts")
-        .then(async (res) => {
-          const posts: CustomPost[] = res.data.data ?? [];
+    if (activeTab !== "custom") return;
 
-          // جيب عدد الـ proposals لكل post
-          const withCounts = await Promise.all(
-            posts.map(async (post) => {
-              try {
-                const pRes = await api.get(`/posts/${post._id}/proposals`);
-                const proposals: { status: string }[] = pRes.data.data ?? [];
-                return {
-                  ...post,
-                  proposalCount: proposals.filter((p) => p.status === "pending")
-                    .length,
-                };
-              } catch {
-                return { ...post, proposalCount: 0 };
-              }
-            }),
-          );
+    setLoadingCustom(true);
+    api
+      .get("/posts")
+      .then(async (res) => {
+        const posts: CustomPost[] = res.data.data ?? [];
 
-          setCustomPosts(withCounts);
-        })
-        .catch(console.error)
-        .finally(() => setLoadingCustom(false));
-    }
+        // جيب عدد الـ proposals لكل post
+        const withCounts = await Promise.all(
+          posts.map(async (post) => {
+            try {
+              const pRes = await api.get(`/posts/${post._id}/proposals`);
+              const proposals: { status: string }[] = pRes.data.data ?? [];
+              return {
+                ...post,
+                proposalCount: proposals.filter((p) => p.status === "pending")
+                  .length,
+              };
+            } catch {
+              return { ...post, proposalCount: 0 };
+            }
+          }),
+        );
+
+        setCustomPosts(withCounts);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingCustom(false));
   }, [activeTab]);
 
   const handleAccept = async (requestId: string) => {
     setAccepting(requestId);
+
     try {
       await api.patch(`/requests/${requestId}/accept`);
-      setRequests((prev) => prev.filter((r) => r._id !== requestId));
-      setShowSuccess(true);
-    } catch (err) {
-      console.error(err);
+      setPopularRequests((prev) =>
+        prev.filter((request) => request._id !== requestId),
+      );
+      setSuccessContent({
+        title: "تم استلام الطلب بنجاح!",
+        description:
+          "تم إسناد الطلب إليك بنجاح. يمكنك الآن التواصل مع العميل ومتابعة تفاصيل الخدمة.",
+      });
+    } catch (error) {
+      console.error(error);
     } finally {
       setAccepting(null);
     }
@@ -401,7 +437,10 @@ export default function TechnicianRequestsPage() {
         price: 0, // أو اعمل modal لإدخال السعر
       });
       setCustomPosts((prev) => prev.filter((p) => p._id !== postId));
-      setShowSuccess(true);
+      setSuccessContent({
+        title: "تم إرسال العرض بنجاح!",
+        description: "تم إرسال عرضك للعميل، يمكنك متابعة حالته من صفحة العروض.",
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -414,20 +453,25 @@ export default function TechnicianRequestsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Content — ٣/٤ */}
         <div className="lg:col-span-3">
-          {/* Tabs — بعرض الكولوم بس */}
           <div className="mb-6">
-            <div className="flex w-full bg-[#E9EEEA] rounded-full p-1">
+            <div className="flex w-full rounded-full bg-[#E9EEEA] p-1">
               <button
                 onClick={() => setActiveTab("popular")}
-                className={`flex-1 h-12 rounded-full font-bold text-base transition-all
-                  ${activeTab === "popular" ? "bg-[var(--primary-color)] text-white border-2 border-[var(--accent-color)]" : "text-[var(--primary-color)]"}`}
+                className={`h-12 flex-1 rounded-full text-base font-bold transition-all ${
+                  activeTab === "popular"
+                    ? "border-2 border-[var(--accent-color)] bg-[var(--primary-color)] text-white"
+                    : "text-[var(--primary-color)]"
+                }`}
               >
                 الخدمات الشائعة
               </button>
               <button
                 onClick={() => setActiveTab("custom")}
-                className={`flex-1 h-12 rounded-full font-bold text-base transition-all
-                  ${activeTab === "custom" ? "bg-[var(--primary-color)] text-white border-2 border-[var(--accent-color)]" : "text-[var(--primary-color)]"}`}
+                className={`h-12 flex-1 rounded-full text-base font-bold transition-all ${
+                  activeTab === "custom"
+                    ? "border-2 border-[var(--accent-color)] bg-[var(--primary-color)] text-white"
+                    : "text-[var(--primary-color)]"
+                }`}
               >
                 الخدمات المخصصة
               </button>
@@ -436,21 +480,22 @@ export default function TechnicianRequestsPage() {
 
           {activeTab === "popular" ? (
             <>
-              {!loading && (
-                <p className="text-sm text-gray-400 mb-4" dir="rtl">
-                  عرض {requests.length} طلب خدمة متاح
+              {!loading ? (
+                <p className="mb-4 text-sm text-gray-400" dir="rtl">
+                  عرض {popularRequests.length} طلب خدمة متاح
                 </p>
-              )}
+              ) : null}
+
               {loading ? (
                 <div className="flex items-center justify-center py-20">
-                  <div className="w-8 h-8 rounded-full border-4 border-[var(--accent-color)] border-t-transparent animate-spin" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--accent-color)] border-t-transparent" />
                 </div>
-              ) : requests.length === 0 ? (
+              ) : popularRequests.length === 0 ? (
                 <p className="text-gray-400 text-sm text-center py-20">
                   لا توجد طلبات متاحة الآن
                 </p>
               ) : (
-                requests.map((req) => (
+                popularRequests.map((req) => (
                   <RequestCard
                     key={req._id}
                     request={req}
@@ -489,13 +534,18 @@ export default function TechnicianRequestsPage() {
           ) : null}
         </div>
 
-        {/* Sidebar — ١/٤ */}
         <div className="lg:col-span-1">
           <TipCard />
         </div>
       </div>
 
-      {showSuccess && <SuccessModal onClose={() => setShowSuccess(false)} />}
+      {successContent ? (
+        <SuccessModal
+          title={successContent.title}
+          description={successContent.description}
+          onClose={() => setSuccessContent(null)}
+        />
+      ) : null}
     </div>
   );
 }

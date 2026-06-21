@@ -8,6 +8,9 @@ import InvoiceModal from "@/components/sections/technician/tracking/invoiceModel
 import TrackingStepCards from "@/components/sections/technician/tracking/trackingStepCards";
 import type { TechnicianRequest } from "@/types/tracking.types";
 import TrackingNav from "@/components/layout/TrackingNav";
+import PinnedChatCard from "@/components/sections/client/direct-messages/PinnedChatCard";
+import { useAuth } from "@/hooks/useAuth";
+import { useSocket } from "@/hooks/useSocket";
 
 function getProgressFromStatus(status?: TechnicianRequest["status"]) {
   switch (status) {
@@ -28,6 +31,9 @@ export default function TechnicianTrackingPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: requestId } = use(params);
+
+  const { token, userId } = useAuth();
+  const { socket } = useSocket(token);
 
   const [request, setRequest] = useState<TechnicianRequest | null>(null);
   const [progress, setProgress] = useState(0);
@@ -111,7 +117,11 @@ export default function TechnicianTrackingPage({
           </div>
           <div className="flex items-center gap-2 text-sm text-[var(--gray-color)]">
             <MapPin className="w-4 h-4 text-[var(--accent-color)]" />
-            <span>{request?.address?.district ?? request?.address?.fullAddress ?? "—"}</span>
+            <span>
+              {request?.address?.district ??
+                request?.address?.fullAddress ??
+                "—"}
+            </span>
           </div>
         </div>
 
@@ -126,7 +136,11 @@ export default function TechnicianTrackingPage({
         )}
 
         {!initialLoading && request && (
-          <TrackingStepper progress={progress} loading={loading} onStep={handleStep} />
+          <TrackingStepper
+            progress={progress}
+            loading={loading}
+            onStep={handleStep}
+          />
         )}
       </div>
 
@@ -147,6 +161,16 @@ export default function TechnicianTrackingPage({
             syncRequest(updated);
             setShowInvoiceModal(false);
           }}
+        />
+      )}
+
+      {request?.assignedTechnician && userId && (
+        <PinnedChatCard
+          requestId={requestId}
+          otherPartyName={request.userId.fullName}
+          serviceTitle={request.serviceId?.name ?? "الخدمة"}
+          currentUserId={userId}
+          socket={socket}
         />
       )}
     </div>
