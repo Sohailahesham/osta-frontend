@@ -82,6 +82,7 @@ export default function ContactInfoSection({ email, phone, onSaved }: Props) {
         </div>
       </div>
 
+      <div dir="ltr">
       <button
         onClick={handleSave}
         disabled={loading || saved}
@@ -94,6 +95,7 @@ export default function ContactInfoSection({ email, phone, onSaved }: Props) {
         ) : null}
         {loading ? "جاري الحفظ..." : saved ? "تم الحفظ ✓" : "حفظ التغييرات"}
       </button>
+      </div>
     </div>
   );
 }
