@@ -8,6 +8,9 @@ import walletIcon from "@/assets/icons/wallet.svg";
 import arrowIcon from "@/assets/icons/arrow.svg";
 import Button from "@/components/ui/Button";
 import Image from "next/image";
+
+type Tab = "popular" | "custom";
+
 interface PendingRequest {
   _id: string;
   userId: { _id: string; fullName: string; phone?: string } | null;
@@ -49,6 +52,11 @@ interface CustomPost {
 
 interface CustomPostWithCount extends CustomPost {
   proposalCount: number;
+}
+
+interface SuccessContent {
+  title: string;
+  description: string;
 }
 
 const formatDate = (dateStr: string) =>
@@ -96,11 +104,10 @@ function SuccessModal({
           <X size={18} />
         </button>
         <h2 className="text-xl font-bold text-[var(--primary-color)] mb-3">
-          تم استلام الطلب بنجاح!
+          {title}
         </h2>
         <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-          تم إسناد الطلب إليك بنجاح. يمكنك الآن التواصل مع العميل ومتابعة تفاصيل
-          الخدمة.
+          {description}
         </p>
         <div className="w-20 h-20 rounded-full bg-[#F0F9E8] flex items-center justify-center mb-8">
           <div className="w-14 h-14 rounded-full bg-[var(--accent-color)] flex items-center justify-center">
@@ -158,7 +165,7 @@ function RequestCard({
           <span className="text-gray-400">ملاحظة : </span>
           <span className="text-gray-500">{request.notes}</span>
         </p>
-      ) : null}
+      )}
 
       {request.userId ? (
         <div className="flex flex-row-reverse items-center justify-between rounded-xl bg-[#F8FAF9] p-4">
@@ -198,7 +205,7 @@ function RequestCard({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -341,56 +348,65 @@ function TipCard() {
 export default function TechnicianRequestsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("popular");
   const [popularRequests, setPopularRequests] = useState<PendingRequest[]>([]);
-  const [customRequests, setCustomRequests] = useState<CustomRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
+
+  const [successContent, setSuccessContent] = useState<SuccessContent | null>(
+    null,
+  );
 
   const [customPosts, setCustomPosts] = useState<CustomPostWithCount[]>([]);
   const [loadingCustom, setLoadingCustom] = useState(false);
   const [submittingPost, setSubmittingPost] = useState<string | null>(null);
 
   useEffect(() => {
+    if (activeTab !== "popular") return;
+
     const loadRequests = async () => {
       setLoading(true);
-      api
-        .get("/requests/pending")
-        .then((res) => setRequests(res.data.data))
-        .catch(console.error)
-        .finally(() => setLoading(false));
-    }
+      try {
+        const res = await api.get("/requests/pending");
+        setPopularRequests(res.data.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRequests();
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab === "custom") {
-      setLoadingCustom(true);
-      api
-        .get("/posts")
-        .then(async (res) => {
-          const posts: CustomPost[] = res.data.data ?? [];
+    if (activeTab !== "custom") return;
 
-          // جيب عدد الـ proposals لكل post
-          const withCounts = await Promise.all(
-            posts.map(async (post) => {
-              try {
-                const pRes = await api.get(`/posts/${post._id}/proposals`);
-                const proposals: { status: string }[] = pRes.data.data ?? [];
-                return {
-                  ...post,
-                  proposalCount: proposals.filter((p) => p.status === "pending")
-                    .length,
-                };
-              } catch {
-                return { ...post, proposalCount: 0 };
-              }
-            }),
-          );
+    setLoadingCustom(true);
+    api
+      .get("/posts")
+      .then(async (res) => {
+        const posts: CustomPost[] = res.data.data ?? [];
 
-          setCustomPosts(withCounts);
-        })
-        .catch(console.error)
-        .finally(() => setLoadingCustom(false));
-    }
+        // جيب عدد الـ proposals لكل post
+        const withCounts = await Promise.all(
+          posts.map(async (post) => {
+            try {
+              const pRes = await api.get(`/posts/${post._id}/proposals`);
+              const proposals: { status: string }[] = pRes.data.data ?? [];
+              return {
+                ...post,
+                proposalCount: proposals.filter((p) => p.status === "pending")
+                  .length,
+              };
+            } catch {
+              return { ...post, proposalCount: 0 };
+            }
+          }),
+        );
+
+        setCustomPosts(withCounts);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingCustom(false));
   }, [activeTab]);
 
   const handleAccept = async (requestId: string) => {
@@ -398,7 +414,9 @@ export default function TechnicianRequestsPage() {
 
     try {
       await api.patch(`/requests/${requestId}/accept`);
-      setPopularRequests((prev) => prev.filter((request) => request._id !== requestId));
+      setPopularRequests((prev) =>
+        prev.filter((request) => request._id !== requestId),
+      );
       setSuccessContent({
         title: "تم استلام الطلب بنجاح!",
         description:
@@ -419,7 +437,10 @@ export default function TechnicianRequestsPage() {
         price: 0, // أو اعمل modal لإدخال السعر
       });
       setCustomPosts((prev) => prev.filter((p) => p._id !== postId));
-      setShowSuccess(true);
+      setSuccessContent({
+        title: "تم إرسال العرض بنجاح!",
+        description: "تم إرسال عرضك للعميل، يمكنك متابعة حالته من صفحة العروض.",
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -469,12 +490,12 @@ export default function TechnicianRequestsPage() {
                 <div className="flex items-center justify-center py-20">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--accent-color)] border-t-transparent" />
                 </div>
-              ) : requests.length === 0 ? (
+              ) : popularRequests.length === 0 ? (
                 <p className="text-gray-400 text-sm text-center py-20">
                   لا توجد طلبات متاحة الآن
                 </p>
               ) : (
-                requests.map((req) => (
+                popularRequests.map((req) => (
                   <RequestCard
                     key={req._id}
                     request={req}
@@ -523,18 +544,6 @@ export default function TechnicianRequestsPage() {
           title={successContent.title}
           description={successContent.description}
           onClose={() => setSuccessContent(null)}
-        />
-      ) : null}
-
-      {selectedCustomRequest ? (
-        <ProposalModal
-          request={selectedCustomRequest}
-          submitting={submittingProposal}
-          onClose={() => {
-            if (submittingProposal) return;
-            setSelectedCustomRequest(null);
-          }}
-          onSubmit={handleProposalSubmit}
         />
       ) : null}
     </div>
