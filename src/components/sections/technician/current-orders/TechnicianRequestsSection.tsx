@@ -2,47 +2,111 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Calendar, X, Check } from "lucide-react";
+import { MapPin, Calendar, X, Check, Clock, Users, Eye } from "lucide-react";
 import { api } from "@/api/axios";
 import walletIcon from "@/assets/icons/wallet.svg";
 import arrowIcon from "@/assets/icons/arrow.svg";
-import Image from "next/image";
 import Button from "@/components/ui/Button";
-
+import Image from "next/image";
 interface PendingRequest {
   _id: string;
   userId: { _id: string; fullName: string; phone?: string } | null;
   categoryId: { _id: string; name: string };
-  serviceId: { _id: string; name: string; description?: string; priceRange?: { min: number; max: number } };
+  serviceId: {
+    _id: string;
+    name: string;
+    description?: string;
+    priceRange?: { min: number; max: number };
+  };
   preferredDate: string;
   preferredTime: string;
   status: string;
   depositAmount: number;
-  address: { fullAddress: string; district: string; city?: string; coordinates?: { lat: number; lng: number } };
+  address: {
+    fullAddress: string;
+    district: string;
+    city?: string;
+    coordinates?: { lat: number; lng: number };
+  };
   notes: string;
   createdAt: string;
   proposals?: { count: number };
 }
 
+interface CustomPost {
+  _id: string;
+  userId: { _id: string; fullName: string; phone?: string } | null;
+  categoryId: { _id: string; name: string } | null;
+  title?: string;
+  description: string;
+  address: { fullAddress: string; district: string };
+  preferredDate: string;
+  preferredTime: string;
+  budget?: number | null;
+  status: "open" | "accepted" | "cancelled";
+  createdAt: string;
+}
+
+interface CustomPostWithCount extends CustomPost {
+  proposalCount: number;
+}
+
 const formatDate = (dateStr: string) =>
-  new Date(dateStr).toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" });
+  new Date(dateStr).toLocaleDateString("ar-EG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+const formatTime = (timeStr: string): string => {
+  const clean = timeStr.replace(/\s*(AM|PM)\s*/i, "").trim();
+  const [hStr, mStr] = clean.split(":");
+  let h = parseInt(hStr);
+  const m = mStr ?? "00";
+  const label = h >= 12 ? "مساءً" : "صباحاً";
+  if (h > 12) h -= 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${label}`;
+};
 
 function SuccessModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center text-center relative" dir="rtl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-5 left-5 w-7 h-7 rounded-full flex items-center justify-center text-gray-300 hover:text-gray-500 transition-colors">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-3xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center text-center relative"
+        dir="rtl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-5 left-5 w-7 h-7 rounded-full flex items-center justify-center text-gray-300 hover:text-gray-500 transition-colors"
+        >
           <X size={18} />
         </button>
-        <h2 className="text-xl font-bold text-[var(--primary-color)] mb-3">تم استلام الطلب بنجاح!</h2>
-        <p className="text-gray-400 text-sm mb-8 leading-relaxed">تم إسناد الطلب إليك بنجاح. يمكنك الآن التواصل مع العميل ومتابعة تفاصيل الخدمة.</p>
+        <h2 className="text-xl font-bold text-[var(--primary-color)] mb-3">
+          تم استلام الطلب بنجاح!
+        </h2>
+        <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+          تم إسناد الطلب إليك بنجاح. يمكنك الآن التواصل مع العميل ومتابعة تفاصيل
+          الخدمة.
+        </p>
         <div className="w-20 h-20 rounded-full bg-[#F0F9E8] flex items-center justify-center mb-8">
           <div className="w-14 h-14 rounded-full bg-[var(--accent-color)] flex items-center justify-center">
-            <Check size={28} className="text-[var(--primary-color)]" strokeWidth={3} />
+            <Check
+              size={28}
+              className="text-[var(--primary-color)]"
+              strokeWidth={3}
+            />
           </div>
         </div>
-        <button onClick={() => router.push("/technician/portfolio/pending")} className="bg-[var(--accent-color)] text-[var(--primary-color)] font-bold text-sm px-8 py-3 rounded-full hover:opacity-90 transition-all w-full">
+        <button
+          onClick={() => router.push("/technician/portfolio/pending")}
+          className="bg-[var(--accent-color)] text-[var(--primary-color)] font-bold text-sm px-8 py-3 rounded-full hover:opacity-90 transition-all w-full"
+        >
           عرض العروض المرسلة
         </button>
       </div>
@@ -50,20 +114,36 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function RequestCard({ request, onAccept, accepting }: { request: PendingRequest; onAccept: (id: string) => void; accepting: string | null }) {
+function RequestCard({
+  request,
+  onAccept,
+  accepting,
+}: {
+  request: PendingRequest;
+  onAccept: (id: string) => void;
+  accepting: string | null;
+}) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" dir="rtl">
+    <div
+      className="bg-white rounded-2xl border border-gray-100 p-5 mb-4"
+      dir="rtl"
+    >
       {request.serviceId?.priceRange && (
         <div className="flex justify-start mb-3">
           <span className="flex items-center gap-1 text-xs font-bold bg-[var(--secondary-color)] text-[var(--primary-color)] px-3 py-1.5 rounded-full">
             <Image src={walletIcon} alt="wallet" width={14} height={14} />
-            {request.serviceId.priceRange.min}-{request.serviceId.priceRange.max} ج.م
+            {request.serviceId.priceRange.min}-
+            {request.serviceId.priceRange.max} ج.م
           </span>
         </div>
       )}
-      <h3 className="font-bold text-[var(--primary-color)] text-base mb-2 text-right">{request.serviceId?.name}</h3>
+      <h3 className="font-bold text-[var(--primary-color)] text-base mb-2 text-right">
+        {request.serviceId?.name}
+      </h3>
       {request.serviceId?.description && (
-        <p className="text-sm text-gray-400 text-right mb-2 leading-relaxed">{request.serviceId.description}</p>
+        <p className="text-sm text-gray-400 text-right mb-2 leading-relaxed">
+          {request.serviceId.description}
+        </p>
       )}
       {request.notes && (
         <p className="text-sm text-right mb-4 leading-relaxed">
@@ -82,10 +162,14 @@ function RequestCard({ request, onAccept, accepting }: { request: PendingRequest
           </button>
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-[#D9F06A] flex items-center justify-center shrink-0">
-              <span className="font-bold text-[var(--primary-color)]">{request.userId.fullName?.charAt(0) ?? "؟"}</span>
+              <span className="font-bold text-[var(--primary-color)]">
+                {request.userId.fullName?.charAt(0) ?? "؟"}
+              </span>
             </div>
             <div className="text-right">
-              <h3 className="font-bold text-[var(--primary-color)] text-base">{request.userId.fullName}</h3>
+              <h3 className="font-bold text-[var(--primary-color)] text-base">
+                {request.userId.fullName}
+              </h3>
               <p className="text-xs text-gray-500 mb-2">عميل موثق</p>
               <div className="flex items-center justify-end gap-4 text-xs text-gray-400">
                 <div className="flex items-center gap-1">
@@ -105,25 +189,136 @@ function RequestCard({ request, onAccept, accepting }: { request: PendingRequest
   );
 }
 
+// ─── CustomPostCard ───────────────────────────────────────────────────────────
+function CustomPostCard({
+  post,
+  onSubmit,
+  submitting,
+}: {
+  post: CustomPostWithCount;
+  onSubmit: (id: string) => void;
+  submitting: string | null;
+}) {
+  const router = useRouter();
+
+  return (
+    <div
+      className="bg-white rounded-2xl border border-gray-100 p-5 mb-4"
+      dir="rtl"
+    >
+      {/* Budget badge */}
+      {post.budget != null && (
+        <div className="flex justify-start mb-3">
+          <span className="flex items-center gap-1 text-xs font-bold bg-[var(--secondary-color)] text-[var(--primary-color)] px-3 py-1.5 rounded-full">
+            <Image src={walletIcon} alt="wallet" width={14} height={14} />
+            {post.budget} ج.م
+          </span>
+        </div>
+      )}
+
+      {/* Title */}
+      <h3 className="font-bold text-[var(--primary-color)] text-base mb-2 text-right">
+        {post.title ?? post.categoryId?.name ?? "خدمة مخصصة"}
+      </h3>
+
+      {/* Description */}
+      {post.description && (
+        <p className="text-sm text-gray-400 text-right mb-4 leading-relaxed line-clamp-2">
+          {post.description}
+        </p>
+      )}
+
+      {/* Client + actions row */}
+      {post.userId && (
+        <div className="bg-[#F8FAF9] rounded-xl p-4">
+          {/* Client info */}
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-[#D9F06A] flex items-center justify-center shrink-0">
+              <span className="font-bold text-[var(--primary-color)]">
+                {post.userId.fullName?.charAt(0) ?? "؟"}
+              </span>
+            </div>
+            <div className="text-right flex-1">
+              <h4 className="font-bold text-[var(--primary-color)] text-base">
+                {post.userId.fullName}
+              </h4>
+              <p className="text-xs text-gray-500 mb-2">عميل موثق</p>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 text-xs text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <MapPin size={13} className="text-[var(--accent-color)]" />
+                    <span>{post.address?.district}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar
+                      size={13}
+                      className="text-[var(--accent-color)]"
+                    />
+                    <span>{formatDate(post.preferredDate)}</span>
+                  </div>
+                  {/* عدد العروض */}
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Users size={13} className="text-[var(--accent-color)]" />
+                    <span>{post.proposalCount} عروض مقدمة</span>
+                  </div>
+                </div>
+
+                {/* CTA buttons */}
+                <div className="flex items-center justify-between gap-2">
+                  {/* عرض التفاصيل */}
+                  <button
+                    onClick={() => router.push(`/posts/${post._id}`)}
+                    className="flex items-center gap-1 px-4 h-10 rounded-full border border-gray-200 text-sm text-gray-600 font-bold hover:border-[var(--primary-color)] transition-all"
+                  >
+                    <Eye size={16} className="text-gray-400" />
+                    عرض التفاصيل
+                  </button>
+
+                  {/* تقديم */}
+                  <button
+                    onClick={() => onSubmit(post._id)}
+                    disabled={submitting === post._id}
+                    className={`min-w-[90px] h-10 rounded-full font-bold text-sm transition-all ${
+                      submitting === post._id
+                        ? "bg-gray-200 text-gray-400"
+                        : "bg-[var(--accent-color)] text-[var(--primary-color)]"
+                    }`}
+                  >
+                    {submitting === post._id ? "جاري..." : "تقديم"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TipCard() {
   return (
-    <div className="rounded-2xl p-5 text-white h-fit" style={{ background: "linear-gradient(to bottom, #1C4B41, #112D27)" }} dir="rtl">
+    <div
+      className="rounded-2xl p-5 text-white h-fit"
+      style={{ background: "linear-gradient(to bottom, #1C4B41, #112D27)" }}
+      dir="rtl"
+    >
       <div className="flex mb-3">
-        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">نصيحة احترافية</span>
+        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+          نصيحة احترافية
+        </span>
       </div>
-      <h3 className="font-bold text-lg mb-2 text-right leading-snug">عروض مفضلة = فرص قبول أعلى</h3>
-      <p className="text-sm text-white/80 text-right leading-relaxed mb-4">اكتب عرضاً واضحاً يوضح خطوات العمل، الوقت المتوقع، والمواد المستخدمة لزيادة ثقة العميل.</p>
-        <Button 
-          fullWidth
-          className="flex items-center justify-center gap-2"
-        >
+      <h3 className="font-bold text-lg mb-2 text-right leading-snug">
+        عروض مفضلة = فرص قبول أعلى
+      </h3>
+      <p className="text-sm text-white/80 text-right leading-relaxed mb-4">
+        اكتب عرضاً واضحاً يوضح خطوات العمل، الوقت المتوقع، والمواد المستخدمة
+        لزيادة ثقة العميل.
+      </p>
+      <Button fullWidth className="flex items-center justify-center gap-2">
         اعرف المزيد
-        <Image 
-          src={arrowIcon}
-          alt="other"
-          width={14}
-          height={14}
-        />
+        <Image src={arrowIcon} alt="other" width={14} height={14} />
       </Button>
     </div>
   );
@@ -138,13 +333,50 @@ export default function TechnicianRequestsPage() {
   const [accepting, setAccepting] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const [customPosts, setCustomPosts] = useState<CustomPostWithCount[]>([]);
+  const [loadingCustom, setLoadingCustom] = useState(false);
+  const [submittingPost, setSubmittingPost] = useState<string | null>(null);
+
   useEffect(() => {
     if (activeTab === "popular") {
       setLoading(true);
-      api.get("/requests/pending")
+      api
+        .get("/requests/pending")
         .then((res) => setRequests(res.data.data))
         .catch(console.error)
         .finally(() => setLoading(false));
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "custom") {
+      setLoadingCustom(true);
+      api
+        .get("/posts")
+        .then(async (res) => {
+          const posts: CustomPost[] = res.data.data ?? [];
+
+          // جيب عدد الـ proposals لكل post
+          const withCounts = await Promise.all(
+            posts.map(async (post) => {
+              try {
+                const pRes = await api.get(`/posts/${post._id}/proposals`);
+                const proposals: { status: string }[] = pRes.data.data ?? [];
+                return {
+                  ...post,
+                  proposalCount: proposals.filter((p) => p.status === "pending")
+                    .length,
+                };
+              } catch {
+                return { ...post, proposalCount: 0 };
+              }
+            }),
+          );
+
+          setCustomPosts(withCounts);
+        })
+        .catch(console.error)
+        .finally(() => setLoadingCustom(false));
     }
   }, [activeTab]);
 
@@ -161,10 +393,25 @@ export default function TechnicianRequestsPage() {
     }
   };
 
+  const handleSubmitPost = async (postId: string) => {
+    setSubmittingPost(postId);
+    try {
+      // عدل الـ endpoint ده حسب الـ API بتاعك
+      await api.post(`/posts/${postId}/proposals`, {
+        price: 0, // أو اعمل modal لإدخال السعر
+      });
+      setCustomPosts((prev) => prev.filter((p) => p._id !== postId));
+      setShowSuccess(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingPost(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f5] p-6">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
         {/* Content — ٣/٤ */}
         <div className="lg:col-span-3">
           {/* Tabs — بعرض الكولوم بس */}
@@ -199,29 +446,53 @@ export default function TechnicianRequestsPage() {
                   <div className="w-8 h-8 rounded-full border-4 border-[var(--accent-color)] border-t-transparent animate-spin" />
                 </div>
               ) : requests.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-20">لا توجد طلبات متاحة الآن</p>
+                <p className="text-gray-400 text-sm text-center py-20">
+                  لا توجد طلبات متاحة الآن
+                </p>
               ) : (
                 requests.map((req) => (
-                  <RequestCard key={req._id} request={req} onAccept={handleAccept} accepting={accepting} />
+                  <RequestCard
+                    key={req._id}
+                    request={req}
+                    onAccept={handleAccept}
+                    accepting={accepting}
+                  />
                 ))
               )}
             </>
-          ) : (
-            <div className="flex items-center justify-center py-32">
-              <div className="text-center">
-                <p className="text-4xl mb-4">🔧</p>
-                <p className="text-xl font-bold text-[var(--primary-color)] mb-2">قريباً</p>
-                <p className="text-sm text-gray-400">الخدمات المخصصة ستكون متاحة قريباً</p>
-              </div>
-            </div>
-          )}
+          ) : activeTab === "custom" ? (
+            <>
+              {!loadingCustom && (
+                <p className="text-sm text-gray-400 mb-4" dir="rtl">
+                  عرض {customPosts.length} خدمة مخصصة متاحة
+                </p>
+              )}
+              {loadingCustom ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="w-8 h-8 rounded-full border-4 border-[var(--accent-color)] border-t-transparent animate-spin" />
+                </div>
+              ) : customPosts.length === 0 ? (
+                <p className="text-gray-400 text-sm text-center py-20">
+                  لا توجد خدمات مخصصة متاحة الآن
+                </p>
+              ) : (
+                customPosts.map((post) => (
+                  <CustomPostCard
+                    key={post._id}
+                    post={post}
+                    onSubmit={handleSubmitPost}
+                    submitting={submittingPost}
+                  />
+                ))
+              )}
+            </>
+          ) : null}
         </div>
 
         {/* Sidebar — ١/٤ */}
         <div className="lg:col-span-1">
           <TipCard />
         </div>
-
       </div>
 
       {showSuccess && <SuccessModal onClose={() => setShowSuccess(false)} />}
