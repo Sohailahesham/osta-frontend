@@ -13,6 +13,9 @@ import {
   Star,
   CreditCard,
 } from "lucide-react";
+import { useSocket } from "@/hooks/useSocket";
+import { useAuth } from "@/hooks/useAuth";
+import PinnedChatCard from "@/components/sections/client/direct-messages/PinnedChatCard";
 
 interface AssignedTechnician {
   _id: string;
@@ -45,7 +48,8 @@ function getInvoiceAmounts(request: ClientRequest) {
   const servicePrice = request.servicePrice ?? 0;
   const materialsPrice = request.extraMaterialsPrice ?? 0;
   const total = request.totalPrice ?? servicePrice + materialsPrice;
-  const prepaid = request.depositStatus === "paid" ? request.depositAmount ?? 0 : 0;
+  const prepaid =
+    request.depositStatus === "paid" ? (request.depositAmount ?? 0) : 0;
   const remaining = request.isFullyPaid ? 0 : Math.max(total - prepaid, 0);
   const completionNote =
     request.completionNote &&
@@ -54,7 +58,14 @@ function getInvoiceAmounts(request: ClientRequest) {
       ? request.completionNote
       : null;
 
-  return { servicePrice, materialsPrice, total, prepaid, remaining, completionNote };
+  return {
+    servicePrice,
+    materialsPrice,
+    total,
+    prepaid,
+    remaining,
+    completionNote,
+  };
 }
 
 const COLORS = {
@@ -107,6 +118,8 @@ export default function ClientTrackingPage({
   const router = useRouter();
   const { id: requestId } = use(params);
 
+  const { token, userId } = useAuth();
+  const { socket } = useSocket(token);
   const [request, setRequest] = useState<ClientRequest | null>(null);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [error, setError] = useState("");
@@ -122,12 +135,15 @@ export default function ClientTrackingPage({
       if (showLoader) setLoadingInitial(true);
 
       try {
-        const response = await api.get<ClientRequest | { data?: ClientRequest }>(
-          `/requests/${requestId}`
-        );
+        const response = await api.get<
+          ClientRequest | { data?: ClientRequest }
+        >(`/requests/${requestId}`);
         const payload = response.data;
         const nextRequest =
-          payload && typeof payload === "object" && "data" in payload && payload.data
+          payload &&
+          typeof payload === "object" &&
+          "data" in payload &&
+          payload.data
             ? payload.data
             : (payload as ClientRequest);
 
@@ -143,7 +159,7 @@ export default function ClientTrackingPage({
         setLoadingInitial(false);
       }
     },
-    [requestId]
+    [requestId],
   );
 
   useEffect(() => {
@@ -176,7 +192,7 @@ export default function ClientTrackingPage({
 
     try {
       const response = await api.post<{ data?: { paymentUrl?: string } }>(
-        `/payment/remaining/${requestId}`
+        `/payment/remaining/${requestId}`,
       );
       const paymentUrl = response.data?.data?.paymentUrl;
 
@@ -291,7 +307,8 @@ export default function ClientTrackingPage({
                             : isCurrent
                               ? COLORS.accent
                               : "#F3F4F6",
-                          color: isDone || isCurrent ? COLORS.primary : "#9CA3AF",
+                          color:
+                            isDone || isCurrent ? COLORS.primary : "#9CA3AF",
                         }}
                       >
                         {isDone ? "تم" : isCurrent ? "جاري الآن" : "قريبًا"}
@@ -321,14 +338,18 @@ export default function ClientTrackingPage({
                       <div className="flex items-center gap-2">
                         <span
                           className="text-sm font-bold"
-                          style={{ color: isFuture ? "#9CA3AF" : COLORS.primary }}
+                          style={{
+                            color: isFuture ? "#9CA3AF" : COLORS.primary,
+                          }}
                         >
                           {step.title}
                         </span>
                         <span
                           className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
                           style={{
-                            backgroundColor: isFuture ? "#F3F4F6" : COLORS.primary,
+                            backgroundColor: isFuture
+                              ? "#F3F4F6"
+                              : COLORS.primary,
                             color: isFuture ? "#9CA3AF" : "#fff",
                           }}
                         >
@@ -366,7 +387,9 @@ export default function ClientTrackingPage({
                                 color: COLORS.primary,
                               }}
                             >
-                              {request.assignedTechnician?.fullName?.charAt(0) ?? "؟"}
+                              {request.assignedTechnician?.fullName?.charAt(
+                                0,
+                              ) ?? "؟"}
                             </span>
                             <div className="flex flex-col">
                               <span
@@ -376,8 +399,10 @@ export default function ClientTrackingPage({
                                 {request.assignedTechnician?.fullName ??
                                   "لسه مفيش فني متعين"}
                               </span>
-                              {typeof request.assignedTechnician?.averageRating === "number" &&
-                                request.assignedTechnician.averageRating > 0 && (
+                              {typeof request.assignedTechnician
+                                ?.averageRating === "number" &&
+                                request.assignedTechnician.averageRating >
+                                  0 && (
                                   <span
                                     className="flex items-center gap-1 text-xs font-bold"
                                     style={{ color: COLORS.primary }}
@@ -387,7 +412,9 @@ export default function ClientTrackingPage({
                                       style={{ color: COLORS.gold }}
                                       fill={COLORS.gold}
                                     />
-                                    {request.assignedTechnician.averageRating.toFixed(1)}
+                                    {request.assignedTechnician.averageRating.toFixed(
+                                      1,
+                                    )}
                                   </span>
                                 )}
                             </div>
@@ -464,6 +491,16 @@ export default function ClientTrackingPage({
           onBackToHome={() => router.push("/client/orders")}
         />
       )}
+
+      {request?.assignedTechnician && userId && (
+        <PinnedChatCard
+          requestId={requestId}
+          otherPartyName={request.assignedTechnician.fullName}
+          serviceTitle={request.serviceId?.name ?? "الخدمة"}
+          currentUserId={userId}
+          socket={socket}
+        />
+      )}
     </>
   );
 }
@@ -479,8 +516,14 @@ function InvoiceScreen({
   paying: boolean;
   error: string;
 }) {
-  const { servicePrice, materialsPrice, total, prepaid, remaining, completionNote } =
-    getInvoiceAmounts(request);
+  const {
+    servicePrice,
+    materialsPrice,
+    total,
+    prepaid,
+    remaining,
+    completionNote,
+  } = getInvoiceAmounts(request);
 
   return (
     <div
@@ -561,7 +604,9 @@ function InvoiceScreen({
               className="flex items-center justify-between rounded-xl px-4 py-3"
               style={{ backgroundColor: COLORS.primary }}
             >
-              <span className="text-sm font-bold text-white">المطلوب دفعه الآن</span>
+              <span className="text-sm font-bold text-white">
+                المطلوب دفعه الآن
+              </span>
               <span
                 className="text-xl font-extrabold"
                 style={{ color: COLORS.accent }}
@@ -574,7 +619,10 @@ function InvoiceScreen({
               className="flex items-center justify-between rounded-xl px-4 py-3"
               style={{ backgroundColor: COLORS.secondary }}
             >
-              <span className="text-sm font-bold" style={{ color: COLORS.primary }}>
+              <span
+                className="text-sm font-bold"
+                style={{ color: COLORS.primary }}
+              >
                 تم سداد الفاتورة بالكامل
               </span>
               <Check className="w-4 h-4" style={{ color: COLORS.primary }} />
@@ -643,7 +691,10 @@ function RateScreen({
           >
             {technicianName.charAt(0) || "؟"}
           </span>
-          <span className="text-sm font-semibold" style={{ color: COLORS.primary }}>
+          <span
+            className="text-sm font-semibold"
+            style={{ color: COLORS.primary }}
+          >
             {technicianName}
           </span>
 
@@ -726,7 +777,11 @@ function RateSuccessScreen({
           style={{ color: COLORS.primary }}
         >
           تم نشر تقييمك!
-          <Star className="h-6 w-6" style={{ color: COLORS.gold }} fill={COLORS.gold} />
+          <Star
+            className="h-6 w-6"
+            style={{ color: COLORS.gold }}
+            fill={COLORS.gold}
+          />
         </h2>
 
         <p className="mx-auto mt-5 max-w-[310px] text-sm leading-7 text-gray-500">
