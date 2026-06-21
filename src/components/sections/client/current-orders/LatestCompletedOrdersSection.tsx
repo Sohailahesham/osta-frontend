@@ -2,7 +2,6 @@
 
 import { Star, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { Order } from "./OngoingOrdersSection";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -17,67 +16,88 @@ const formatDate = (dateStr: string) =>
 // ─── Completed Card ───────────────────────────────────────────────────────────
 
 function CompletedOrderCard({ order }: { order: Order }) {
-  const technicianRating = order.technicianRating ?? 0;
-  const finalCost = order.priceMax ?? "—";
   const technicianName = order.assignedTechnician?.fullName ?? "—";
-  const serviceImage = order.categoryId?.image ?? null;
+  const finalCost = order.totalPrice ?? null;
+
+  // الـ API بيبعت "review" مش "clientReview"
+  const clientRating =
+    order.clientReview?.rating ?? (order as any).review?.rating ?? null;
+
+  // صورة الخدمة من serviceId.image
+  const serviceImage = order.serviceId?.image ?? null;
 
   return (
-    <div
-      className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex gap-4"
-      // dir="ltr"
-    >
-
-      {/* المحتوى — على اليمين */}
+    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex gap-4" dir="rtl">
+      
+      {/* المحتوى */}
       <div className="flex-1 text-right">
         <h4 className="font-bold text-[var(--primary-color)] text-base mb-1">
-          {order.serviceId?.name ?? order.title}
+          {order.serviceId?.name}
         </h4>
-        <p className="text-sm text-gray-400 mb-3">{formatDate(order.createdAt)}</p>
+        <p className="text-sm text-gray-400 mb-3">
+          {formatDate(order.createdAt)}
+        </p>
 
-        <div className="flex flex-col gap-1 mb-3">
-          <p className="text-sm text-gray-400">الفني</p>
-          <p className="font-bold text-[var(--primary-color)] text-sm">
-            {technicianName}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-1 mb-3">
-          <p className="text-sm text-gray-400">التكلفة النهائية</p>
-          <p className="font-bold text-[var(--primary-color)] text-lg">
-            {finalCost} <span className="text-sm font-normal">جنية</span>
-          </p>
+        <div className="flex gap-5 mb-3">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-gray-400">الفني</p>
+            <p className="font-bold text-[var(--primary-color)] text-sm">
+              {technicianName}
+            </p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-gray-400">التكلفة النهائية</p>
+            {finalCost ? (
+              <p className="font-bold text-[var(--primary-color)] text-lg">
+                {finalCost}{" "}
+                <span className="text-sm font-normal">جنيه</span>
+              </p>
+            ) : (
+              <p className="text-sm text-gray-400">—</p>
+            )}
+          </div>
         </div>
 
         {/* النجوم */}
         <div className="flex items-center gap-1 justify-end">
           <span className="text-xs text-gray-400 ml-1">تقييمك</span>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              size={14}
-              className={
-                star <= Math.round(technicianRating)
-                  ? "text-yellow-400 fill-yellow-400"
-                  : "text-gray-200 fill-gray-200"
-              }
-            />
-          ))}
+          {clientRating !== null ? (
+            [1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                size={14}
+                className={
+                  star <= Math.round(clientRating)
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-gray-200 fill-gray-200"
+                }
+              />
+            ))
+          ) : (
+            <Link
+              href={`/client/orders/${order._id}/review`}
+              className="text-xs text-[var(--primary-color)] font-bold underline underline-offset-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              قيّم الآن
+            </Link>
+          )}
         </div>
       </div>
 
-      {/* صورة الخدمة — على الشمال */}
-      <div className="w-28 h-28 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 relative">
+      {/* صورة الخدمة */}
+      <div className="w-28 h-28 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
         {serviceImage ? (
-          <Image
+          <img
             src={serviceImage}
-            alt={order.serviceId?.name ?? order.title}
-            fill
-            className="object-cover"
+            alt={order.serviceId?.name ?? ""}
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-gray-300 text-xs">صورة الخدمة</span>
+            <span className="text-gray-300 text-xs text-center px-2">
+              {order.categoryId?.name}
+            </span>
           </div>
         )}
       </div>
@@ -102,7 +122,7 @@ export default function LatestCompletedOrdersSection({ orders }: Props) {
           آخر الطلبات المكتملة
         </h2>
         <Link
-          href="/requests/completed"
+          href="/client/orders-history"
           className="flex items-center gap-1 text-sm text-[var(--primary-color)] font-medium hover:opacity-70 transition-opacity"
         >
           عرض الكل
@@ -115,7 +135,7 @@ export default function LatestCompletedOrdersSection({ orders }: Props) {
           لا توجد طلبات مكتملة
         </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {completedOrders.map((order) => (
             <CompletedOrderCard key={order._id} order={order} />
           ))}
