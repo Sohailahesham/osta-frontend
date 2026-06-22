@@ -76,7 +76,7 @@ function CompletedOrderCard({ order }: { order: Order }) {
             ))
           ) : (
             <Link
-              href={`/client/orders/${order._id}/review`}
+              href={`/client/orders`}
               className="text-xs text-[var(--primary-color)] font-bold underline underline-offset-2"
               onClick={(e) => e.stopPropagation()}
             >
