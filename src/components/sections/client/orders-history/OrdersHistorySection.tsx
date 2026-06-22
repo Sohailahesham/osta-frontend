@@ -109,10 +109,13 @@ function HistoryOrderCard({ order }: { order: AssignedRequest }) {
   const categoryData = (
     order as unknown as { categoryId?: { name?: string; image?: string } }
   ).categoryId;
-  const serviceImage = categoryData?.image ?? null;
+  const serviceImage = order.serviceId?.image ?? null;
   const serviceName = order.serviceId?.name ?? order.postId?.title ?? "—";
   const categoryName = categoryData?.name;
-  const technicianName = order.userId?.fullName ?? null;
+  const technicianName = order.assignedTechnician?.fullName ?? null;
+  const clientRating = order.clientReview?.rating ?? (order as any).review?.rating ?? null;
+
+// صورة الخدمة من serviceId.image
 
   return (
     <div
@@ -151,7 +154,7 @@ function HistoryOrderCard({ order }: { order: AssignedRequest }) {
         {/* Cost */}
         {isCompleted && order.totalPrice ? (
           <div className="mb-3">
-            <p className="text-xs text-gray-400">التكلفة النهائية</p>
+            <p className="text-xs text-gray-400 ">التكلفة النهائية</p>
             <p className="font-bold text-[var(--primary-color)] text-lg">
               {order.totalPrice}{" "}
               <span className="text-sm font-normal">جنية</span>
@@ -170,14 +173,14 @@ function HistoryOrderCard({ order }: { order: AssignedRequest }) {
 
         {/* Technician for completed */}
         {isCompleted && technicianName && (
-          <div className="flex items-center justify-end gap-2 mb-3">
-            <p className="font-bold text-sm text-[var(--primary-color)]">
-              {technicianName}
-            </p>
+          <div className="flex items-center justify-start gap-2 mb-3">
             <div className="w-7 h-7 rounded-full bg-[var(--secondary-color)] flex items-center justify-center text-[var(--primary-color)] text-xs font-bold flex-shrink-0">
               {technicianName.charAt(0)}
             </div>
-            <span className="text-xs text-gray-400">: الفني</span>
+            <span className="text-xs text-gray-400"> الفني:</span>
+            <p className="font-bold text-sm text-[var(--primary-color)]">
+              {technicianName}
+            </p>
           </div>
         )}
 
@@ -193,13 +196,27 @@ function HistoryOrderCard({ order }: { order: AssignedRequest }) {
         {isCompleted && (
           <div className="flex items-center gap-1 justify-end mt-2">
             <span className="text-xs text-gray-400 ml-1">تقييمك</span>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                size={14}
-                className="text-gray-200 fill-gray-200"
-              />
-            ))}
+            {clientRating !== null ? (
+              [1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={14}
+                  className={
+                    star <= Math.round(clientRating)
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-gray-200 fill-gray-200"
+                  }
+                />
+              ))
+            ) : (
+              <Link
+                href={`/client/orders`}
+                className="text-xs text-[var(--primary-color)] font-bold underline underline-offset-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                قيّم الآن
+              </Link>
+            )}
           </div>
         )}
       </div>

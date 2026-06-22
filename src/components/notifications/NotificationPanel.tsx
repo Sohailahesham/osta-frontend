@@ -40,6 +40,23 @@ export default function NotificationPanel({
     const panelRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
+    const prevCountRef = useRef(notifications.filter((n) => !n.isRead).length);
+
+    useEffect(() => {
+    const currentUnread = notifications.filter((n) => !n.isRead).length;
+
+    // بيعزف الصوت بس لو العدد زاد (نوتفكيشن جديدة وصلت)
+    if (currentUnread > prevCountRef.current) {
+        const audio = new Audio("/sounds/notification.wav");
+        audio.volume = 0.5;
+        void audio.play().catch(() => {
+        // المتصفح ممكن يبلوك الـ autoplay — مفيش error يطلع
+        });
+    }
+
+    prevCountRef.current = currentUnread;
+    }, [notifications]);
+
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -108,7 +125,7 @@ export default function NotificationPanel({
                                         {n.title}
                                     </span>
                                 </span>
-                                <span className="line-clamp-2 text-xs leading-snug text-gray-500">
+                                <span className="line-clamp-2 text-xs leading-snug text-gray-500 break-words">
                                     {n.body}
                                 </span>
                                 <span className="text-[11px] text-gray-400">

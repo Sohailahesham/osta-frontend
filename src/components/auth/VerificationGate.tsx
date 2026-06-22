@@ -77,7 +77,7 @@ export default function VerificationGate({
         ) {
           sessionStorage.setItem(
             "auth_notice",
-            "Unauthorized: you cannot access this page with your current account.",
+            "ليس لديك صلاحية الوصول لهذه الصفحة. تم توجيهك إلى الصفحة الرئيسية.",
           );
 
           const lastAllowedPath =

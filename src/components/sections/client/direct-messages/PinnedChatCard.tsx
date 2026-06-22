@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
-import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import { useChat } from "@/hooks/useChat";
 import { Room } from "@/types/chat.types";
 import MessageBubble from "@/components/sections/client/direct-messages/MessageBubble";
@@ -60,6 +60,14 @@ export default function PinnedChatCard({
 
   const lastMessage = messages[messages.length - 1] ?? null;
 
+  const unreadCount = messages.filter(
+    (msg) =>
+      typeof msg.senderId === "string"
+        ? msg.senderId !== currentUserId
+        : msg.senderId._id !== currentUserId,
+    // isRead: false — بيتصفر لما تفتحي الكارد لأن useChat بيعمل markAsRead أوتوماتيك
+  ).filter((msg) => !msg.isRead).length;
+
   useEffect(() => {
     if (!isExpanded) return;
     bottomRef.current?.scrollIntoView({ block: "end" });
@@ -68,7 +76,7 @@ export default function PinnedChatCard({
   return (
     <div
       dir="rtl"
-      className="fixed z-50 bottom-0 right-30 w-[320px] overflow-hidden rounded-3xl bg-white shadow-[0_10px_30px_rgba(17,45,39,0.14)]"
+      className="fixed z-50 bottom-10 right-30 w-[320px] overflow-hidden rounded-3xl bg-white shadow-[0_10px_30px_rgba(17,45,39,0.14)]"
       style={{ maxHeight: isExpanded ? "440px" : "auto" }}
     >
       {/* الجزء الثابت اللي بيبان دايمًا — الكارد نفسه */}
@@ -77,11 +85,18 @@ export default function PinnedChatCard({
         onClick={() => setIsExpanded((prev) => !prev)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3"
       >
-        <span
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold"
-          style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}
-        >
-          {getInitial(otherPartyName)}
+        <span className="relative flex-shrink-0">
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+            style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}
+          >
+            {getInitial(otherPartyName)}
+          </span>
+          {!isExpanded && unreadCount > 0 && (
+            <span className="absolute -top-1 -left-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
         </span>
 
         <div className="min-w-0 flex-1 text-right">
@@ -96,7 +111,7 @@ export default function PinnedChatCard({
           </p>
         </div>
 
-        <ChevronDown
+        <ChevronUp
           className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform ${
             isExpanded ? "rotate-180" : ""
           }`}
