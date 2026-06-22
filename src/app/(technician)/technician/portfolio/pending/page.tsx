@@ -17,7 +17,9 @@ const mergeRequests = (...requestGroups: AssignedRequest[][]) => {
 
   return Array.from(merged.values()).sort((left, right) => {
     const leftTime = new Date(left.updatedAt ?? left.createdAt ?? 0).getTime();
-    const rightTime = new Date(right.updatedAt ?? right.createdAt ?? 0).getTime();
+    const rightTime = new Date(
+      right.updatedAt ?? right.createdAt ?? 0,
+    ).getTime();
     return rightTime - leftTime;
   });
 };
@@ -26,19 +28,30 @@ export default function PendingServicesPage() {
   const [requests, setRequests] = useState<AssignedRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeServicesCount, setActiveServicesCount] = useState(0);
 
   const loadAssignedRequests = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      const ACTIVE_STATUSES = ["in_progress", "on_the_way", "started"];
+
       const [assignedResult, customPendingResponse] = await Promise.all([
         getAssignedRequests(),
         api.get("/posts/technician/pending"),
       ]);
 
-      const customPending = (customPendingResponse.data?.data ?? []) as AssignedRequest[];
-      setRequests(mergeRequests(assignedResult.data, customPending));
+      const allAssigned = assignedResult.data as AssignedRequest[];
+      const customPending = (customPendingResponse.data?.data ??
+        []) as AssignedRequest[];
+
+      const activeCount = allAssigned.filter((r) =>
+        ACTIVE_STATUSES.includes(r.status),
+      ).length;
+
+      setActiveServicesCount(activeCount);
+      setRequests(mergeRequests(allAssigned, customPending));
     } catch (requestError) {
       console.error(requestError);
       setError("حدث خطأ أثناء تحميل البيانات. حاول مرة أخرى بعد قليل.");
@@ -63,6 +76,7 @@ export default function PendingServicesPage() {
         loading={loading}
         error={error}
         onRetry={loadAssignedRequests}
+        activeServicesCount={activeServicesCount} 
       />
     </div>
   );
