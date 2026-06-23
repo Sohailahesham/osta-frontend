@@ -18,11 +18,13 @@ import ProfileDropdown from "@/components/sections/technician/profile/ProfileDro
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPanel from "@/components/notifications/NotificationPanel";
+import SupportMenuPanel from "@/components/layout/support/SupportMenuPanel";
+
+const SUPPORT_PATH = "/technician/support";
 
 const NAV_LINKS = [
   { label: "الطلبات الواردة", href: "/technician/orders" },
   { label: "المحلات", href: "/technician/stores" },
-  { label: "الدعم و المساعدة", href: "/technician/support" },
 ];
 
 const WORK_LINKS = [
@@ -46,10 +48,13 @@ export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
+  const [supportMenuOpen, setSupportMenuOpen] = useState(false);
   const workMenuRef = useRef<HTMLDivElement | null>(null);
+  const supportMenuRef = useRef<HTMLDivElement | null>(null);
   const { token, userId, role } = useAuth();
 
   const isWorkRoute = pathname.startsWith("/technician/portfolio");
+  const isSupportRoute = pathname.startsWith(SUPPORT_PATH);
 
   const { socket } = useSocket(token);
   const { total } = useUnreadTotal(socket, userId, role);
@@ -87,18 +92,6 @@ export default function Navbar() {
       });
   }, []);
 
-  // useEffect(() => {
-  //   function handleClickOutside(event: MouseEvent) {
-  //     if (
-  //       profileRef.current &&
-  //       !profileRef.current.contains(event.target as Node)
-  //     ) {
-  //       setProfileOpen(false);
-  //     }
-  //   }
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => document.removeEventListener("mousedown", handleClickOutside);
-  // }, []);
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       if (
@@ -106,6 +99,12 @@ export default function Navbar() {
         !workMenuRef.current.contains(event.target as Node)
       ) {
         setWorkMenuOpen(false);
+      }
+      if (
+        supportMenuRef.current &&
+        !supportMenuRef.current.contains(event.target as Node)
+      ) {
+        setSupportMenuOpen(false);
       }
     };
 
@@ -188,6 +187,29 @@ export default function Navbar() {
                 </div>
               ) : null}
             </div>
+
+            {/* ── SUPPORT DROPDOWN ───────────────────────────────────────────── */}
+            <div className="relative" ref={supportMenuRef}>
+              <button
+                type="button"
+                onClick={() => setSupportMenuOpen((open) => !open)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  isSupportRoute
+                    ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                    : "text-[#112D27] hover:bg-[#F6F5F1] hover:text-[var(--primary-color)]"
+                }`}
+              >
+                الدعم و المساعدة
+              </button>
+
+              {supportMenuOpen ? (
+                <SupportMenuPanel
+                  basePath={SUPPORT_PATH}
+                  onClose={() => setSupportMenuOpen(false)}
+                />
+              ) : null}
+            </div>
+            {/* ─────────────────────────────────────────────────────────────────── */}
           </div>
 
           <div className="flex items-center gap-2">
@@ -239,7 +261,7 @@ export default function Navbar() {
                 onClick={() => setProfileOpen((prev) => !prev)}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-[#112D27] transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
               >
-                <Image src={userIcon} alt="Profile" width={24} height={24} />
+                <Image src={userIcon} alt="Profile" width={28} height={28} />
               </button>
 
               {profileOpen && (

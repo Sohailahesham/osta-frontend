@@ -37,7 +37,8 @@ const getFullAddress = (order: AssignedRequest) =>
   order.address?.fullAddress ?? null;
 
 const getPrice = (order: AssignedRequest): string => {
-  if (typeof order.totalPrice === "number") return String(order.totalPrice);
+  if (typeof order.totalPrice === "number" && order.totalPrice > 0)
+    return String(order.totalPrice);
   const min = order.serviceId?.priceRange?.min;
   const max = order.serviceId?.priceRange?.max;
   if (typeof min === "number" && typeof max === "number")
@@ -168,7 +169,7 @@ function ServiceCard({ order }: { order: AssignedRequest }) {
       className="bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm flex items-center gap-4"
       dir="rtl"
     >
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
         <Key size={17} />
       </div>
       {/* ── Right: service info ── */}
@@ -182,14 +183,16 @@ function ServiceCard({ order }: { order: AssignedRequest }) {
         <h3 className="font-bold text-[var(--primary-color)] text-base leading-snug">
           {getServiceName(order)}
         </h3>
-        <div className="flex items-center gap-1 mt-1.5 text-gray-400 text-xs" dir="rtl">
+        <div
+          className="flex items-center gap-1 mt-1.5 text-gray-400 text-xs"
+          dir="rtl"
+        >
           <Calendar size={12} />
           <span>{formatDate(order.createdAt)}</span>
         </div>
       </div>
 
       {/* ── Key icon button ── */}
-      
 
       {/* ── Center: client info ── */}
       <div className="flex-1 min-w-0 flex items-center gap-3" dir="ltr">
@@ -230,13 +233,13 @@ function ServiceCard({ order }: { order: AssignedRequest }) {
       {/* ── Left: price + rating ── */}
       <div className="flex-shrink-0 text-left pl-2 border-r border-gray-100 pr-4">
         <p className="text-xs text-gray-400 font-medium text-right">السعر</p>
-        <p className="font-bold text-[var(--primary-color)] text-lg leading-tight text-right" >
+        <p className="font-bold text-[var(--primary-color)] text-lg leading-tight text-right">
           <span className="text-xs font-semibold text-gray-500 ml-0.5">
             EGP
           </span>{" "}
           {price}
         </p>
-        <StarRating rating={rating}  />
+        <StarRating rating={rating} />
       </div>
     </div>
   );
