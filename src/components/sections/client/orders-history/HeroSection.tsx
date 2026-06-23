@@ -4,9 +4,9 @@ import Navbar from "@/components/layout/client/Navbar";
 
 export default function OrdersHistoryHeroSection() {
   return (
-    <section className="primary-gradient relative w-full min-h-[30vh] overflow-hidden" dir="rtl">
+    <section className="primary-gradient relative w-full min-h-[30vh]" dir="rtl">
       {/* الناف بار فوق كل حاجة */}
-      <div className="relative lg:p-5 z-20">
+      <div className="relative lg:p-5 z-[100]">
         <Navbar />
       </div>
 
@@ -26,4 +26,4 @@ export default function OrdersHistoryHeroSection() {
       </div>
     </section>
   );
-}  
+}
