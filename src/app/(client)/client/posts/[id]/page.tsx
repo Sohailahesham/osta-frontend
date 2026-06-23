@@ -82,9 +82,13 @@ function getPostFromPayload(payload: any): Post | null {
   return payload ?? null;
 }
 
+// بعد
 function getProposalsFromPayload(payload: any): Proposal[] {
-  if (Array.isArray(payload)) return payload;
+  // الـ API: { data: { post: {...}, proposals: [...] } }
+  if (Array.isArray(payload?.data?.proposals)) return payload.data.proposals;
+  // fallback
   if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload)) return payload;
   return [];
 }
 
@@ -99,7 +103,7 @@ function ProposalCard({
   onAccept: (id: string) => void;
   accepting: string | null;
 }) {
-  const tech = proposal.technicianId;
+  const tech = (proposal as any).technician ?? proposal.technicianId;
 
   return (
     <div className="border border-gray-200 rounded-2xl p-4 bg-white">

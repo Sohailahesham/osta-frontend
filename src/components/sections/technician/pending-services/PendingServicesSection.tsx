@@ -245,9 +245,15 @@ function PendingServiceCard({
     !request.serviceId?.name && Boolean(request.postId?._id);
 
   const openOrderDetails = () => {
+  // لو الطلب من post (خدمة مخصصة) → روح لصفحة الـ post
+  if (request.postId?._id) {
+    router.push(`/technician/services/${request.postId._id}`);
+  } else {
+    // لو خدمة عادية → نفس الـ routing القديم
     const detailsId = request.requestId ?? request._id;
     router.push(`/technician/portfolio/pending/${detailsId}`);
-  };
+  }
+};
 
   return (
     <article
