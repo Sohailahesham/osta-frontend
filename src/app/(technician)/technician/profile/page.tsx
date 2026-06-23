@@ -13,6 +13,7 @@ import IdentitySection from "@/components/sections/technician/profile/IdentitySe
 import SecuritySection from "@/components/sections/technician/profile/SecuritySection";
 import ReviewsSection from "@/components/sections/technician/profile/ReviewsSection";
 import { api } from "@/api/axios";
+import WalletPage from "@/components/sections/technician/profile/WalletPage";
 
 
 interface ServiceOption {
@@ -64,6 +65,8 @@ const TAB_LABELS: Record<ProfileTab, string> = {
   identity: "التحقق من الهوية",
   security: "الأمان",
   reviews: "التقييمات",
+    wallet: "المحفظة",
+
 };
 
 export default function ProfilePage() {
@@ -240,6 +243,8 @@ export default function ProfilePage() {
               totalReviews={dashboardProfile?.totalReviews ?? 0}
             />
           )}
+
+          {activeTab === "wallet" && <WalletPage />}
         </div>
       </div>
     </div>
