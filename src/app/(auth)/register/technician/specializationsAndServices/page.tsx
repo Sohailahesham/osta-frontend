@@ -7,8 +7,7 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import authBg from "@/assets/images/auth-bg.jpg";
 import Button from "@/components/ui/Button";
 import { api } from "@/api/axios";
-import logoImage from '@/assets/images/logo.svg';
-
+import logoImage from "@/assets/images/logo.svg";
 
 const STEPS = [
   "المعلومات الأساسية",
@@ -54,6 +53,7 @@ export default function SpecializationsPage() {
           }),
         );
         setCategories(withServices);
+        console.log(data.data);
       } catch {
         setError("حدث خطأ في تحميل البيانات");
       } finally {
