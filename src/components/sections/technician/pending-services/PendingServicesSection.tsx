@@ -158,12 +158,16 @@ const getChatRequestId = (request: AssignedRequest) => {
 const isPendingRequest = (request: AssignedRequest) =>
   PENDING_STATUSES.includes(request.status);
 
-const isAwaitingClient = (request: AssignedRequest) => request.status === "pending";
+const isAwaitingClient = (request: AssignedRequest) =>
+  request.status === "pending";
 
 const isAwaitingDeposit = (request: AssignedRequest) =>
   request.status === "accepted" || request.depositStatus === "unpaid";
 
-const filterRequestByTab = (request: AssignedRequest, filter: PendingFilter) => {
+const filterRequestByTab = (
+  request: AssignedRequest,
+  filter: PendingFilter,
+) => {
   if (!isPendingRequest(request)) {
     return false;
   }
@@ -184,6 +188,7 @@ interface PendingServicesSectionProps {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  activeServicesCount: number;
 }
 
 function FilterChip({
@@ -226,7 +231,8 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
   const statusStyle = STATUS_STYLES[request.status] || STATUS_STYLES.pending;
   const customerName = request.userId?.fullName || "عميل غير معروف";
   const chatRequestId = getChatRequestId(request);
-  const isCustomRequest = !request.serviceId?.name && Boolean(request.postId?._id);
+  const isCustomRequest =
+    !request.serviceId?.name && Boolean(request.postId?._id);
 
   const openOrderDetails = () => {
     const detailsId = request.requestId ?? request._id;
@@ -252,7 +258,9 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${statusStyle.className}`}
           >
-            <span className={`h-2 w-2 rounded-full ${statusStyle.dotClassName}`} />
+            <span
+              className={`h-2 w-2 rounded-full ${statusStyle.dotClassName}`}
+            />
             {statusStyle.label}
           </span>
           <button
@@ -371,7 +379,8 @@ function EmptyState() {
           لا توجد خدمات معلقة الآن
         </h3>
         <p className="mt-3 text-sm leading-7 text-[#6B7A76]">
-          ستظهر هنا الطلبات التي ما زالت في انتظار استكمال الخطوات قبل بدء التنفيذ.
+          ستظهر هنا الطلبات التي ما زالت في انتظار استكمال الخطوات قبل بدء
+          التنفيذ.
         </p>
       </div>
     </div>
@@ -383,6 +392,7 @@ export default function PendingServicesSection({
   loading,
   error,
   onRetry,
+  activeServicesCount,
 }: PendingServicesSectionProps) {
   const [activeFilter, setActiveFilter] = useState<PendingFilter>("all");
 
@@ -408,12 +418,40 @@ export default function PendingServicesSection({
     [activeFilter, pendingRequests],
   );
 
+  const router = useRouter();
+
   return (
     <section className="section-wrapper !max-w-[1180px] !px-0" dir="rtl">
       <div
         className="mb-8 flex w-full flex-wrap items-center justify-start gap-3 px-2 md:px-0"
         dir="rtl"
       >
+        {activeServicesCount > 0 && (
+          <button
+            type="button"
+            onClick={() => router.push("/technician/portfolio/current")}
+            className="mb-6 flex w-full items-center justify-between gap-3 rounded-2xl border border-[#B3E718] bg-[#F1F7E7] px-5 py-4 text-right transition hover:bg-[#E8F5D0]"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#B3E718] text-sm font-bold text-[#1C4B41]">
+                {activeServicesCount}
+              </span>
+              <span className="text-sm font-bold text-[#1C4B41]">
+                لديك{" "}
+                {activeServicesCount === 1
+                  ? "خدمة نشطة"
+                  : `${activeServicesCount} خدمات نشطة`}{" "}
+                جارية الآن
+              </span>
+            </div>
+            <span className="text-sm font-semibold text-[#1C4B41] underline underline-offset-2">
+              عرض الخدمات النشطة ←
+            </span>
+          </button>
+        )}
+
+        {/* الفلاتر الموجودة */}
+        <div className="mb-8 flex w-full flex-wrap ..."></div>
         {FILTER_RENDER_ORDER.map((filterKey) => (
           <FilterChip
             key={filterKey}
