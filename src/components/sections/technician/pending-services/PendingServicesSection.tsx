@@ -6,6 +6,8 @@ import { AlertCircle, Clock3, MapPin, MoreVertical } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { AssignedRequest, RequestStatus } from "@/types/request.types";
 import ChatButton from "../../client/direct-messages/ChatButton";
+import RequestOptionsMenu from "../../shared/RequestOptionsMenu";
+import CancelRequestModal from "../../shared/CancelRequestModal";
 
 type PendingFilter = "all" | "awaiting-client" | "awaiting-deposit";
 
@@ -189,6 +191,7 @@ interface PendingServicesSectionProps {
   error: string | null;
   onRetry: () => void;
   activeServicesCount: number;
+  onCancelled?: () => void;
 }
 
 function FilterChip({
@@ -226,8 +229,15 @@ function FilterChip({
   );
 }
 
-function PendingServiceCard({ request }: { request: AssignedRequest }) {
+function PendingServiceCard({
+  request,
+  onCancelled,
+}: {
+  request: AssignedRequest;
+  onCancelled?: () => void;
+}) {
   const router = useRouter();
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const statusStyle = STATUS_STYLES[request.status] || STATUS_STYLES.pending;
   const customerName = request.userId?.fullName || "عميل غير معروف";
   const chatRequestId = getChatRequestId(request);
@@ -263,13 +273,15 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
             />
             {statusStyle.label}
           </span>
-          <button
-            type="button"
-            className="rounded-full p-1 text-[#A7B2AF] transition hover:bg-[#F6F8F7] hover:text-[#526661]"
-            aria-label="خيارات الطلب"
-          >
-            <MoreVertical size={18} />
-          </button>
+          {/* الإلغاء من هنا متاح بس للطلبات الثابتة — الـ custom requests
+              بتتلغي من العميل (cancelPost)، الفني هنا ممكن يلغي عرضه بس
+              مش الطلب نفسه */}
+          {!isCustomRequest && (
+            <RequestOptionsMenu
+              status={request.status}
+              onCancelClick={() => setShowCancelModal(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -330,6 +342,16 @@ function PendingServiceCard({ request }: { request: AssignedRequest }) {
           </Button>
         </div>
       ) : null}
+
+      {showCancelModal && (
+        <CancelRequestModal
+          requestId={request._id}
+          role="technician"
+          serviceName={getPrimaryTitle(request)}
+          onClose={() => setShowCancelModal(false)}
+          onCancelled={() => onCancelled?.()}
+        />
+      )}
     </article>
   );
 }
@@ -393,6 +415,7 @@ export default function PendingServicesSection({
   error,
   onRetry,
   activeServicesCount,
+  onCancelled,
 }: PendingServicesSectionProps) {
   const [activeFilter, setActiveFilter] = useState<PendingFilter>("all");
 
@@ -472,7 +495,11 @@ export default function PendingServicesSection({
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" dir="rtl">
           {visibleRequests.map((request) => (
-            <PendingServiceCard key={request._id} request={request} />
+            <PendingServiceCard
+              key={request._id}
+              request={request}
+              onCancelled={onCancelled}
+            />
           ))}
         </div>
       )}

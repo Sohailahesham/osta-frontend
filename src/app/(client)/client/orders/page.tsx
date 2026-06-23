@@ -3,20 +3,33 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/api/axios";
 import { getMyPosts } from "@/api/services/post.service.client";
-import OngoingOrdersSection, { Order } from "@/components/sections/client/current-orders/OngoingOrdersSection";
+import OngoingOrdersSection, {
+  Order,
+} from "@/components/sections/client/current-orders/OngoingOrdersSection";
 import LatestCompletedOrdersSection from "@/components/sections/client/current-orders/LatestCompletedOrdersSection";
 import HeroSection from "@/components/sections/client/current-orders/HeroSection";
 import { Post } from "@/types/post.types";
+import { usePolling } from "@/hooks/usePolling";
 
 function getOrdersFromPayload(payload: unknown): Order[] {
-  if (payload && typeof payload === "object" && "data" in payload && Array.isArray((payload as { data?: unknown }).data)) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "data" in payload &&
+    Array.isArray((payload as { data?: unknown }).data)
+  ) {
     return (payload as { data: Order[] }).data;
   }
   return [];
 }
 
 function getPostsFromPayload(payload: unknown): Post[] {
-  if (payload && typeof payload === "object" && "data" in payload && Array.isArray((payload as { data?: unknown }).data)) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "data" in payload &&
+    Array.isArray((payload as { data?: unknown }).data)
+  ) {
     return (payload as { data: Post[] }).data;
   }
   return [];
@@ -45,9 +58,20 @@ export default function OrdersPage() {
   }, []);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => { void fetchAll(true); }, 0);
+    const timeoutId = window.setTimeout(() => {
+      void fetchAll(true);
+    }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [fetchAll]);
+
+  // ── Polling: بيحدث حالة الطلبات تلقائيًا كل 8 ثواني من غير ما المستخدم
+  // يعمل refresh يدوي. showLoader=false عشان مايظهرش spinner كل مرة.
+  usePolling(
+    useCallback(() => {
+      void fetchAll(false);
+    }, [fetchAll]),
+    8000,
+  );
 
   useEffect(() => {
     const pendingRequestId = sessionStorage.getItem("pendingDepositRequestId");
@@ -68,8 +92,11 @@ export default function OrdersPage() {
     const pendingRequestId = sessionStorage.getItem("pendingDepositRequestId");
     if (!pendingRequestId) return;
     const currentRequest = orders.find((o) => o._id === pendingRequestId);
-    const isDepositConfirmed = currentRequest?.depositStatus === "paid" || currentRequest?.status === "in_progress";
-    if (isDepositConfirmed) sessionStorage.removeItem("pendingDepositRequestId");
+    const isDepositConfirmed =
+      currentRequest?.depositStatus === "paid" ||
+      currentRequest?.status === "in_progress";
+    if (isDepositConfirmed)
+      sessionStorage.removeItem("pendingDepositRequestId");
   }, [orders]);
 
   return (
@@ -81,7 +108,11 @@ export default function OrdersPage() {
         </div>
       ) : (
         <>
-          <OngoingOrdersSection orders={orders} openPosts={openPosts} />
+          <OngoingOrdersSection
+            orders={orders}
+            openPosts={openPosts}
+            onCancelled={() => void fetchAll(false)}
+          />
           <LatestCompletedOrdersSection orders={orders} />
         </>
       )}

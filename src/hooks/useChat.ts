@@ -11,6 +11,7 @@ import {
     JoinedRoomPayload,
 } from "@/types/chat.types";
 import {chatService} from "@/api/services/chat.service";
+import {playMessageBeep} from "./useMessageSound";
 
 interface UseChatOptions {
     socket: Socket | null;
@@ -51,15 +52,8 @@ export function useChat({socket, room, currentUserId, onHistoryLoaded}: UseChatO
 
                 if (targetRoom.variant === "fixed" && targetRoom.requestId) {
                     msgs = await chatService.getRequestMessages(targetRoom.requestId);
-                } else if (
-                    targetRoom.variant === "custom" &&
-                    targetRoom.postId &&
-                    targetRoom.technicianId
-                ) {
-                    msgs = await chatService.getCustomMessages(
-                        targetRoom.postId,
-                        targetRoom.technicianId
-                    );
+                } else if (targetRoom.variant === "custom" && targetRoom.postId && targetRoom.technicianId) {
+                    msgs = await chatService.getCustomMessages(targetRoom.postId, targetRoom.technicianId);
                 } else {
                     msgs = [];
                 }
@@ -108,11 +102,7 @@ export function useChat({socket, room, currentUserId, onHistoryLoaded}: UseChatO
                         content: trimmedContent,
                         image,
                     });
-                } else if (
-                    room.variant === "custom" &&
-                    room.postId &&
-                    room.technicianId
-                ) {
+                } else if (room.variant === "custom" && room.postId && room.technicianId) {
                     await chatService.sendCustomMessage(room.postId, room.technicianId, {
                         content: trimmedContent,
                         image,
@@ -164,9 +154,7 @@ export function useChat({socket, room, currentUserId, onHistoryLoaded}: UseChatO
         if (!socket || !room) return;
 
         const onJoinedRoom = ({unreadCount}: JoinedRoomPayload) => {
-            setUnreadCount(
-                typeof unreadCount === "number" ? unreadCount : unreadCount?.count ?? 0
-            );
+            setUnreadCount(typeof unreadCount === "number" ? unreadCount : unreadCount?.count ?? 0);
         };
 
         const onNewMessage = (payload: NewMessagePayload) => {
@@ -188,6 +176,8 @@ export function useChat({socket, room, currentUserId, onHistoryLoaded}: UseChatO
 
             if (payload.senderId !== currentUserId) {
                 markAsRead();
+                // صوت الرسالة — بس لو الرسالة جاية من الطرف التاني، مش منك
+                playMessageBeep();
             }
         };
 
@@ -200,8 +190,8 @@ export function useChat({socket, room, currentUserId, onHistoryLoaded}: UseChatO
                                 ? {...message, isRead: true}
                                 : message
                             : message.senderId._id === currentUserId
-                              ? {...message, isRead: true}
-                              : message
+                            ? {...message, isRead: true}
+                            : message
                     )
                 );
             }
