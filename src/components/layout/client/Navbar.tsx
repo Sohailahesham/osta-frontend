@@ -1,20 +1,11 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  Menu,
-  X,
-  User,
-  CreditCard,
-  LogOut,
-  Ticket,
-  MessageCircle,
-  HelpCircle,
-} from "lucide-react";
+import { Menu, X, User, CreditCard, FileText, LogOut } from "lucide-react";
 import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
@@ -73,6 +64,9 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      // لو الـ mobile menu مفتوح، متتدخلش — الـ buttons بتتحكم في نفسها
+      if (menuOpen) return;
+
       if (
         profileRef.current &&
         !profileRef.current.contains(event.target as Node)
@@ -88,7 +82,7 @@ export default function Navbar() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [menuOpen]);
 
   const handleLogout = async () => {
     setProfileOpen(false);
@@ -130,7 +124,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="w-full lg:w-[90%] mx-auto bg-[#FEFEFE70]/50 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
+      className="relative z-50 w-full lg:w-[90%] mx-auto bg-[#FEFEFE70]/50 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
       dir="rtl"
     >
       <div className="px-4 sm:px-6 lg:px-8">
@@ -233,80 +227,93 @@ export default function Navbar() {
             </div>
             {/* ─────────────────────────────────────────────────────────────────────── */}
 
-            {/* زرار البروفايل + الـ dropdown */}
             <div className="relative" ref={profileRef}>
-              <button
-                onClick={() => setProfileOpen((prev) => !prev)}
-                className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
-              >
-                <Image src={userIcon} alt="Profile" width={24} height={24} />
-              </button>
+  <button
+    onClick={() => setProfileOpen((prev) => !prev)}
+    className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
+  >
+    <Image src={userIcon} alt="Profile" width={24} height={24} />
+  </button>
 
-              {profileOpen && (
-                <div
-                  dir="rtl"
-                  className="absolute end-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-50"
-                >
-                  {/* User info */}
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <div className="w-10 h-10 rounded-full bg-[#F1F7E7] text-[var(--primary-color)] flex items-center justify-center font-bold text-lg flex-shrink-0">
-                      {currentUser ? (
-                        userInitial
-                      ) : (
-                        <span className="w-5 h-5 rounded-full bg-gray-200 animate-pulse block" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      {currentUser ? (
-                        <>
-                          <p className="text-sm font-semibold text-[#112D27] truncate">
-                            {currentUser.fullName}
-                          </p>
-                          <p className="text-xs text-gray-400 truncate">
-                            {currentUser.email}
-                          </p>
-                        </>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
-                          <div className="h-2.5 w-36 bg-gray-100 rounded animate-pulse" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-100" />
-
-                  <Link
-                    href="/client/profile"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
-                  >
-                    <User size={18} className="text-gray-400" />
-                    الملف الشخصي
-                  </Link>
-
-                  <Link
-                    href="/client/orders-history"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
-                  >
-                    <CreditCard size={18} className="text-gray-400" />
-                    سجل الطلبات
-                  </Link>
-
-                  <div className="border-t border-gray-100" />
-
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-all"
-                  >
-                    <LogOut size={18} />
-                    تسجيل الخروج
-                  </button>
-                </div>
-              )}
+  {profileOpen && (
+    <div
+      dir="rtl"
+      className="absolute end-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-[9999]"
+    >
+      {/* User info */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="min-w-0 text-right">
+          {currentUser ? (
+            <>
+              <p className="text-sm font-semibold text-[#112D27] truncate">
+                {currentUser.fullName}
+              </p>
+              <p className="text-xs text-gray-400 truncate">
+                {currentUser.email}
+              </p>
+            </>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
+              <div className="h-2.5 w-36 bg-gray-100 rounded animate-pulse" />
             </div>
+          )}
+        </div>
+
+        <div className="w-10 h-10 rounded-full text-white bg-[var(--primary-color)] flex items-center justify-center font-bold text-lg flex-shrink-0">
+          {currentUser ? (
+            userInitial
+          ) : (
+            <span className="w-5 h-5 rounded-full bg-gray-200 animate-pulse block" />
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100" />
+
+      {/* Profile */}
+      <Link
+        href="/client/profile"
+        onClick={() => setProfileOpen(false)}
+        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+      >
+        <User size={18}  />
+        <span>الملف الشخصي</span>
+      </Link>
+
+      {/* Orders */}
+      <Link
+        href="/client/orders-history"
+        onClick={() => setProfileOpen(false)}
+        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+      >
+        <CreditCard size={18}  />
+        <span>سجل الطلبات</span>
+      </Link>
+
+      {/* Invoices */}
+      <Link
+        href="/client/invoices"
+        onClick={() => setProfileOpen(false)}
+        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+      >
+        <FileText size={18}  />
+        <span>الفواتير</span>
+      </Link>
+
+      <div className="border-t border-gray-100" />
+
+      {/* Logout */}
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center justify-between flex-row-reverse px-4 py-4 text-sm text-red-500 hover:bg-red-50 transition-all"
+      >
+        <LogOut size={18} />
+        <span>تسجيل الخروج</span>
+      </button>
+    </div>
+  )}
+</div>
 
             {/* زرار الموبايل */}
             <button
@@ -334,7 +341,7 @@ export default function Navbar() {
           ))}
 
           {/* ── SUPPORT (mobile) ──────────────────────────────────────────────── */}
-          <div className="rounded-2xl border border-gray-100 p-2">
+          <div className="rounded-2xl border border-[#EEF1EF] p-2">
             <button
               type="button"
               onClick={() => setSupportMenuOpen((open) => !open)}
@@ -344,44 +351,36 @@ export default function Navbar() {
                   : "text-[#112D27] hover:bg-gray-50 hover:text-[var(--primary-color)]"
               }`}
             >
-              الدعم والمساعدة
+              الدعم و المساعدة
             </button>
 
             {supportMenuOpen ? (
               <div className="mt-2 flex flex-col gap-1">
-                <Link
-                  href={`${SUPPORT_PATH}?tab=tickets`}
+                <button
+                  type="button"
                   onClick={() => {
                     setSupportMenuOpen(false);
                     setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=tickets`);
                   }}
                   className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
                 >
                   <span>التذاكر</span>
                   <Ticket size={16} />
-                </Link>
+                </button>
 
-                <div className="flex w-full cursor-not-allowed items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#9AA8A3]">
-                  <span className="flex items-center gap-2">
-                    المحادثة المباشرة
-                    <span className="rounded-full bg-[#F1F4F2] px-2 py-0.5 text-[11px]">
-                      قريباً
-                    </span>
-                  </span>
-                  <MessageCircle size={16} className="text-[#C7CFCB]" />
-                </div>
-
-                <Link
-                  href={`${SUPPORT_PATH}?tab=help`}
+                <button
+                  type="button"
                   onClick={() => {
                     setSupportMenuOpen(false);
                     setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=help`);
                   }}
                   className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
                 >
                   <span>مركز المساعدة</span>
                   <HelpCircle size={16} />
-                </Link>
+                </button>
               </div>
             ) : null}
           </div>
