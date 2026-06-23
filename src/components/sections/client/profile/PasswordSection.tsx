@@ -226,18 +226,19 @@ export default function PasswordSection({
 
         {/* ── AVAILABLE collapsed state ── */}
         {!open && !isLocked && (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center ">
+          
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block m-2" />
+            <p className="text-sm text-gray-500 flex items-center gap-2">
+              يمكن تغيير كلمة المرور مرة واحدة كل 30 يوماً
+            </p>
             <button
               onClick={() => setOpen(true)}
-              className="text-sm text-[var(--accent-color)] font-bold hover:underline"
+              className="text-sm text-[var(--accent-color)] font-bold hover:underline  mr-auto"
               dir="ltr"
             >
               تغيير كلمة المرور
             </button>
-            <p className="text-sm text-gray-500 flex items-center gap-2">
-              يمكن تغيير كلمة المرور مرة واحدة كل 30 يوماً
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" />
-            </p>
           </div>
         )}
 

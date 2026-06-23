@@ -12,12 +12,12 @@ import userIcon from "@/assets/icons/user.svg";
 import { useAuth } from "@/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
 import { useUnreadTotal } from "@/hooks/useUnreadTotal";
-
+import { api } from "@/api/axios";
+import ProfileDropdown from "@/components/sections/technician/profile/ProfileDropdown";
 
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPanel from "@/components/notifications/NotificationPanel";
-
 
 const NAV_LINKS = [
   { label: "الطلبات الواردة", href: "/technician/orders" },
@@ -37,7 +37,10 @@ const WORK_LINKS = [
     icon: BriefcaseBusiness,
   },
 ];
-
+interface CurrentUser {
+  fullName: string;
+  email: string;
+}
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -50,10 +53,11 @@ export default function Navbar() {
 
   const { socket } = useSocket(token);
   const { total } = useUnreadTotal(socket, userId, role);
-
-
+  // ── PROFILE DROPDOWN ────────────────────────────────────────────────────────
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const profileRef = useRef<HTMLDivElement | null>(null);
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
-
 
   const { socket: notificationSocket } = useNotificationSocket(userId);
   const { notifications, isLoading, unreadCount, markAllAsRead } =
@@ -62,7 +66,7 @@ export default function Navbar() {
   const handleBellClick = () => {
     setNotificationPanelOpen((prev) => {
       const next = !prev;
- 
+
       if (next && unreadCount > 0) {
         void markAllAsRead();
       }
@@ -71,6 +75,30 @@ export default function Navbar() {
   };
   // ─────────────────────────────────────────────────────────────────────────────
 
+  useEffect(() => {
+    api
+      .get<{ data: CurrentUser }>("/users/me")
+      .then((res) => {
+        const user = res.data?.data ?? (res.data as unknown as CurrentUser);
+        setCurrentUser({ fullName: user.fullName, email: user.email });
+      })
+      .catch(() => {
+        // token invalid or expired — interceptor will handle redirect
+      });
+  }, []);
+
+  // useEffect(() => {
+  //   function handleClickOutside(event: MouseEvent) {
+  //     if (
+  //       profileRef.current &&
+  //       !profileRef.current.contains(event.target as Node)
+  //     ) {
+  //       setProfileOpen(false);
+  //     }
+  //   }
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       if (
@@ -87,7 +115,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="relative z-40 mx-auto w-full bg-[#FEFEFE70]/50 px-6 py-2 shadow-sm backdrop-blur-md lg:w-[90%] lg:rounded-full"
+      className="relative z-40 mx-auto w-full  bg-[#B4D4BC70]/50 px-6 py-2 shadow-sm backdrop-blur-md lg:w-[90%] lg:rounded-full overflow-visible"
       dir="rtl"
     >
       <div className="px-4 sm:px-6 lg:px-8">
@@ -102,7 +130,7 @@ export default function Navbar() {
             />
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden items-center  gap-1 md:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -206,12 +234,22 @@ export default function Navbar() {
             </div>
             {/* ─────────────────────────────────────────────────────────────────────── */}
 
-            <button
-              onClick={() => router.push("/technician/profile")}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[#112D27] transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
-            >
-              <Image src={userIcon} alt="Profile" width={24} height={24} />
-            </button>
+            <div ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen((prev) => !prev)}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[#112D27] transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
+              >
+                <Image src={userIcon} alt="Profile" width={24} height={24} />
+              </button>
+
+              {profileOpen && (
+                <ProfileDropdown
+                  currentUser={currentUser}
+                  onClose={() => setProfileOpen(false)}
+                  anchorRef={profileRef}
+                />
+              )}
+            </div>
 
             <button
               onClick={() => setMenuOpen((open) => !open)}
