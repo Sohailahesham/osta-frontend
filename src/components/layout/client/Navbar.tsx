@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -74,6 +73,9 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      // لو الـ mobile menu مفتوح، متتدخلش — الـ buttons بتتحكم في نفسها
+      if (menuOpen) return;
+
       if (
         profileRef.current &&
         !profileRef.current.contains(event.target as Node)
@@ -89,7 +91,7 @@ export default function Navbar() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [menuOpen]);
 
   const handleLogout = async () => {
     setProfileOpen(false);
@@ -240,7 +242,7 @@ export default function Navbar() {
                 onClick={() => setProfileOpen((prev) => !prev)}
                 className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
               >
-                <Image src={userIcon} alt="Profile" width={24} height={24} />
+                <Image src={userIcon} alt="Profile" width={28} height={28} />
               </button>
 
               {profileOpen && (
@@ -335,7 +337,7 @@ export default function Navbar() {
           ))}
 
           {/* ── SUPPORT (mobile) ──────────────────────────────────────────────── */}
-          <div className="rounded-2xl border border-gray-100 p-2">
+          <div className="rounded-2xl border border-[#EEF1EF] p-2">
             <button
               type="button"
               onClick={() => setSupportMenuOpen((open) => !open)}
@@ -345,44 +347,36 @@ export default function Navbar() {
                   : "text-[#112D27] hover:bg-gray-50 hover:text-[var(--primary-color)]"
               }`}
             >
-              الدعم والمساعدة
+              الدعم و المساعدة
             </button>
 
             {supportMenuOpen ? (
               <div className="mt-2 flex flex-col gap-1">
-                <Link
-                  href={`${SUPPORT_PATH}?tab=tickets`}
+                <button
+                  type="button"
                   onClick={() => {
                     setSupportMenuOpen(false);
                     setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=tickets`);
                   }}
                   className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
                 >
                   <span>التذاكر</span>
                   <Ticket size={16} />
-                </Link>
+                </button>
 
-                <div className="flex w-full cursor-not-allowed items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#9AA8A3]">
-                  <span className="flex items-center gap-2">
-                    المحادثة المباشرة
-                    <span className="rounded-full bg-[#F1F4F2] px-2 py-0.5 text-[11px]">
-                      قريباً
-                    </span>
-                  </span>
-                  <MessageCircle size={16} className="text-[#C7CFCB]" />
-                </div>
-
-                <Link
-                  href={`${SUPPORT_PATH}?tab=help`}
+                <button
+                  type="button"
                   onClick={() => {
                     setSupportMenuOpen(false);
                     setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=help`);
                   }}
                   className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
                 >
                   <span>مركز المساعدة</span>
                   <HelpCircle size={16} />
-                </Link>
+                </button>
               </div>
             ) : null}
           </div>

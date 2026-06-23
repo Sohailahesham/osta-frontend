@@ -4,7 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { BriefcaseBusiness, Menu, WalletCards, X } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  HelpCircle,
+  Menu,
+  MessageCircle,
+  Ticket,
+  WalletCards,
+  X,
+} from "lucide-react";
 import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
@@ -51,6 +59,8 @@ export default function Navbar() {
   const [supportMenuOpen, setSupportMenuOpen] = useState(false);
   const workMenuRef = useRef<HTMLDivElement | null>(null);
   const supportMenuRef = useRef<HTMLDivElement | null>(null);
+  const desktopWorkMenuRef = useRef<HTMLDivElement | null>(null);
+  const desktopSupportMenuRef = useRef<HTMLDivElement | null>(null);
   const { token, userId, role } = useAuth();
 
   const isWorkRoute = pathname.startsWith("/technician/portfolio");
@@ -94,15 +104,18 @@ export default function Navbar() {
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
+      // لو الـ mobile menu مفتوح، متتدخلش — الـ buttons بتتحكم في نفسها
+      if (menuOpen) return;
+
       if (
-        workMenuRef.current &&
-        !workMenuRef.current.contains(event.target as Node)
+        desktopWorkMenuRef.current &&
+        !desktopWorkMenuRef.current.contains(event.target as Node)
       ) {
         setWorkMenuOpen(false);
       }
       if (
-        supportMenuRef.current &&
-        !supportMenuRef.current.contains(event.target as Node)
+        desktopSupportMenuRef.current &&
+        !desktopSupportMenuRef.current.contains(event.target as Node)
       ) {
         setSupportMenuOpen(false);
       }
@@ -110,7 +123,7 @@ export default function Navbar() {
 
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, []);
+  }, [menuOpen]);
 
   return (
     <nav
@@ -144,7 +157,7 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <div className="relative" ref={workMenuRef}>
+            <div className="relative" ref={desktopWorkMenuRef}>
               <button
                 type="button"
                 onClick={() => setWorkMenuOpen((open) => !open)}
@@ -189,7 +202,7 @@ export default function Navbar() {
             </div>
 
             {/* ── SUPPORT DROPDOWN ───────────────────────────────────────────── */}
-            <div className="relative" ref={supportMenuRef}>
+            <div className="relative" ref={desktopSupportMenuRef}>
               <button
                 type="button"
                 onClick={() => setSupportMenuOpen((open) => !open)}
@@ -285,6 +298,17 @@ export default function Navbar() {
 
       {menuOpen ? (
         <div className="flex flex-col gap-2 border-t border-gray-100 bg-white px-4 py-3 md:hidden">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-2.5 text-sm font-medium text-[#112D27] transition-all hover:bg-gray-50 hover:text-[var(--primary-color)]"
+            >
+              {link.label}
+            </Link>
+          ))}
+
           <div className="rounded-2xl border border-[#EEF1EF] p-2">
             <button
               type="button"
@@ -303,34 +327,69 @@ export default function Navbar() {
                 {WORK_LINKS.map((link) => {
                   const Icon = link.icon;
                   return (
-                    <Link
+                    <button
                       key={link.href}
-                      href={link.href}
+                      type="button"
                       onClick={() => {
                         setWorkMenuOpen(false);
                         setMenuOpen(false);
+                        router.push(link.href);
                       }}
                       className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
                     >
                       <span>{link.label}</span>
                       <Icon size={16} />
-                    </Link>
+                    </button>
                   );
                 })}
               </div>
             ) : null}
           </div>
 
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-2.5 text-sm font-medium text-[#112D27] transition-all hover:bg-gray-50 hover:text-[var(--primary-color)]"
+          {/* ── SUPPORT (mobile) ──────────────────────────────────────────────── */}
+          <div className="rounded-2xl border border-[#EEF1EF] p-2">
+            <button
+              type="button"
+              onClick={() => setSupportMenuOpen((open) => !open)}
+              className={`w-full rounded-xl px-4 py-2.5 text-right text-sm font-medium transition-all ${
+                isSupportRoute
+                  ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                  : "text-[#112D27] hover:bg-gray-50 hover:text-[var(--primary-color)]"
+              }`}
             >
-              {link.label}
-            </Link>
-          ))}
+              الدعم و المساعدة
+            </button>
+
+            {supportMenuOpen ? (
+              <div className="mt-2 flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=tickets`);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>التذاكر</span>
+                  <Ticket size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=help`);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>مركز المساعدة</span>
+                  <HelpCircle size={16} />
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </nav>
