@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Lock,
   Star,
+  Wallet 
 } from "lucide-react";
 
 export type ProfileTab =
@@ -18,7 +19,8 @@ export type ProfileTab =
   | "area"
   | "identity"
   | "security"
-  | "reviews";
+  | "reviews"
+  |"wallet";
 
 interface SidebarStats {
   yearsOfExperience: number;
@@ -43,6 +45,7 @@ const TABS: { id: ProfileTab; label: string; icon: typeof User }[] = [
   { id: "identity", label: "التحقق من الهوية", icon: ShieldCheck },
   { id: "security", label: "الأمان", icon: Lock },
   { id: "reviews", label: "التقييمات", icon: Star },
+  { id: "wallet", label: "المحفظة", icon: Wallet },
 ];
 
 export default function ProfileSidebar({

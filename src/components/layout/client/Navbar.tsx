@@ -5,16 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  Menu,
-  X,
-  User,
-  CreditCard,
-  LogOut,
-  Ticket,
-  MessageCircle,
-  HelpCircle,
-} from "lucide-react";
+import { Menu, X, User, CreditCard, FileText, LogOut } from "lucide-react";
 import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
@@ -133,7 +124,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="w-full lg:w-[90%] mx-auto bg-[#FEFEFE70]/50 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
+      className="relative z-50 w-full lg:w-[90%] mx-auto bg-[#FEFEFE70]/50 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
       dir="rtl"
     >
       <div className="px-4 sm:px-6 lg:px-8">
@@ -236,80 +227,93 @@ export default function Navbar() {
             </div>
             {/* ─────────────────────────────────────────────────────────────────────── */}
 
-            {/* زرار البروفايل + الـ dropdown */}
             <div className="relative" ref={profileRef}>
-              <button
-                onClick={() => setProfileOpen((prev) => !prev)}
-                className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
-              >
-                <Image src={userIcon} alt="Profile" width={28} height={28} />
-              </button>
+  <button
+    onClick={() => setProfileOpen((prev) => !prev)}
+    className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
+  >
+    <Image src={userIcon} alt="Profile" width={24} height={24} />
+  </button>
 
-              {profileOpen && (
-                <div
-                  dir="rtl"
-                  className="absolute end-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-50"
-                >
-                  {/* User info */}
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <div className="w-10 h-10 rounded-full bg-[#F1F7E7] text-[var(--primary-color)] flex items-center justify-center font-bold text-lg flex-shrink-0">
-                      {currentUser ? (
-                        userInitial
-                      ) : (
-                        <span className="w-5 h-5 rounded-full bg-gray-200 animate-pulse block" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      {currentUser ? (
-                        <>
-                          <p className="text-sm font-semibold text-[#112D27] truncate">
-                            {currentUser.fullName}
-                          </p>
-                          <p className="text-xs text-gray-400 truncate">
-                            {currentUser.email}
-                          </p>
-                        </>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
-                          <div className="h-2.5 w-36 bg-gray-100 rounded animate-pulse" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-100" />
-
-                  <Link
-                    href="/client/profile"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
-                  >
-                    <User size={18} className="text-gray-400" />
-                    الملف الشخصي
-                  </Link>
-
-                  <Link
-                    href="/client/orders-history"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
-                  >
-                    <CreditCard size={18} className="text-gray-400" />
-                    سجل الطلبات
-                  </Link>
-
-                  <div className="border-t border-gray-100" />
-
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-all"
-                  >
-                    <LogOut size={18} />
-                    تسجيل الخروج
-                  </button>
-                </div>
-              )}
+  {profileOpen && (
+    <div
+      dir="rtl"
+      className="absolute end-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-[9999]"
+    >
+      {/* User info */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="min-w-0 text-right">
+          {currentUser ? (
+            <>
+              <p className="text-sm font-semibold text-[#112D27] truncate">
+                {currentUser.fullName}
+              </p>
+              <p className="text-xs text-gray-400 truncate">
+                {currentUser.email}
+              </p>
+            </>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
+              <div className="h-2.5 w-36 bg-gray-100 rounded animate-pulse" />
             </div>
+          )}
+        </div>
+
+        <div className="w-10 h-10 rounded-full text-white bg-[var(--primary-color)] flex items-center justify-center font-bold text-lg flex-shrink-0">
+          {currentUser ? (
+            userInitial
+          ) : (
+            <span className="w-5 h-5 rounded-full bg-gray-200 animate-pulse block" />
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100" />
+
+      {/* Profile */}
+      <Link
+        href="/client/profile"
+        onClick={() => setProfileOpen(false)}
+        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+      >
+        <User size={18}  />
+        <span>الملف الشخصي</span>
+      </Link>
+
+      {/* Orders */}
+      <Link
+        href="/client/orders-history"
+        onClick={() => setProfileOpen(false)}
+        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+      >
+        <CreditCard size={18}  />
+        <span>سجل الطلبات</span>
+      </Link>
+
+      {/* Invoices */}
+      <Link
+        href="/client/invoices"
+        onClick={() => setProfileOpen(false)}
+        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
+      >
+        <FileText size={18}  />
+        <span>الفواتير</span>
+      </Link>
+
+      <div className="border-t border-gray-100" />
+
+      {/* Logout */}
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center justify-between flex-row-reverse px-4 py-4 text-sm text-red-500 hover:bg-red-50 transition-all"
+      >
+        <LogOut size={18} />
+        <span>تسجيل الخروج</span>
+      </button>
+    </div>
+  )}
+</div>
 
             {/* زرار الموبايل */}
             <button
