@@ -4,7 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { BriefcaseBusiness, Menu, WalletCards, X } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  HelpCircle,
+  Menu,
+  MessageCircle,
+  Ticket,
+  WalletCards,
+  X,
+} from "lucide-react";
 import logoImage from "@/assets/images/logo.svg";
 import dmsIcon from "@/assets/icons/Dms.svg";
 import bellIcon from "@/assets/icons/notification.svg";
@@ -12,17 +20,19 @@ import userIcon from "@/assets/icons/user.svg";
 import { useAuth } from "@/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
 import { useUnreadTotal } from "@/hooks/useUnreadTotal";
-
+import { api } from "@/api/axios";
+import ProfileDropdown from "@/components/sections/technician/profile/ProfileDropdown";
 
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPanel from "@/components/notifications/NotificationPanel";
+import SupportMenuPanel from "@/components/layout/support/SupportMenuPanel";
 
+const SUPPORT_PATH = "/technician/support";
 
 const NAV_LINKS = [
   { label: "الطلبات الواردة", href: "/technician/orders" },
   { label: "المحلات", href: "/technician/stores" },
-  { label: "الدعم و المساعدة", href: "/technician/support" },
 ];
 
 const WORK_LINKS = [
@@ -37,23 +47,32 @@ const WORK_LINKS = [
     icon: BriefcaseBusiness,
   },
 ];
-
+interface CurrentUser {
+  fullName: string;
+  email: string;
+}
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
+  const [supportMenuOpen, setSupportMenuOpen] = useState(false);
   const workMenuRef = useRef<HTMLDivElement | null>(null);
+  const supportMenuRef = useRef<HTMLDivElement | null>(null);
+  const desktopWorkMenuRef = useRef<HTMLDivElement | null>(null);
+  const desktopSupportMenuRef = useRef<HTMLDivElement | null>(null);
   const { token, userId, role } = useAuth();
 
   const isWorkRoute = pathname.startsWith("/technician/portfolio");
+  const isSupportRoute = pathname.startsWith(SUPPORT_PATH);
 
   const { socket } = useSocket(token);
   const { total } = useUnreadTotal(socket, userId, role);
-
-
+  // ── PROFILE DROPDOWN ────────────────────────────────────────────────────────
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const profileRef = useRef<HTMLDivElement | null>(null);
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
-
 
   const { socket: notificationSocket } = useNotificationSocket(userId);
   const { notifications, isLoading, unreadCount, markAllAsRead } =
@@ -62,7 +81,7 @@ export default function Navbar() {
   const handleBellClick = () => {
     setNotificationPanelOpen((prev) => {
       const next = !prev;
- 
+
       if (next && unreadCount > 0) {
         void markAllAsRead();
       }
@@ -72,22 +91,43 @@ export default function Navbar() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
+    api
+      .get<{ data: CurrentUser }>("/users/me")
+      .then((res) => {
+        const user = res.data?.data ?? (res.data as unknown as CurrentUser);
+        setCurrentUser({ fullName: user.fullName, email: user.email });
+      })
+      .catch(() => {
+        // token invalid or expired — interceptor will handle redirect
+      });
+  }, []);
+
+  useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
+      // لو الـ mobile menu مفتوح، متتدخلش — الـ buttons بتتحكم في نفسها
+      if (menuOpen) return;
+
       if (
-        workMenuRef.current &&
-        !workMenuRef.current.contains(event.target as Node)
+        desktopWorkMenuRef.current &&
+        !desktopWorkMenuRef.current.contains(event.target as Node)
       ) {
         setWorkMenuOpen(false);
+      }
+      if (
+        desktopSupportMenuRef.current &&
+        !desktopSupportMenuRef.current.contains(event.target as Node)
+      ) {
+        setSupportMenuOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, []);
+  }, [menuOpen]);
 
   return (
     <nav
-      className="relative z-40 mx-auto w-full bg-[#FEFEFE70]/50 px-6 py-2 shadow-sm backdrop-blur-md lg:w-[90%] lg:rounded-full"
+      className="relative z-40 mx-auto w-full  bg-[#B4D4BC70]/50 px-6 py-2 shadow-sm backdrop-blur-md lg:w-[90%] lg:rounded-full overflow-visible"
       dir="rtl"
     >
       <div className="px-4 sm:px-6 lg:px-8">
@@ -102,7 +142,7 @@ export default function Navbar() {
             />
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden items-center  gap-1 md:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -117,7 +157,7 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <div className="relative" ref={workMenuRef}>
+            <div className="relative" ref={desktopWorkMenuRef}>
               <button
                 type="button"
                 onClick={() => setWorkMenuOpen((open) => !open)}
@@ -160,6 +200,29 @@ export default function Navbar() {
                 </div>
               ) : null}
             </div>
+
+            {/* ── SUPPORT DROPDOWN ───────────────────────────────────────────── */}
+            <div className="relative" ref={desktopSupportMenuRef}>
+              <button
+                type="button"
+                onClick={() => setSupportMenuOpen((open) => !open)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  isSupportRoute
+                    ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                    : "text-[#112D27] hover:bg-[#F6F5F1] hover:text-[var(--primary-color)]"
+                }`}
+              >
+                الدعم و المساعدة
+              </button>
+
+              {supportMenuOpen ? (
+                <SupportMenuPanel
+                  basePath={SUPPORT_PATH}
+                  onClose={() => setSupportMenuOpen(false)}
+                />
+              ) : null}
+            </div>
+            {/* ─────────────────────────────────────────────────────────────────── */}
           </div>
 
           <div className="flex items-center gap-2">
@@ -206,12 +269,22 @@ export default function Navbar() {
             </div>
             {/* ─────────────────────────────────────────────────────────────────────── */}
 
-            <button
-              onClick={() => router.push("/technician/profile")}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[#112D27] transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
-            >
-              <Image src={userIcon} alt="Profile" width={24} height={24} />
-            </button>
+            <div ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen((prev) => !prev)}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[#112D27] transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
+              >
+                <Image src={userIcon} alt="Profile" width={28} height={28} />
+              </button>
+
+              {profileOpen && (
+                <ProfileDropdown
+                  currentUser={currentUser}
+                  onClose={() => setProfileOpen(false)}
+                  anchorRef={profileRef}
+                />
+              )}
+            </div>
 
             <button
               onClick={() => setMenuOpen((open) => !open)}
@@ -225,6 +298,17 @@ export default function Navbar() {
 
       {menuOpen ? (
         <div className="flex flex-col gap-2 border-t border-gray-100 bg-white px-4 py-3 md:hidden">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-2.5 text-sm font-medium text-[#112D27] transition-all hover:bg-gray-50 hover:text-[var(--primary-color)]"
+            >
+              {link.label}
+            </Link>
+          ))}
+
           <div className="rounded-2xl border border-[#EEF1EF] p-2">
             <button
               type="button"
@@ -243,34 +327,69 @@ export default function Navbar() {
                 {WORK_LINKS.map((link) => {
                   const Icon = link.icon;
                   return (
-                    <Link
+                    <button
                       key={link.href}
-                      href={link.href}
+                      type="button"
                       onClick={() => {
                         setWorkMenuOpen(false);
                         setMenuOpen(false);
+                        router.push(link.href);
                       }}
                       className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
                     >
                       <span>{link.label}</span>
                       <Icon size={16} />
-                    </Link>
+                    </button>
                   );
                 })}
               </div>
             ) : null}
           </div>
 
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-2.5 text-sm font-medium text-[#112D27] transition-all hover:bg-gray-50 hover:text-[var(--primary-color)]"
+          {/* ── SUPPORT (mobile) ──────────────────────────────────────────────── */}
+          <div className="rounded-2xl border border-[#EEF1EF] p-2">
+            <button
+              type="button"
+              onClick={() => setSupportMenuOpen((open) => !open)}
+              className={`w-full rounded-xl px-4 py-2.5 text-right text-sm font-medium transition-all ${
+                isSupportRoute
+                  ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                  : "text-[#112D27] hover:bg-gray-50 hover:text-[var(--primary-color)]"
+              }`}
             >
-              {link.label}
-            </Link>
-          ))}
+              الدعم و المساعدة
+            </button>
+
+            {supportMenuOpen ? (
+              <div className="mt-2 flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=tickets`);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>التذاكر</span>
+                  <Ticket size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=help`);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>مركز المساعدة</span>
+                  <HelpCircle size={16} />
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </nav>

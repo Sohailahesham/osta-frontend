@@ -6,6 +6,8 @@ import { User, Star } from "lucide-react";
 import DepositModal from "./DepositModal";
 import { getClientOrderStatusBadge, Order } from "./OngoingOrdersSection";
 import ChatButton from "../direct-messages/ChatButton";
+import RequestOptionsMenu from "../../shared/RequestOptionsMenu";
+import CancelRequestModal from "../../shared/CancelRequestModal";
 
 const formatTime = (timeStr: string): string => {
   const clean = timeStr.replace(/\s*(AM|PM)\s*/i, "").trim();
@@ -18,9 +20,16 @@ const formatTime = (timeStr: string): string => {
   return `${h}:${m} ${label}`;
 };
 
-export default function ActiveOrderCard({ order }: { order: Order }) {
+export default function ActiveOrderCard({
+  order,
+  onCancelled,
+}: {
+  order: Order;
+  onCancelled?: () => void;
+}) {
   const router = useRouter();
   const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const technicianInitial =
     order.assignedTechnician?.fullName?.charAt(0) ?? "?";
   const badge = getClientOrderStatusBadge(order);
@@ -53,7 +62,10 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
             <span className="text-xs font-bold px-3 py-1 rounded-full bg-[var(--accent-color)] text-[var(--primary-color)]">
               {order.status === "in_progress" ? "تم الدفع" : "تمت المطابقة"}
             </span>
-            <button className="text-gray-300 hover:text-gray-500">⋮</button>
+            <RequestOptionsMenu
+              status={order.status}
+              onCancelClick={() => setShowCancelModal(true)}
+            />
           </div>
         </div>
 
@@ -81,9 +93,9 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
                 })}
               </span>
 
-                        <span className="text-xs text-gray-400">{formatTime(order.preferredTime)}</span>
-
-
+              <span className="text-xs text-gray-400">
+                {formatTime(order.preferredTime)}
+              </span>
             </div>
           </div>
         </div>
@@ -146,13 +158,12 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
                   : "تم دفع العربون"}
               </span>
             )}
-
           </div>
 
           {/* Experience note */}
           <p className="text-xs text-gray-500 text-right">
             "خبرة {order.assignedTechnician?.yearsOfExperience ?? "0"} سنوات في
-            إصلاح التسريبات"
+            إصلاح {order.categoryId.name}"
           </p>
         </div>
       </div>
@@ -168,6 +179,16 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
           priceMax={order.serviceId?.priceRange?.max}
           depositAmount={order.depositAmount}
           onClose={() => setShowDepositModal(false)}
+        />
+      )}
+
+      {showCancelModal && (
+        <CancelRequestModal
+          requestId={order._id}
+          role="client"
+          serviceName={order.serviceId?.name}
+          onClose={() => setShowCancelModal(false)}
+          onCancelled={() => onCancelled?.()}
         />
       )}
     </>

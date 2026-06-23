@@ -151,12 +151,15 @@ export default function PostCard({ post }: { post: Post }) {
   const [loadingProposals, setLoadingProposals] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-    api
-      .get<{ data: Proposal[] }>(`/posts/${post._id}/proposals`)
-      .then((res) => {
-        if (!cancelled) setProposals(res.data?.data ?? []);
-      })
+  let cancelled = false;
+  api
+    .get<{ data: Proposal[] }>(`/posts/${post._id}/proposals`)
+.then((res) => {
+  if (!cancelled) {
+    const data = res.data?.data;
+    setProposals(Array.isArray(data) ? data : []);
+  }
+})
       .catch(() => {
         if (!cancelled) setProposals([]);
       })
@@ -183,8 +186,10 @@ export default function PostCard({ post }: { post: Post }) {
 
   // حالة العرض
   const hasAccepted = !!acceptedProposal;
-  const pendingCount = proposals.filter((p) => p.status === "pending").length;
-  const hasProposals = pendingCount > 0;
+
+  const safeProposals = Array.isArray(proposals) ? proposals : [];
+const pendingCount = safeProposals.filter((p) => p.status === "pending").length;
+const hasProposals = pendingCount > 0;
 
   return (
     <div

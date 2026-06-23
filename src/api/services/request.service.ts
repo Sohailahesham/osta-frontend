@@ -87,3 +87,24 @@ export const getMyRequests = async (): Promise<AssignedRequestsResult> => {
 
   return { data, meta };
 };
+export const getServicesHistory = async (): Promise<AssignedRequestsResult> => {
+  const [assignedResponse, customAssignedResponse] = await Promise.all([
+    api.get("/requests/assigned"),
+    api.get("/posts/technician/assigned"),
+  ]);
+
+  const assignedPayload = assignedResponse.data as AssignedRequestsApiShape | { data?: AssignedRequestsApiShape };
+  const customPayload = customAssignedResponse.data as AssignedRequestsApiShape | { data?: AssignedRequestsApiShape };
+
+  const assigned = extractAssignedRequests(assignedPayload);
+  const customAssigned = extractAssignedRequests(customPayload);
+
+  const allRequests = mergeAssignedRequests(assigned.data, customAssigned.data);
+
+  // Only return completed and cancelled — the history
+  const historyOnly = allRequests.filter(
+    (r) => r.status === "completed" || r.status === "cancelled",
+  );
+
+  return { data: historyOnly, meta: assigned.meta };
+};

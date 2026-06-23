@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -14,6 +14,8 @@ import Button from "@/components/ui/Button";
 import type { AssignedRequest, RequestStatus } from "@/types/request.types";
 import { markRequestOnTheWay } from "@/api/services/request.service";
 import ChatButton from "../../client/direct-messages/ChatButton";
+import RequestOptionsMenu from "../../shared/RequestOptionsMenu";
+import CancelRequestModal from "../../shared/CancelRequestModal";
 
 const ACTIVE_STATUSES: RequestStatus[] = [
   "in_progress",
@@ -211,6 +213,7 @@ function ActiveServiceCard({
   onRetry: () => void;
 }) {
   const router = useRouter();
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const statusBadge = getStatusBadge(request.status);
   const progressBadge = getProgressBadge(request.status);
 
@@ -221,13 +224,10 @@ function ActiveServiceCard({
     >
       <div className="flex items-start justify-between gap-4" dir="ltr">
         <div className="flex shrink-0 items-center gap-2" dir="ltr">
-          <button
-            type="button"
-            className="rounded-full p-1 text-[#A7B2AF] transition hover:bg-[#F6F8F7] hover:text-[#526661]"
-            aria-label="خيارات الطلب"
-          >
-            <MoreVertical size={18} />
-          </button>
+          <RequestOptionsMenu
+            status={request.status}
+            onCancelClick={() => setShowCancelModal(true)}
+          />
           <span
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold ${statusBadge.className}`}
           >
@@ -326,6 +326,16 @@ function ActiveServiceCard({
           </div>
         </div>
       </div>
+
+      {showCancelModal && (
+        <CancelRequestModal
+          requestId={request._id}
+          role="technician"
+          serviceName={getPrimaryTitle(request)}
+          onClose={() => setShowCancelModal(false)}
+          onCancelled={onRetry}
+        />
+      )}
     </article>
   );
 }

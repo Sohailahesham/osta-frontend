@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
@@ -18,12 +19,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPanel from "@/components/notifications/NotificationPanel";
+import SupportMenuPanel from "@/components/layout/support/SupportMenuPanel";
+
+const SUPPORT_PATH = "/client/support";
 
 const NAV_LINKS = [
   { label: "الرئيسية", href: "/client/home" },
   { label: "الطلبات الحالية", href: "/client/orders" },
   { label: "الأقسام", href: "/client/categories" },
-  { label: "الدعم والمساعدة", href: "/client/support" },
 ];
 
 interface CurrentUser {
@@ -42,6 +45,10 @@ export default function Navbar() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
+  const [supportMenuOpen, setSupportMenuOpen] = useState(false);
+  const supportMenuRef = useRef<HTMLDivElement>(null);
+  const isSupportRoute = pathname.startsWith(SUPPORT_PATH);
+
   // Fetch logged-in user from GET /users/me
   useEffect(() => {
     api
@@ -57,16 +64,25 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      // لو الـ mobile menu مفتوح، متتدخلش — الـ buttons بتتحكم في نفسها
+      if (menuOpen) return;
+
       if (
         profileRef.current &&
         !profileRef.current.contains(event.target as Node)
       ) {
         setProfileOpen(false);
       }
+      if (
+        supportMenuRef.current &&
+        !supportMenuRef.current.contains(event.target as Node)
+      ) {
+        setSupportMenuOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [menuOpen]);
 
   const handleLogout = async () => {
     setProfileOpen(false);
@@ -140,6 +156,29 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            {/* ── SUPPORT DROPDOWN ───────────────────────────────────────────── */}
+            <div className="relative" ref={supportMenuRef}>
+              <button
+                type="button"
+                onClick={() => setSupportMenuOpen((open) => !open)}
+                className={`px-4 py-2 text-sm rounded-full transition-all font-medium ${
+                  isSupportRoute
+                    ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                    : "text-[#112D27] hover:text-[var(--primary-color)] hover:bg-[#F6F5F1]"
+                }`}
+              >
+                الدعم والمساعدة
+              </button>
+
+              {supportMenuOpen ? (
+                <SupportMenuPanel
+                  basePath={SUPPORT_PATH}
+                  onClose={() => setSupportMenuOpen(false)}
+                />
+              ) : null}
+            </div>
+            {/* ─────────────────────────────────────────────────────────────────── */}
           </div>
 
           <div className="flex items-center gap-2">
@@ -300,6 +339,52 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+
+          {/* ── SUPPORT (mobile) ──────────────────────────────────────────────── */}
+          <div className="rounded-2xl border border-[#EEF1EF] p-2">
+            <button
+              type="button"
+              onClick={() => setSupportMenuOpen((open) => !open)}
+              className={`w-full rounded-xl px-4 py-2.5 text-right text-sm font-medium transition-all ${
+                isSupportRoute
+                  ? "bg-[#F6F5F1] text-[var(--primary-color)]"
+                  : "text-[#112D27] hover:bg-gray-50 hover:text-[var(--primary-color)]"
+              }`}
+            >
+              الدعم و المساعدة
+            </button>
+
+            {supportMenuOpen ? (
+              <div className="mt-2 flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=tickets`);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>التذاكر</span>
+                  <Ticket size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSupportMenuOpen(false);
+                    setMenuOpen(false);
+                    router.push(`${SUPPORT_PATH}?tab=help`);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm text-[#31554B] hover:bg-[#F8FAF9]"
+                >
+                  <span>مركز المساعدة</span>
+                  <HelpCircle size={16} />
+                </button>
+              </div>
+            ) : null}
+          </div>
+          {/* ─────────────────────────────────────────────────────────────────────── */}
         </div>
       )}
     </nav>

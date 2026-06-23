@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/api/axios";
 import { getAssignedRequests } from "@/api/services/request.service";
 import PendingServicesHero from "@/components/sections/technician/pending-services/PendingServicesHero";
 import PendingServicesSection from "@/components/sections/technician/pending-services/PendingServicesSection";
 import type { AssignedRequest } from "@/types/request.types";
+import { usePolling } from "@/hooks/usePolling";
 
 const mergeRequests = (...requestGroups: AssignedRequest[][]) => {
   const merged = new Map<string, AssignedRequest>();
@@ -17,7 +18,9 @@ const mergeRequests = (...requestGroups: AssignedRequest[][]) => {
 
   return Array.from(merged.values()).sort((left, right) => {
     const leftTime = new Date(left.updatedAt ?? left.createdAt ?? 0).getTime();
-    const rightTime = new Date(right.updatedAt ?? right.createdAt ?? 0).getTime();
+    const rightTime = new Date(
+      right.updatedAt ?? right.createdAt ?? 0,
+    ).getTime();
     return rightTime - leftTime;
   });
 };
@@ -26,34 +29,56 @@ export default function PendingServicesPage() {
   const [requests, setRequests] = useState<AssignedRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeServicesCount, setActiveServicesCount] = useState(0);
 
-  const loadAssignedRequests = async () => {
+  const loadAssignedRequests = useCallback(async (showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       setError(null);
+
+      const ACTIVE_STATUSES = ["in_progress", "on_the_way", "started"];
 
       const [assignedResult, customPendingResponse] = await Promise.all([
         getAssignedRequests(),
         api.get("/posts/technician/pending"),
       ]);
 
-      const customPending = (customPendingResponse.data?.data ?? []) as AssignedRequest[];
-      setRequests(mergeRequests(assignedResult.data, customPending));
+      const allAssigned = assignedResult.data as AssignedRequest[];
+      const customPending = (customPendingResponse.data?.data ??
+        []) as AssignedRequest[];
+
+      const activeCount = allAssigned.filter((r) =>
+        ACTIVE_STATUSES.includes(r.status),
+      ).length;
+
+      setActiveServicesCount(activeCount);
+      setRequests(mergeRequests(allAssigned, customPending));
     } catch (requestError) {
       console.error(requestError);
-      setError("حدث خطأ أثناء تحميل البيانات. حاول مرة أخرى بعد قليل.");
+      // ما نظهرش رسالة الخطأ في الـ background polling — بس في أول تحميل
+      if (showLoader) {
+        setError("حدث خطأ أثناء تحميل البيانات. حاول مرة أخرى بعد قليل.");
+      }
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      void loadAssignedRequests();
+      void loadAssignedRequests(true);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, []);
+  }, [loadAssignedRequests]);
+
+  // ── Polling: بيحدث حالة الطلبات المعلقة تلقائيًا كل 8 ثواني
+  usePolling(
+    useCallback(() => {
+      void loadAssignedRequests(false);
+    }, [loadAssignedRequests]),
+    8000,
+  );
 
   return (
     <div className="min-h-screen bg-[#FCFCFA]">
@@ -62,7 +87,9 @@ export default function PendingServicesPage() {
         requests={requests}
         loading={loading}
         error={error}
-        onRetry={loadAssignedRequests}
+        onRetry={() => void loadAssignedRequests(true)}
+        activeServicesCount={activeServicesCount}
+        onCancelled={() => void loadAssignedRequests(false)}
       />
     </div>
   );
