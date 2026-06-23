@@ -39,8 +39,18 @@ const TIME_SLOTS = [
 
 const DAYS = ["سبت", "أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة"];
 const MONTHS = [
-  "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-  "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
+  "يناير",
+  "فبراير",
+  "مارس",
+  "أبريل",
+  "مايو",
+  "يونيو",
+  "يوليو",
+  "أغسطس",
+  "سبتمبر",
+  "أكتوبر",
+  "نوفمبر",
+  "ديسمبر",
 ];
 
 function Calendar({
@@ -59,12 +69,16 @@ function Calendar({
   const offset = firstDay === 0 ? 6 : firstDay - 1;
 
   const prevMonth = () => {
-    if (viewMonth === 0) { setViewMonth(11); setViewYear((y) => y - 1); }
-    else setViewMonth((m) => m - 1);
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear((y) => y - 1);
+    } else setViewMonth((m) => m - 1);
   };
   const nextMonth = () => {
-    if (viewMonth === 11) { setViewMonth(0); setViewYear((y) => y + 1); }
-    else setViewMonth((m) => m + 1);
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear((y) => y + 1);
+    } else setViewMonth((m) => m + 1);
   };
 
   const toKey = (d: number) =>
@@ -74,23 +88,36 @@ function Calendar({
   return (
     <div dir="rtl">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded-full">
+        <button
+          onClick={nextMonth}
+          className="p-1 hover:bg-gray-100 rounded-full"
+        >
           <ChevronLeft size={18} />
         </button>
         <span className="font-bold text-[var(--primary-color)]">
           {MONTHS[viewMonth]} {viewYear}
         </span>
-        <button onClick={prevMonth} className="p-1 hover:bg-gray-100 rounded-full">
+        <button
+          onClick={prevMonth}
+          className="p-1 hover:bg-gray-100 rounded-full"
+        >
           <ChevronRight size={18} />
         </button>
       </div>
       <div className="grid grid-cols-7 mb-2">
         {DAYS.map((d) => (
-          <div key={d} className="text-center text-xs text-gray-400 font-medium py-1">{d}</div>
+          <div
+            key={d}
+            className="text-center text-xs text-gray-400 font-medium py-1"
+          >
+            {d}
+          </div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-y-1">
-        {Array.from({ length: offset }).map((_, i) => <div key={`e-${i}`} />)}
+        {Array.from({ length: offset }).map((_, i) => (
+          <div key={`e-${i}`} />
+        ))}
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1;
           const key = toKey(day);
@@ -142,10 +169,18 @@ export default function BookOtherServiceModal({
   const [fullAddress, setFullAddress] = useState("");
 
   const resetForm = () => {
-    setStep(1); setDescription(""); setTitle(""); setImage(null);
-    setHasBudget(false); setBudget(""); setShowCalendar(false);
-    setSelectedDate(""); setSelectedTime("");
-    setDistrict(""); setFullAddress(""); setErrors({});
+    setStep(1);
+    setDescription("");
+    setTitle("");
+    setImage(null);
+    setHasBudget(false);
+    setBudget("");
+    setShowCalendar(false);
+    setSelectedDate("");
+    setSelectedTime("");
+    setDistrict("");
+    setFullAddress("");
+    setErrors({});
   };
 
   const handleValidateStep1 = () => {
@@ -155,21 +190,40 @@ export default function BookOtherServiceModal({
   };
 
   const handleValidateStep2 = () => {
-    const e = validateStep2({ selectedTime, selectedDate, district, fullAddress });
+    const e = validateStep2({
+      selectedTime,
+      selectedDate,
+      district,
+      fullAddress,
+    });
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleAiTitle = async () => {
     if (!description || description.length < 10) {
-      setErrors({ description: "اكتب وصف المشكلة أولاً" });
+      setErrors({ description: "اكتب وصف المشكلة أولاً (10 أحرف على الأقل)" });
       return;
     }
     setAiLoading(true);
+    setErrors({});
     try {
       const t = await suggestTitle(description);
-      setTitle(t);
-    } catch {} finally { setAiLoading(false); }
+      if (t) {
+        setTitle(t);
+      } else {
+        setErrors({
+          title: "لم يتمكن الذكاء الاصطناعي من توليد عنوان، حاول مجدداً",
+        });
+      }
+    } catch (err) {
+      console.error("suggestTitle error:", err);
+      setErrors({
+        title: "فشل توليد العنوان، تأكد من كتابة وصف كافٍ وحاول مجدداً",
+      });
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -178,16 +232,25 @@ export default function BookOtherServiceModal({
     try {
       const today = new Date().toISOString().split("T")[0];
       await createPost({
-        categoryId, description, title, selectedTime,
+        categoryId,
+        description,
+        title,
+        selectedTime,
         selectedDate: selectedDate === "today" ? "today" : "other",
         customDate: selectedDate === "today" ? today : selectedDate,
-        district, fullAddress, hasBudget, budget, image,
+        district,
+        fullAddress,
+        hasBudget,
+        budget,
+        image,
       });
       onClose();
       resetForm();
     } catch (err) {
       console.error("فشل إرسال الطلب", err);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -203,10 +266,20 @@ export default function BookOtherServiceModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b bg-gray-50 border-gray-200 px-4 sm:px-8 py-6">
           <div className="text-right">
-            <h2 className="text-xl font-extrabold text-[var(--primary-color)]">طلب خدمة مخصصة</h2>
-            <p className="mt-0.5 text-sm text-gray-400">اكمل البيانات وسنوصلك بالفني المناسب</p>
+            <h2 className="text-xl font-extrabold text-[var(--primary-color)]">
+              طلب خدمة مخصصة
+            </h2>
+            <p className="mt-0.5 text-sm text-gray-400">
+              اكمل البيانات وسنوصلك بالفني المناسب
+            </p>
           </div>
-          <button onClick={() => { onClose(); resetForm(); }} className="mt-1 text-gray-400 hover:text-gray-600">
+          <button
+            onClick={() => {
+              onClose();
+              resetForm();
+            }}
+            className="mt-1 text-gray-400 hover:text-gray-600"
+          >
             <X size={20} />
           </button>
         </div>
@@ -216,9 +289,13 @@ export default function BookOtherServiceModal({
             {step === 1 ? (
               <div className="flex flex-col gap-5">
                 <div>
-                  <label className="mb-1 block text-sm font-bold text-[var(--primary-color)]">القسم المقترح</label>
+                  <label className="mb-1 block text-sm font-bold text-[var(--primary-color)]">
+                    القسم المقترح
+                  </label>
                   <div className="flex items-center justify-between rounded-xl gap-2 border border-gray-200 bg-[var(--purple-light)] px-4 py-3">
-                    <span className="text-sm text-[var(--purple-dark)]">{categoryName}</span>
+                    <span className="text-sm text-[var(--purple-dark)]">
+                      {categoryName}
+                    </span>
                     <span className="h-2 w-2 rounded-full bg-[var(--purple-dark)]" />
                   </div>
                 </div>
@@ -238,15 +315,35 @@ export default function BookOtherServiceModal({
                     />
                     <div className="flex items-center justify-start">
                       <label className="flex cursor-pointer text-[var(--purple-dark)] border border-[var(--purple-dark)] m-3 px-3 py-1 rounded-2xl items-center gap-1.5 text-xs transition-colors hover:text-[var(--purple-dark)]">
-                        <Camera size={15} className="text-[var(--purple-dark)]" />
+                        <Camera
+                          size={15}
+                          className="text-[var(--purple-dark)]"
+                        />
                         ارفق صورة لتوضيح مشكلتك
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => setImage(e.target.files?.[0] || null)} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            setImage(e.target.files?.[0] || null)
+                          }
+                        />
                       </label>
                     </div>
                   </div>
-                  <span className="mt-1 block text-xs text-gray-400 text-left">{description.length}/500</span>
-                  {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
-                  {image && <p className="mt-1 text-xs text-green-600">✓ {image.name}</p>}
+                  <span className="mt-1 block text-xs text-gray-400 text-left">
+                    {description.length}/500
+                  </span>
+                  {errors.description && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.description}
+                    </p>
+                  )}
+                  {image && (
+                    <p className="mt-1 text-xs text-green-600">
+                      ✓ {image.name}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -274,20 +371,33 @@ export default function BookOtherServiceModal({
                     {errors.title ? (
                       <p className="text-xs text-red-500">{errors.title}</p>
                     ) : title.length >= 5 ? (
-                      <p className="text-xs text-[var(--purple-dark)]">✓ تأكيد العنوان</p>
-                    ) : <span />}
-                    <span className="text-xs text-gray-400">{title.length} حرف</span>
+                      <p className="text-xs text-[var(--purple-dark)]">
+                        ✓ تأكيد العنوان
+                      </p>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="text-xs text-gray-400">
+                      {title.length} حرف
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-bold text-[var(--primary-color)]">تحديد الميزانية (اختياري)</label>
+                    <label className="text-sm font-bold text-[var(--primary-color)]">
+                      تحديد الميزانية (اختياري)
+                    </label>
                     <button
-                      onClick={() => { setHasBudget((v) => !v); setBudget(""); }}
+                      onClick={() => {
+                        setHasBudget((v) => !v);
+                        setBudget("");
+                      }}
                       className="flex h-6 w-10 rounded-full p-0.5 transition-colors"
                       style={{
-                        backgroundColor: hasBudget ? "var(--purple-dark)" : "#E5E7EB",
+                        backgroundColor: hasBudget
+                          ? "var(--purple-dark)"
+                          : "#E5E7EB",
                         justifyContent: hasBudget ? "flex-end" : "flex-start",
                       }}
                     >
@@ -304,7 +414,9 @@ export default function BookOtherServiceModal({
                         min={100}
                         className="w-full rounded-xl border border-gray-200 px-4 py-3 text-right text-sm outline-none"
                       />
-                      {errors.budget && <p className="text-xs text-red-500">{errors.budget}</p>}
+                      {errors.budget && (
+                        <p className="text-xs text-red-500">{errors.budget}</p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -312,10 +424,15 @@ export default function BookOtherServiceModal({
             ) : (
               <div className="flex flex-col gap-6">
                 <div>
-                  <label className="mb-3 block text-sm font-bold text-[var(--primary-color)]">موعد تنفيذ الخدمة</label>
+                  <label className="mb-3 block text-sm font-bold text-[var(--primary-color)]">
+                    موعد تنفيذ الخدمة
+                  </label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => { setSelectedDate("today"); setShowCalendar(false); }}
+                      onClick={() => {
+                        setSelectedDate("today");
+                        setShowCalendar(false);
+                      }}
                       className={`rounded-2xl py-3 text-sm font-bold transition-all ${
                         selectedDate === "today"
                           ? "bg-[var(--purple-dark)] text-white"
@@ -336,21 +453,30 @@ export default function BookOtherServiceModal({
                       {isCustomDate ? selectedDate : "تحديد موعد"}
                     </button>
                   </div>
-                  {errors.date && <p className="mt-1 text-xs text-red-500">{errors.date}</p>}
+                  {errors.date && (
+                    <p className="mt-1 text-xs text-red-500">{errors.date}</p>
+                  )}
 
                   {showCalendar && (
                     <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4">
-                      <p className="mb-3 text-right text-xs font-bold text-gray-400">اختر التاريخ</p>
+                      <p className="mb-3 text-right text-xs font-bold text-gray-400">
+                        اختر التاريخ
+                      </p>
                       <Calendar
                         selectedDate={isCustomDate ? selectedDate : ""}
-                        onSelect={(d) => { setSelectedDate(d); setShowCalendar(false); }}
+                        onSelect={(d) => {
+                          setSelectedDate(d);
+                          setShowCalendar(false);
+                        }}
                       />
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="mb-3 block text-sm font-bold text-[var(--primary-color)]">المواعيد المتاحة</label>
+                  <label className="mb-3 block text-sm font-bold text-[var(--primary-color)]">
+                    المواعيد المتاحة
+                  </label>
                   <div className="grid grid-cols-4 gap-2">
                     {TIME_SLOTS.map((slot) => (
                       <button
@@ -366,7 +492,9 @@ export default function BookOtherServiceModal({
                       </button>
                     ))}
                   </div>
-                  {errors.time && <p className="mt-1 text-xs text-red-500">{errors.time}</p>}
+                  {errors.time && (
+                    <p className="mt-1 text-xs text-red-500">{errors.time}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -380,7 +508,11 @@ export default function BookOtherServiceModal({
                       placeholder="مثال: شارع الملك فهد، البناية 12"
                       className="w-full rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none"
                     />
-                    {errors.fullAddress && <p className="mt-1 text-xs text-red-500">{errors.fullAddress}</p>}
+                    {errors.fullAddress && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.fullAddress}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="mb-1 block text-sm font-bold text-[var(--primary-color)]">
@@ -392,7 +524,11 @@ export default function BookOtherServiceModal({
                       placeholder="مثال: حي الزهرة"
                       className="w-full rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none"
                     />
-                    {errors.district && <p className="mt-1 text-xs text-red-500">{errors.district}</p>}
+                    {errors.district && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.district}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -404,7 +540,9 @@ export default function BookOtherServiceModal({
         <div className="border-t bg-white border-gray-100 px-4 sm:px-8 py-5">
           {step === 1 ? (
             <button
-              onClick={() => { if (handleValidateStep1()) setStep(2); }}
+              onClick={() => {
+                if (handleValidateStep1()) setStep(2);
+              }}
               className="w-full rounded-2xl bg-[var(--purple-dark)] py-4 text-sm font-bold text-white transition-all hover:opacity-90"
             >
               التالي — الموقع و الموعد

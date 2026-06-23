@@ -3,17 +3,24 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import logo from "@/assets/images/logo.svg";
 
 const navLinks = [
-  { label: "الرئيسية", href: "/", active: true },
-  { label: "الأقسام", href: "client/categories" },
+  { label: "الرئيسية", href: "/landing" },
+  { label: "الأقسام", href: "/categories" },
   { label: "من نحن", href: "/about" },
-  { label: "اتصل بنا", href: "/contact" },
+  { label: "تواصل معنا", href: "/contact" },
 ];
 
 export default function LandingNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    if (href === "/landing") return pathname === "/landing" || pathname === "/";
+    return pathname === href;
+  };
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50 w-full" dir="rtl">
@@ -36,7 +43,7 @@ export default function LandingNavbar() {
               key={link.label}
               href={link.href}
               className={`text-sm font-bold transition-colors ${
-                link.active
+                isActive(link.href)
                   ? "text-[var(--primary-color)] bg-white px-5 py-2 rounded-full shadow-sm"
                   : "text-white hover:text-[var(--accent-color)]"
               }`}
@@ -93,7 +100,7 @@ export default function LandingNavbar() {
               key={link.label}
               href={link.href}
               className={`text-sm font-semibold transition-colors py-1 ${
-                link.active
+                isActive(link.href)
                   ? "text-[var(--accent-color)]"
                   : "text-white hover:text-[var(--accent-color)]"
               }`}
