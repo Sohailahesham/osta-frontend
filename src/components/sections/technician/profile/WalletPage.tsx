@@ -73,7 +73,7 @@ export default function WalletPage() {
   }, []);
 
   return (
-    <div dir="rtl" className="max-w-3xl mx-auto rounded-3xl shadow-xl border border-gray-100">
+    <div dir="rtl" className="max-w-3xl mx-auto rounded-3xl shadow-xl border border-gray-200">
       {/* Header */}
       <div className="bg-[#F8F9F7] px-3 py-4 rounded-t-3xl ">
         <div className="flex items-center justify-between  px-6 py-5">
