@@ -2,6 +2,7 @@
 
 import { Star, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Order } from "./OngoingOrdersSection";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ function CompletedOrderCard({ order }: { order: Order }) {
             ))
           ) : (
             <Link
-              href={`/client/orders/${order._id}/review`}
+              href={`/client/orders`}
               className="text-xs text-[var(--primary-color)] font-bold underline underline-offset-2"
               onClick={(e) => e.stopPropagation()}
             >
@@ -88,11 +89,13 @@ function CompletedOrderCard({ order }: { order: Order }) {
       {/* صورة الخدمة */}
       <div className="w-28 h-28 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
         {serviceImage ? (
-          <img
-            src={serviceImage}
-            alt={order.serviceId?.name ?? ""}
-            className="w-full h-full object-cover"
-          />
+<Image
+  src={serviceImage}
+  alt={order.serviceId?.name ?? ""}
+  width={112}
+  height={112}
+  className="w-full h-full object-cover"
+/>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <span className="text-gray-300 text-xs text-center px-2">
@@ -113,6 +116,9 @@ interface Props {
 
 export default function LatestCompletedOrdersSection({ orders }: Props) {
   const completedOrders = orders.filter((o) => o.status === "completed");
+
+  console.log("completed order:", JSON.stringify(completedOrders[0], null, 2));
+
 
   return (
     <div className="section-wrapper">

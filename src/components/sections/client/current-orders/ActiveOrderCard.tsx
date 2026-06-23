@@ -152,7 +152,7 @@ export default function ActiveOrderCard({ order }: { order: Order }) {
           {/* Experience note */}
           <p className="text-xs text-gray-500 text-right">
             "خبرة {order.assignedTechnician?.yearsOfExperience ?? "0"} سنوات في
-            إصلاح التسريبات"
+            إصلاح {order.categoryId.name}"
           </p>
         </div>
       </div>

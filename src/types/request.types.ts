@@ -49,26 +49,32 @@ export interface AssignedRequestAddress {
 }
 
 export interface AssignedRequest {
-  _id: string;
-  requestId?: string | null;
-  chatRequestId?: string | null;
-  proposalId?: string;
-  pendingSource?: "request" | "proposal";
-  title?: string;
-  status: RequestStatus;
-  depositAmount?: number;
-  depositStatus?: DepositStatus;
-  preferredDate?: string;
-  preferredTime?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  notes?: string | null;
-  completionNote?: string | null;
-  totalPrice?: number;
-  userId?: AssignedRequestUser;
-  serviceId?: AssignedRequestService | null;
-  postId?: AssignedRequestPost | null;
-  address?: AssignedRequestAddress;
+    _id: string;
+    requestId?: string | null;
+    chatRequestId?: string | null;
+    proposalId?: string;
+    pendingSource?: "request" | "proposal";
+    title?: string;
+    status: RequestStatus;
+    depositAmount?: number;
+    depositStatus?: DepositStatus;
+    preferredDate?: string;
+    preferredTime?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    notes?: string | null;
+    completionNote?: string | null;
+    totalPrice?: number;
+    userId?: AssignedRequestUser;
+    serviceId?: AssignedRequestService | null;
+    postId?: AssignedRequestPost | null;
+    address?: AssignedRequestAddress;
+    extraMaterialsPrice?: number;
+    isFullyPaid?: boolean;
+    assignedTechnician?: {
+      _id?: string;
+      fullName?: string;
+    }
 }
 
 export interface PaginatedResponseMeta {
