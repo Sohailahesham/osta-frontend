@@ -150,26 +150,28 @@ export default function PostCard({ post }: { post: Post }) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
   let cancelled = false;
   api
-    .get<{ data: Proposal[] }>(`/posts/${post._id}/proposals`)
-.then((res) => {
-  if (!cancelled) {
-    const data = res.data?.data;
-    setProposals(Array.isArray(data) ? data : []);
-  }
-})
-      .catch(() => {
-        if (!cancelled) setProposals([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingProposals(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [post._id]);
+    .get(`/posts/${post._id}/proposals`)
+    .then((res) => {
+      if (!cancelled) {
+        // الـ proposals جوه res.data.data.proposals
+        const proposals: Proposal[] =
+          res.data?.data?.proposals ?? res.data?.data ?? [];
+        setProposals(Array.isArray(proposals) ? proposals : []);
+      }
+    })
+    .catch(() => {
+      if (!cancelled) setProposals([]);
+    })
+    .finally(() => {
+      if (!cancelled) setLoadingProposals(false);
+    });
+  return () => {
+    cancelled = true;
+  };
+}, [post._id]);
 
   const navigate = () => router.push(`/client/posts/${post._id}`);
 

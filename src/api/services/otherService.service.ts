@@ -1,8 +1,30 @@
 import { api } from "@/api/axios";
 
 export async function suggestTitle(description: string): Promise<string> {
-  const res = await api.post("/posts/suggest-title", { description });
-  return res.data.title || "";
+  const token =
+   typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/posts/suggest-title`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ description }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message ?? `HTTP ${res.status}`);
+  }
+
+  const json = await res.json();
+  // Shape: { success, message, data: { title }, timestamp }
+  const title = json?.data?.title;
+  if (!title) throw new Error("لم يتم إرجاع عنوان من الخادم");
+  return title;
 }
 
 export async function createPost(data: {
