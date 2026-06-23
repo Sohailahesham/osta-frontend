@@ -182,6 +182,7 @@ function PendingOrderCard({ order }: { order: Order }) {
 interface Props {
   orders: Order[];
   openPosts?: Post[];
+  onCancelled?: () => void;
 }
 
 type Tab = "all" | "fixed" | "other";
@@ -236,6 +237,7 @@ function FilterTabs({
 export default function OngoingOrdersSection({
   orders,
   openPosts = [],
+  onCancelled,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("all");
 
@@ -296,7 +298,11 @@ export default function OngoingOrdersSection({
             order.status === "pending" ? (
               <PendingOrderCard key={order._id} order={order} />
             ) : (
-              <ActiveOrderCard key={order._id} order={order} />
+              <ActiveOrderCard
+                key={order._id}
+                order={order}
+                onCancelled={onCancelled}
+              />
             ),
           )}
         </div>
