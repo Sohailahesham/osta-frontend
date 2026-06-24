@@ -60,6 +60,17 @@ export const loginSchema = z.object({
   password: z.string().min(1, "كلمة المرور مطلوبة"), // login: no strength rules, just required
 });
 
+export const clientGoogleCompletionSchema = z.object({
+  phone: egyptianPhoneSchema,
+  governorate: governorateSchema,
+  city: citySchema,
+  gender: genderSchema,
+});
+
+export type ClientGoogleCompletionFormData = z.infer<
+  typeof clientGoogleCompletionSchema
+>;
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 
 // ─── 2. Register — User ───────────────────────────────────────────────────────

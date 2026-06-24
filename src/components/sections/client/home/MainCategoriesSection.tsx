@@ -62,7 +62,7 @@ export default function MainCategoriesSection() {
             return (
               <div
                 key={cat._id}
-                onClick={() => router.push(`/categories/${cat._id}`)}
+                onClick={() => router.push(`/client/categories/${cat._id}`)}
                 className="rounded-2xl overflow-hidden cursor-pointer group"
                 style={{ backgroundColor: "var(--secondary-color)" }}
               >
@@ -106,7 +106,7 @@ export default function MainCategoriesSection() {
 
       <div className="flex justify-center mt-10">
         <Button
-          onClick={() => router.push("/categories")}
+          onClick={() => router.push("/client/categories")}
           className="px-8 py-3"
         >
           تصفح جميع الأقسام

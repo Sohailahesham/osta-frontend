@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Phone, Check, X } from "lucide-react";
+import { Phone, X } from "lucide-react";
 import authBg from "@/assets/images/auth-bg.jpg";
 import googleIcon from "@/assets/icons/google.svg";
 import AuthInput from "@/components/auth/AuthInput";
@@ -15,6 +15,15 @@ import {
   userRegisterSchema,
   validateSchema,
 } from "@/validators/auth.validators";
+import { getPostLoginRoute } from "@/lib/auth-redirect";
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string | string[];
+    };
+  };
+};
 
 const GOVERNORATES = [
   { label: "القاهرة", value: "القاهرة" },
@@ -74,7 +83,6 @@ export default function UserRegisterPage() {
   const [errors, setErrors] = useState<
     Partial<Record<keyof UserRegisterForm, string>>
   >({});
-  const [showSuccess, setShowSuccess] = useState(false);
   const [showFail, setShowFail] = useState(false);
   const [failMessage, setFailMessage] = useState("");
 
@@ -92,8 +100,10 @@ export default function UserRegisterPage() {
     setErrors({});
     return true;
   };
+
   const handleSubmit = async () => {
     if (!validate()) return;
+
     try {
       const { data } = await registerUser({
         fullName: form.fullName,
@@ -105,10 +115,13 @@ export default function UserRegisterPage() {
         governorate: form.governorate,
         city: form.city,
       });
+
       localStorage.setItem("access_token", data.data.access_token);
-      setShowSuccess(true);
-    } catch (error: any) {
-      const message = error.response?.data?.message;
+      localStorage.setItem("refresh_token", data.data.refresh_token);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
+      router.push(getPostLoginRoute(data.data.user));
+    } catch (error: unknown) {
+      const message = (error as ApiError).response?.data?.message;
       setFailMessage(
         Array.isArray(message)
           ? message[0]
@@ -121,6 +134,7 @@ export default function UserRegisterPage() {
   const handleGoogleRegister = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
+
   return (
     <div className="min-h-screen flex relative overflow-hidden" dir="ltr">
       <Image
@@ -133,14 +147,12 @@ export default function UserRegisterPage() {
       />
       <div className="absolute inset-0 bg-black/25 lg:hidden" />
 
-      {/* Logo */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
         <div className="flex items-center gap-2">
           <Image
             src={logoImage}
             alt="Logo"
             width={120}
-            // height={60}
             className="h-auto"
           />
         </div>
@@ -304,30 +316,6 @@ export default function UserRegisterPage() {
 
       <div className="hidden lg:block lg:w-[45%]" />
 
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div
-            className="bg-white rounded-3xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center text-center"
-            dir="rtl"
-          >
-            <div className="w-20 h-20 rounded-full bg-[#F0F9E8] flex items-center justify-center mb-6">
-              <Check size={36} className="text-[#8DC63F]" strokeWidth={2.5} />
-            </div>
-            <h2 className="text-xl font-bold text-[var(--primary-color)] mb-2">
-              تم إنشاء حسابك بنجاح
-            </h2>
-            <p className="text-gray-400 text-sm mb-8">
-              يمكنك الآن الوصول إلى جميع خدمات أُسطى
-            </p>
-            <Button fullWidth onClick={() => router.push("/client/home")}>
-              الذهاب إلى الصفحة الرئيسية
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Fail Modal */}
       {showFail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div

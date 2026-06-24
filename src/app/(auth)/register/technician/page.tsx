@@ -14,8 +14,16 @@ import {
   technicianBasicInfoSchema,
   validateSchema,
 } from "@/validators/auth.validators";
+import { getPostLoginRoute } from "@/lib/auth-redirect";
 
-// الـ steps بتاعة الـ stepper
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string | string[];
+    };
+  };
+};
+
 const STEPS = [
   "المعلومات الأساسية",
   "التخصصات والخدمات",
@@ -67,7 +75,7 @@ interface BasicInfoForm {
 
 export default function TechnicianRegisterPage() {
   const router = useRouter();
-  const currentStep = 0; // الخطوة الأولى
+  const currentStep = 0;
 
   const [form, setForm] = useState<BasicInfoForm>({
     fullName: "",
@@ -97,6 +105,7 @@ export default function TechnicianRegisterPage() {
     setErrors({});
     return true;
   };
+
   const handleNext = async () => {
     if (!validate()) return;
 
@@ -113,9 +122,11 @@ export default function TechnicianRegisterPage() {
       });
 
       localStorage.setItem("access_token", data.data.access_token);
-      router.push("/register/technician/specializationsAndServices");
-    } catch (error: any) {
-      const message = error.response?.data?.message;
+      localStorage.setItem("refresh_token", data.data.refresh_token);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
+      router.push(getPostLoginRoute(data.data.user));
+    } catch (error: unknown) {
+      const message = (error as ApiError).response?.data?.message;
       setGeneralError(
         Array.isArray(message)
           ? message[0]
@@ -138,23 +149,19 @@ export default function TechnicianRegisterPage() {
         className="object-cover object-right"
       />
 
-      {/* overlay موبايل */}
       <div className="absolute inset-0 bg-black/25 lg:hidden" />
 
-      {/* Logo */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
         <div className="flex items-center gap-2">
           <Image
             src={logoImage}
             alt="Logo"
             width={120}
-            // height={60}
             className="h-auto"
           />
         </div>
       </div>
 
-      {/* الكارت */}
       <div
         className="
         flex items-center justify-center z-10
@@ -171,14 +178,11 @@ export default function TechnicianRegisterPage() {
         "
           dir="rtl"
         >
-          {/* العنوان */}
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--primary-color)] text-center mb-10">
             إنشاء حساب فني
           </h1>
 
-          {/* Stepper */}
           <div className="mb-8">
-            {/* Mobile + Tablet (Simple Step) */}
             <div className="flex lg:hidden items-center justify-between mb-3">
               <span className="text-xs text-gray-400">
                 {currentStep + 1} / {STEPS.length}
@@ -189,7 +193,6 @@ export default function TechnicianRegisterPage() {
               </span>
             </div>
 
-            {/* Desktop (Full Steps) */}
             <div className="hidden lg:flex items-center justify-between gap-1 pb-0">
               {STEPS.map((step, index) => (
                 <div
@@ -212,7 +215,6 @@ export default function TechnicianRegisterPage() {
               ))}
             </div>
 
-            {/* Progress Bar */}
             <div className="relative h-0.5 bg-gray-200 w-full">
               <div
                 className="absolute top-0 h-0.5 bg-[var(--primary-color)] transition-all duration-300"
@@ -223,12 +225,10 @@ export default function TechnicianRegisterPage() {
             </div>
           </div>
 
-          {/* الوصف */}
           <p className="text-gray-400 text-xs sm:text-sm text-right mb-6">
             أدخل بياناتك الأساسية للبدء في توثيق حسابك والانضمام إلى المنصة.
           </p>
 
-          {/* الفورم */}
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AuthInput
@@ -252,7 +252,6 @@ export default function TechnicianRegisterPage() {
               />
             </div>
 
-            {/* البريد ورقم الهاتف */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AuthInput
                 label="البريد الإلكتروني"
@@ -273,7 +272,6 @@ export default function TechnicianRegisterPage() {
               />
             </div>
 
-            {/* المحافظة والمدينة */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AuthSelect
                 label="المحافظة"
@@ -282,8 +280,9 @@ export default function TechnicianRegisterPage() {
                 value={form.governorate}
                 onChange={(val) => {
                   setForm((prev) => ({ ...prev, governorate: val, city: "" }));
-                  if (errors.governorate)
+                  if (errors.governorate) {
                     setErrors((prev) => ({ ...prev, governorate: "" }));
+                  }
                 }}
                 error={errors.governorate}
               />
@@ -297,7 +296,6 @@ export default function TechnicianRegisterPage() {
               />
             </div>
 
-            {/* كلمة المرور والتأكيد */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AuthInput
                 label="كلمة المرور"
@@ -324,7 +322,6 @@ export default function TechnicianRegisterPage() {
             </p>
           )}
 
-          {/* divider */}
           <div className="h-px bg-gray-100 my-6 sm:my-8" />
 
           <div className="flex gap-2 justify-end">
@@ -336,7 +333,6 @@ export default function TechnicianRegisterPage() {
         </div>
       </div>
 
-      {/* الجانب الأيمن desktop only */}
       <div className="hidden lg:block lg:w-[45%]" />
     </div>
   );

@@ -6,6 +6,9 @@
   --accent-color: #B3E718;
   --accent-hover: #9bd015;
   --gray-color: #636261;
+
+  --purple-light: #E0E1F3;
+  --purple-dark: #5D508D;
 }
 
 .gradient-brand {
@@ -18,6 +21,14 @@
 
 .primary-gradient {
   background: linear-gradient(to bottom, #1C4B41, #112D27);
+}
+
+.danger-gradient {
+  background: linear-gradient(
+    to bottom,
+    #7F1D1D 0%,
+    #B91C1C 100%
+  );
 }
 
 .no-scrollbar::-webkit-scrollbar {

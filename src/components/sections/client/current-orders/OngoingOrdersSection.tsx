@@ -1,34 +1,54 @@
 "use client";
 
-import { Clock, Star, MapPin } from "lucide-react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import ActiveOrderCard from "./ActiveOrderCard";
+import { MapPin } from "lucide-react";
+import { useState } from "react";
+import { Post } from "@/types/post.types";
+import PostCard from "./PostCard";
 
 export interface Order {
   _id: string;
-  title: string;
-  status: "pending" | "accepted" | "in-progress" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "accepted"
+    | "in_progress"
+    | "on_the_way"
+    | "started"
+    | "completed"
+    | "cancelled";
   preferredDate: string;
   preferredTime: string;
   createdAt: string;
-  address?: {
+  updatedAt: string;
+  depositAmount: number;
+  depositStatus: "paid" | "unpaid" | "pending";
+  totalPrice: number;
+  isFullyPaid: boolean;
+  notes: string;
+  address: {
     fullAddress: string;
     district: string;
     coordinates?: { lat: number; lng: number };
   };
-  categoryId?: { _id: string; name: string; image: string };
-  serviceId?: {
+  categoryId: { _id: string; name: string; image?: string };
+  serviceId: {
     _id: string;
     name: string;
-    priceRange?: { min: number; max: number }; 
+    image?: string;
+    priceRange?: { min: number; max: number };
   };
-  assignedTechnician?: { _id: string; fullName: string; phone: string };
-  technicianRating?: number;
-  technicianReviews?: number;
-  technicianSpecialty?: string;
+  assignedTechnician?: {
+    _id: string;
+    fullName: string;
+    phone: string;
+    averageRating?: number;
+    yearsOfExperience?: number;
+  };
+  clientReview?: { rating: number; comment?: string } | null;
+  review?: {
+    rating: number;
+  } | null;
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
   pending: { label: "قيد الانتظار", className: "bg-amber-100 text-amber-700" },
@@ -36,13 +56,35 @@ const STATUS_CONFIG = {
     label: "تمت المطابقة",
     className: "bg-[var(--accent-color)] text-[var(--primary-color)]",
   },
-  "in-progress": {
+  in_progress: {
     label: "تم الدفع",
     className: "bg-[var(--accent-color)] text-[var(--primary-color)]",
   },
+  on_the_way: {
+    label: "الفني في الطريق",
+    className: "bg-[var(--secondary-color)] text-[var(--primary-color)]",
+  },
+  started: {
+    label: "العمل جار",
+    className: "bg-[var(--secondary-color)] text-[var(--primary-color)]",
+  },
   completed: { label: "مكتملة", className: "bg-gray-100 text-gray-500" },
   cancelled: { label: "ملغية", className: "bg-red-100 text-red-600" },
-};
+} as const;
+
+export function getClientOrderStatusBadge(order: Order) {
+  if (order.status === "accepted" && order.depositStatus === "pending")
+    return {
+      label: "جاري تأكيد الدفع",
+      className: "bg-amber-100 text-amber-700",
+    };
+  if (order.status === "accepted" && order.depositStatus === "unpaid")
+    return {
+      label: "بانتظار دفع العربون",
+      className: "bg-[var(--accent-color)] text-[var(--primary-color)]",
+    };
+  return STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending;
+}
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("ar-EG", {
@@ -50,7 +92,6 @@ const formatDate = (dateStr: string) =>
     month: "long",
   });
 
-// "10:00" → "10:00 صباحاً" / "14:00" → "2:00 مساءً"
 const formatTime = (timeStr: string): string => {
   const [hStr, mStr] = timeStr.split(":");
   let h = parseInt(hStr);
@@ -61,8 +102,8 @@ const formatTime = (timeStr: string): string => {
   return `${h}:${m} ${label}`;
 };
 
-function StatusBadge({ status }: { status: Order["status"] }) {
-  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
+function StatusBadge({ order }: { order: Order }) {
+  const cfg = getClientOrderStatusBadge(order);
   return (
     <span
       className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.className}`}
@@ -72,8 +113,6 @@ function StatusBadge({ status }: { status: Order["status"] }) {
   );
 }
 
-// ─── Shared meta block ────────────────────────────────────────────────────────
-
 function OrderMeta({ order }: { order: Order }) {
   return (
     <div className="grid grid-cols-2 gap-4 mb-4">
@@ -81,8 +120,7 @@ function OrderMeta({ order }: { order: Order }) {
         <p className="text-xs text-gray-400 mb-1">نطاق السعر</p>
         {order.serviceId?.priceRange ? (
           <p className="font-bold text-[var(--primary-color)] text-sm">
-            {order.serviceId?.priceRange?.min} -{" "}
-            {order.serviceId?.priceRange?.max}{" "}
+            {order.serviceId.priceRange.min} - {order.serviceId.priceRange.max}{" "}
             <span className="font-normal text-xs">جنية</span>
           </p>
         ) : (
@@ -104,99 +142,13 @@ function OrderMeta({ order }: { order: Order }) {
   );
 }
 
-// ─── Active Card ──────────────────────────────────────────────────────────────
-
-function ActiveOrderCard({ order }: { order: Order }) {
-  const technicianInitial =
-    order.assignedTechnician?.fullName?.charAt(0) ?? "ه";
-
-  return (
-    <div
-      className="border-2 border-[var(--accent-color)] rounded-2xl p-5 bg-white"
-      dir="rtl"
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="">
-          <h3 className="font-bold text-[var(--primary-color)] text-base">
-            {order.serviceId?.name ?? order.title}
-          </h3>
-          {order.categoryId?.name && (
-            <span className="text-xs text-gray-400">
-              {order.categoryId.name}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={order.status} />
-          <button className="text-gray-300 hover:text-gray-500">⋮</button>
-        </div>
-      </div>
-
-      <OrderMeta order={order} />
-
-      {/* عروض الفنيين */}
-      <div>
-        <p className="text-sm font-bold text-[var(--primary-color)] mb-3">
-          عروض الفنيين
-        </p>
-
-        <div className="flex items-center justify-between mb-3">
-          <button className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-2 rounded-full">
-            دفع العربون
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              {/* {order.technicianReviews && ( */}
-              <span className="text-xs text-gray-400">
-                ({order.technicianReviews}) technicianReviews
-              </span>
-              {/* )} */}
-              {order.technicianRating && (
-                <>
-                  <span className="text-xs font-bold text-[var(--primary-color)]">
-                    {order.technicianRating} technicianRating
-                  </span>
-                  <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                </>
-              )}
-              <span className="font-bold text-sm text-[var(--primary-color)]">
-                {order.assignedTechnician?.fullName ?? "fullName"}
-              </span>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-[var(--primary-color)] flex items-center justify-center text-white text-sm font-bold">
-              {technicianInitial}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-xs text-[var(--primary-color)]">
-            <Clock size={12} />
-            <span>يمكنه الوصول خلال 30 دقيقة</span> 
-          </div>
-          {order.technicianSpecialty && (
-            <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-full">
-              <span className="text-xs text-gray-500">
-                {order.technicianSpecialty}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Pending Card ─────────────────────────────────────────────────────────────
 function PendingOrderCard({ order }: { order: Order }) {
   return (
     <div className="border border-gray-200 rounded-2xl p-5 bg-white" dir="rtl">
-      {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div className="">
+        <div>
           <h3 className="font-bold text-[var(--primary-color)] text-base">
-            {order.serviceId?.name ?? order.title}
+            {order.serviceId?.name}
           </h3>
           {order.categoryId?.name && (
             <span className="text-xs text-gray-400">
@@ -205,20 +157,17 @@ function PendingOrderCard({ order }: { order: Order }) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <StatusBadge status={order.status} />
+          <StatusBadge order={order} />
           <button className="text-gray-300 hover:text-gray-500">⋮</button>
         </div>
       </div>
-
       <OrderMeta order={order} />
-
       {order.address?.fullAddress && (
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
           <MapPin size={12} className="text-[var(--accent-color)]" />
           <span>{order.address.fullAddress}</span>
         </div>
       )}
-
       <div className="bg-[var(--secondary-color)] rounded-xl px-4 py-3 text-center">
         <p className="text-xs text-[var(--primary-color)] font-medium">
           جاري البحث عن الفنيين المناسبين ...
@@ -228,16 +177,94 @@ function PendingOrderCard({ order }: { order: Order }) {
   );
 }
 
-// ─── Section ──────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Props {
   orders: Order[];
+  openPosts?: Post[];
+  onCancelled?: () => void;
 }
 
-export default function OngoingOrdersSection({ orders }: Props) {
-  const ongoingOrders = orders.filter(
-    (o) => o.status === "in-progress" || o.status === "pending",
+type Tab = "all" | "fixed" | "other";
+
+// ─── Filter Tabs ──────────────────────────────────────────────────────────────
+
+function FilterTabs({
+  active,
+  counts,
+  onChange,
+}: {
+  active: Tab;
+  counts: { all: number; fixed: number; other: number };
+  onChange: (tab: Tab) => void;
+}) {
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "all", label: "الكل" },
+    { key: "other", label: "الخدمات المخصصة" },
+    { key: "fixed", label: "الخدمات الثابتة" },
+  ];
+
+  return (
+    <div className="flex items-center gap-2 mb-8 flex-wrap" dir="rtl">
+      {tabs.map(({ key, label }) => (
+        <button
+          key={key}
+          onClick={() => onChange(key)}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
+            active === key
+              ? "bg-[var(--primary-color)] text-white"
+              : "bg-white border border-gray-200 text-gray-600 hover:border-[var(--primary-color)] hover:text-[var(--primary-color)]"
+          }`}
+        >
+          {label}
+          <span
+            className={`text-xs w-5 h-5 flex items-center justify-center rounded-full ${
+              active === key
+                ? "bg-[var(--accent-color)] text-[var(--primary-color)]"
+                : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            {counts[key]}
+          </span>
+        </button>
+      ))}
+    </div>
   );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function OngoingOrdersSection({
+  orders,
+  openPosts = [],
+  onCancelled,
+}: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>("all");
+
+  // الطلبات الجارية فقط (مش مكتملة أو ملغية)
+  const ongoingOrders = orders.filter(
+    (o) => o.status !== "completed" && o.status !== "cancelled",
+  );
+
+  // ثابتة = عندها serviceId
+  const fixedOrders = ongoingOrders.filter((o) => !!o.serviceId);
+
+  // مخصصة = orders بدون serviceId + openPosts
+  const otherOrders = ongoingOrders.filter((o) => !o.serviceId);
+
+  // الـ posts تظهر في "الكل" و"المخصصة" بس مش في "الثابتة"
+  const showPosts = activeTab === "all" || activeTab === "other";
+
+  const filteredOrders =
+    activeTab === "all"
+      ? ongoingOrders
+      : activeTab === "fixed"
+        ? fixedOrders
+        : otherOrders;
+
+  // عدد العناصر الكلي اللي هيتعرض (orders + posts لو مناسب)
+  const visibleCount =
+    filteredOrders.length + (showPosts ? openPosts.length : 0);
 
   return (
     <div className="section-wrapper">
@@ -246,17 +273,36 @@ export default function OngoingOrdersSection({ orders }: Props) {
         الطلبات الجارية
       </h2>
 
-      {ongoingOrders.length === 0 ? (
+      <FilterTabs
+        active={activeTab}
+        counts={{
+          all: ongoingOrders.length + openPosts.length,
+          fixed: fixedOrders.length,
+          other: otherOrders.length + openPosts.length,
+        }}
+        onChange={setActiveTab}
+      />
+
+      {visibleCount === 0 ? (
         <p className="text-gray-400 text-sm text-center py-10">
           لا توجد طلبات جارية
         </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {ongoingOrders.map((order) =>
-            order.status === "in-progress" ? (
-              <ActiveOrderCard key={order._id} order={order} />
-            ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* البوستات المخصصة - تظهر في الكل والمخصصة */}
+          {showPosts &&
+            openPosts.map((post) => <PostCard key={post._id} post={post} />)}
+
+          {/* الطلبات */}
+          {filteredOrders.map((order) =>
+            order.status === "pending" ? (
               <PendingOrderCard key={order._id} order={order} />
+            ) : (
+              <ActiveOrderCard
+                key={order._id}
+                order={order}
+                onCancelled={onCancelled}
+              />
             ),
           )}
         </div>
