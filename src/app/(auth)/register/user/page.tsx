@@ -116,15 +116,11 @@ export default function UserRegisterPage() {
         city: form.city,
       });
 
-      console.log(data);
       localStorage.setItem("access_token", data.data.access_token);
       localStorage.setItem("refresh_token", data.data.refresh_token);
       localStorage.setItem("user", JSON.stringify(data.data.user));
       router.push(getPostLoginRoute(data.data.user));
     } catch (error: unknown) {
-      console.log("FULL ERROR:", error);
-      console.log("RESPONSE:", error?.response);
-      console.log("DATA:", error?.response?.data);
       const message = (error as ApiError).response?.data?.message;
       setFailMessage(
         Array.isArray(message)
@@ -153,7 +149,12 @@ export default function UserRegisterPage() {
 
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
         <div className="flex items-center gap-2">
-          <Image src={logoImage} alt="Logo" width={120} className="h-auto" />
+          <Image
+            src={logoImage}
+            alt="Logo"
+            width={120}
+            className="h-auto"
+          />
         </div>
       </div>
 
