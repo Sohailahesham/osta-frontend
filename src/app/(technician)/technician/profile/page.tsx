@@ -15,7 +15,6 @@ import ReviewsSection from "@/components/sections/technician/profile/ReviewsSect
 import { api } from "@/api/axios";
 import WalletPage from "@/components/sections/technician/profile/WalletPage";
 
-
 interface ServiceOption {
   id: string;
   name: string;
@@ -65,8 +64,7 @@ const TAB_LABELS: Record<ProfileTab, string> = {
   identity: "التحقق من الهوية",
   security: "الأمان",
   reviews: "التقييمات",
-    wallet: "المحفظة",
-
+  wallet: "المحفظة",
 };
 
 export default function ProfilePage() {
@@ -86,6 +84,8 @@ export default function ProfilePage() {
           api.get("/technician/dashboard"),
         ]);
 
+        console.log("detailsRes.data:", detailsRes.data);
+        console.log("dashboardRes.data:", dashboardRes.data);
         const fetchedDetails = detailsRes.data?.data ?? null;
         setDetails(
           fetchedDetails

@@ -28,12 +28,7 @@ const MENU_LINKS = [
     label: "سجل الخدمات",
     href: "/technician/services-history",
     icon: CreditCard,
-  },
-  {
-    label: "المحفظة",
-    href: "/technician/wallet",
-    icon: Wallet,
-  },
+  }
 ];
 
 export default function ProfileDropdown({
