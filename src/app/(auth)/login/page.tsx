@@ -75,12 +75,7 @@ export default function LoginPage() {
 
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
         <div className="flex items-center gap-2">
-          <Image
-            src={logoImage}
-            alt="Logo"
-            width={120}
-            className="h-auto"
-          />
+          <Image src={logoImage} alt="Logo" width={120} className="h-auto" />
         </div>
       </div>
 
