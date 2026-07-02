@@ -283,12 +283,12 @@ export default function InvoiceModal2({
           className="pb-4 mb-2 border-b border-[#ECECEC]"
           style={{ textAlign: "right" }}
         >
-            <h2
-              className="text-lg font-extrabold"
-              style={{ color: COLORS.primary }}
-            >
-              منصة أسطي
-            </h2>
+          <h2
+            className="text-lg font-extrabold"
+            style={{ color: COLORS.primary }}
+          >
+            منصة أسطي
+          </h2>
           <div className="flex items-center justify-between mb-1">
             <span
               className="text-xs text-gray-500"
@@ -351,7 +351,7 @@ export default function InvoiceModal2({
               style={{ justifyContent: "flex-start" }}
             >
               <span className="font-bold" style={{ color: COLORS.primary }}>
-                الخدمه: 
+                الخدمه:
               </span>
               <span className="text-gray-600">{serviceName}</span>
             </div>
@@ -361,7 +361,7 @@ export default function InvoiceModal2({
               style={{ justifyContent: "flex-start" }}
             >
               <span className="font-bold" style={{ color: COLORS.primary }}>
-                الفني: 
+                الفني:
               </span>
               <span className="text-gray-600">
                 {invoice.technicianId?.fullName}
@@ -441,7 +441,7 @@ export default function InvoiceModal2({
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
         <div
           dir="rtl"
-        className="flex w-full sm:max-w-xl flex-col overflow-hidden bg-white shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]"
+          className="flex w-full sm:max-w-xl flex-col overflow-hidden bg-white shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]"
         >
           {/* Header */}
           <div className="sticky top-0 z-10 border-b border-gray-200  px-4 sm:px-8 py-5">
@@ -460,7 +460,6 @@ export default function InvoiceModal2({
             >
               <X size={22} />
             </button>
-
           </div>
 
           <div className="flex-1 overflow-y-auto flex justify-center  px-5 py-6 sm:px-8 sm:py-5">

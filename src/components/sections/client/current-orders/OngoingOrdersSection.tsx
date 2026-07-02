@@ -51,6 +51,11 @@ export interface Order {
   review?: {
     rating: number;
   } | null;
+  postId?: {
+    _id: string;
+    title?: string;
+    image?: string;
+  };
 }
 
 const STATUS_CONFIG = {

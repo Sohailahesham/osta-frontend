@@ -40,9 +40,11 @@ export default function SubmitTicketModal({
       const ticket: SupportTicket = response.data.data;
       onSuccess(ticket.ticketNumber);
     } catch (err) {
-      const errorMessage = typeof err === "object" && err !== null && "response" in err
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
+      const errorMessage =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : undefined;
       setError(errorMessage || "حدث خطأ أثناء إرسال التذكرة");
     } finally {
       setLoading(false);

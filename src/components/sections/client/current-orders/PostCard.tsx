@@ -106,7 +106,7 @@ function ProposalsState({
 // سيناريو 3: تم اختيار فني
 function AcceptedTechnicianState({ proposal }: { proposal: Proposal }) {
   const tech =
-    typeof proposal.technicianId === "object" ? proposal.technicianId : null;
+    typeof proposal.technician === "object" ? proposal.technician : null;
 
   return (
     <div className="border border-[var(--purple-dark)] rounded-xl p-3 flex items-center justify-between gap-3">

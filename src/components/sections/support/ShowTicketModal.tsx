@@ -40,13 +40,13 @@ export default function ShowTicketModal({
 
   useEffect(() => {
     let isActive = true;
-    
+
     const fetchData = async () => {
       try {
         setLoading(true);
         const response = await supportService.getTicketById(ticketId);
         if (!isActive) return;
-        
+
         const ticketObj = response.data as any;
         if (ticketObj && ticketObj.data) {
           const ticket: SupportTicket = ticketObj.data;
@@ -55,8 +55,14 @@ export default function ShowTicketModal({
       } catch (error: unknown) {
         if (!isActive) return;
         let errorMsg = "تعذر تحميل بيانات التذكرة";
-        if (typeof error === "object" && error !== null && "response" in error) {
-          const apiError = error as { response?: { data?: { message?: string } } };
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error
+        ) {
+          const apiError = error as {
+            response?: { data?: { message?: string } };
+          };
           errorMsg = apiError.response?.data?.message || errorMsg;
         }
         setError(errorMsg);
@@ -64,9 +70,9 @@ export default function ShowTicketModal({
         if (isActive) setLoading(false);
       }
     };
-    
+
     fetchData();
-    
+
     return () => {
       isActive = false;
     };

@@ -38,6 +38,7 @@ export interface AssignedRequestPost {
     title?: string;
     budget?: number;
     acceptedProposal?: AssignedRequestPostProposal | null;
+    image?: string;
 }
 
 export interface AssignedRequestAddress {
@@ -76,7 +77,7 @@ export interface AssignedRequest {
         _id?: string;
         fullName?: string;
     };
-    clientReview?: {
+    review?: {
         rating?: number;
         review?: string;
     };

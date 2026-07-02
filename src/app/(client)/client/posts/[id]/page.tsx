@@ -132,7 +132,9 @@ function ProposalCard({
   onAccept: (id: string) => void;
   accepting: string | null;
 }) {
-  const tech = proposal.technicianId;
+  console.log(proposal);
+  const tech = proposal.technician;
+  console.log("ProposalCard tech:", tech.fullName); // Debugging line
 
   return (
     <div className="border border-gray-200 rounded-2xl p-4 bg-white">
@@ -153,7 +155,7 @@ function ProposalCard({
                 {tech?.fullName}
               </p>
               <span className="flex items-center gap-1 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                موثق
+                {tech?.verificationStatus === "approved" ? "موثق" : "غير موثق"}
               </span>
             </div>
             <div className="flex items-center gap-1 text-xs text-gray-400">
@@ -176,9 +178,9 @@ function ProposalCard({
       <hr className="border-gray-100 mb-4" />
 
       {/* ── Message ── */}
-      {proposal.message && (
+      {proposal.description && (
         <p className="text-sm text-gray-500 text-right leading-relaxed mb-5">
-          {proposal.message}
+          {proposal.description}
         </p>
       )}
 
@@ -261,8 +263,7 @@ export default function PostDetailsPage({
     if (sortBy === "cheapest") return a.price - b.price;
     if (sortBy === "highest")
       return (
-        (b.technicianId?.averageRating ?? 0) -
-        (a.technicianId?.averageRating ?? 0)
+        (b.technician?.averageRating ?? 0) - (a.technician?.averageRating ?? 0)
       );
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });

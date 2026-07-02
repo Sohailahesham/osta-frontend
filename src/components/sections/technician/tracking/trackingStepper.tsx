@@ -24,7 +24,10 @@ export default function TrackingStepper({ progress, loading, onStep }: Props) {
           const isPassed = index < progress;
 
           return (
-            <div key={step.key} className="flex w-1/3 flex-col items-center gap-3">
+            <div
+              key={step.key}
+              className="flex w-1/3 flex-col items-center gap-3"
+            >
               <div
                 className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-300 ${
                   isActiveStatus
@@ -47,7 +50,9 @@ export default function TrackingStepper({ progress, loading, onStep }: Props) {
 
               <span
                 className={`text-center text-sm font-extrabold ${
-                  isActiveStatus || isDone ? "text-[var(--primary-color)]" : "text-[#8D8D8D]"
+                  isActiveStatus || isDone
+                    ? "text-[var(--primary-color)]"
+                    : "text-[#8D8D8D]"
                 }`}
               >
                 {step.title}
