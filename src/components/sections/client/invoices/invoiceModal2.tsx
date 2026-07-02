@@ -39,8 +39,11 @@ export default function InvoiceModal2({
       const html2canvas = (await import("html2canvas-pro")).default;
       const { jsPDF } = await import("jspdf");
 
-      if (typeof document !== "undefined" && (document as any).fonts?.ready) {
-        await (document as any).fonts.ready;
+      if (typeof document !== "undefined") {
+        const doc = document as unknown as { fonts?: { ready: Promise<void> } };
+        if (doc.fonts?.ready) {
+          await doc.fonts.ready;
+        }
       }
 
       await waitForNextPaint();

@@ -1,5 +1,6 @@
 "use client";
 
+import { ClientRequest } from "@/types/trackingClient.types";
 import { Check, FileText, CreditCard } from "lucide-react";
 
 const COLORS = {
@@ -8,18 +9,6 @@ const COLORS = {
   secondary: "#F1F7E7",
   warning: "#C2783C",
 };
-
-interface ClientRequest {
-  serviceId: { name: string };
-  assignedTechnician: { fullName?: string } | null;
-  servicePrice?: number;
-  extraMaterialsPrice?: number;
-  totalPrice?: number;
-  depositAmount?: number;
-  depositStatus?: "paid" | "unpaid";
-  isFullyPaid?: boolean;
-  completionNote?: string | null;
-}
 
 function getInvoiceAmounts(request: ClientRequest) {
   const servicePrice = request.servicePrice ?? 0;

@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import {
-  Star,
-  CheckCircle2,
-  AlertCircle,
-  Info,
-  ArrowLeft,
-} from "lucide-react";
+import { Star, CheckCircle2, AlertCircle, Info, ArrowLeft } from "lucide-react";
 import { api } from "@/api/axios";
 import Navbar from "@/components/layout/client/Navbar";
 import Button from "@/components/ui/Button";
@@ -19,9 +13,10 @@ import BookingModal from "@/components/sections/client/booking/BookingModal";
 interface Service {
   _id: string;
   name: string;
+  key: string;
   description: string;
   image: string;
-  category: { _id: string; name: string };
+  category: { _id: string; key: string; name: string; image: string };
   fixingSteps: {
     includes: string[];
     doesNotInclude: string[];
@@ -43,6 +38,7 @@ export default function ServiceDetailsPage() {
     const fetchService = async () => {
       try {
         const { data } = await api.get(`/services/${id}`);
+        console.log("Fetched service data:", data.data);
         setService(data.data);
       } catch {
         console.error("فشل تحميل الخدمة");
@@ -70,7 +66,7 @@ export default function ServiceDetailsPage() {
       </div>
 
       {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" dir='rtl'>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" dir="rtl">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span
             className="cursor-pointer hover:text-[var(--primary-color)] transition-colors"
@@ -81,7 +77,9 @@ export default function ServiceDetailsPage() {
           <ArrowLeft size={14} />
           <span
             className="cursor-pointer hover:text-[var(--primary-color)] transition-colors"
-            onClick={() => router.push(`/client/categories/${service.category._id}`)}
+            onClick={() =>
+              router.push(`/client/categories/${service.category._id}`)
+            }
           >
             {service.category.name}
           </span>

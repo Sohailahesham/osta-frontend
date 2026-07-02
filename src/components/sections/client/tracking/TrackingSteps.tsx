@@ -25,8 +25,8 @@ interface AssignedTechnician {
 interface Props {
   progress: number;
   isFullyCompleted: boolean;
-  address: string;
-  assignedTechnician: AssignedTechnician | null;
+  address?: string;
+  assignedTechnician?: AssignedTechnician | null;
 }
 
 export default function TrackingSteps({

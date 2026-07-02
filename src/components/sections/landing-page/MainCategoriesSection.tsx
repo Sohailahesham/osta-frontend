@@ -8,14 +8,7 @@ import plumbingIcon from "@/assets/icons/plumbing.svg";
 import carpentryIcon from "@/assets/icons/carpentry.svg";
 import acIcon from "@/assets/icons/aircondition.svg";
 import CTAButton from "@/components/sections/landing-page/CTAButton";
-
-const categoryIcons = {
-  كهرباء: electricalIcon,
-  سباكة: plumbingIcon,
-  نجارة: carpentryIcon,
-  تكييف: acIcon,
-  "إصلاح أجهزة": electricalIcon,
-};
+import { categoryIcons } from "@/app/(client)/client/posts/[id]/page";
 
 interface Category {
   _id: string;

@@ -17,14 +17,7 @@ import carpentryIcon from "@/assets/icons/carpentry.svg";
 import acIcon from "@/assets/icons/aircondition.svg";
 import { api } from "@/api/axios";
 import BookOtherServiceModal from "@/components/sections/client/otherService/BookOtherServiceModal";
-
-const categoryIcons = {
-  كهرباء: electricalIcon,
-  سباكة: plumbingIcon,
-  نجارة: carpentryIcon,
-  تكييف: acIcon,
-  "إصلاح أجهزة": electricalIcon,
-};
+import { categoryIcons } from "@/app/(client)/client/posts/[id]/page";
 
 interface Service {
   _id: string;

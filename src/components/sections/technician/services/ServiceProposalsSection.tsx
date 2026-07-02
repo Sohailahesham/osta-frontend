@@ -2,7 +2,7 @@
 
 import { Clock, Star } from "lucide-react";
 
-interface Proposal {
+export interface Proposal {
   _id: string;
   estimatedTime?: string;
   description?: string;

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import DepositModal from "./DepositModal";
-import { getClientOrderStatusBadge, Order } from "./OngoingOrdersSection";
+import { Order } from "./OngoingOrdersSection";
 import ChatButton from "../direct-messages/ChatButton";
 import RequestOptionsMenu from "../../shared/RequestOptionsMenu";
 import CancelRequestModal from "../../shared/CancelRequestModal";
@@ -32,7 +32,6 @@ export default function ActiveOrderCard({
   const [showCancelModal, setShowCancelModal] = useState(false);
   const technicianInitial =
     order.assignedTechnician?.fullName?.charAt(0) ?? "?";
-  const badge = getClientOrderStatusBadge(order);
   const canPayDeposit =
     order.status === "accepted" && order.depositStatus === "unpaid";
   const canTrackOrder =
@@ -162,8 +161,8 @@ export default function ActiveOrderCard({
 
           {/* Experience note */}
           <p className="text-xs text-gray-500 text-right">
-            "خبرة {order.assignedTechnician?.yearsOfExperience ?? "0"} سنوات في
-            إصلاح {order.categoryId.name}"
+            خبرة {order.assignedTechnician?.yearsOfExperience ?? "0"} سنوات في
+            خدمة ال{order.categoryId.name}
           </p>
         </div>
       </div>

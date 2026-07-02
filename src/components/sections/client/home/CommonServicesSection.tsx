@@ -25,7 +25,7 @@ interface Service {
   };
 }
 
-const serviceIcons = {
+const serviceIcons: Record<string, string> = {
   كهرباء: electricalIcon,
   سباكة: plumbingIcon,
   نجارة: carpentryIcon,
@@ -53,7 +53,6 @@ export default function CommonServicesSection() {
 
   return (
     <section className="section-wrapper w-full lg:w-4/5" dir="rtl">
-
       <div className="section-header">
         <h2 className="section-title">الخدمات الشائعة</h2>
         <p className="section-desc">
@@ -102,7 +101,10 @@ export default function CommonServicesSection() {
                 </div>
 
                 <div className="p-4">
-                  <div className="flex items-center justify-between gap-2 mb-4 mr-auto" dir="ltr">
+                  <div
+                    className="flex items-center justify-between gap-2 mb-4 mr-auto"
+                    dir="ltr"
+                  >
                     <ArrowUpLeft
                       size={36}
                       className="text-[var(--primary-color)] group-hover:text-[var(--accent-color)] bg-[white] group-hover:bg-[var(--primary-color)] p-2 rounded-full flex-shrink-0 mt-0.5"

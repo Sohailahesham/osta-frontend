@@ -113,9 +113,9 @@ function HistoryOrderCard({ order }: { order: AssignedRequest }) {
   const serviceName = order.serviceId?.name ?? order.postId?.title ?? "—";
   const categoryName = categoryData?.name;
   const technicianName = order.assignedTechnician?.fullName ?? null;
-  const clientRating = order.clientReview?.rating ?? (order as any).review?.rating ?? null;
+  const clientRating = order.clientReview?.rating ?? null;
 
-// صورة الخدمة من serviceId.image
+  // صورة الخدمة من serviceId.image
 
   return (
     <div

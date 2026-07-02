@@ -4,26 +4,9 @@ import { use, useEffect, useState } from "react";
 import { api } from "@/api/axios";
 import Navbar from "@/components/layout/technician/Navbar"
 import ServiceDetailsSection from "@/components/sections/technician/services/ServiceDetailsSection";
-import ServiceProposalsSection from "@/components/sections/technician/services/ServiceProposalsSection";
+import ServiceProposalsSection, { Proposal } from "@/components/sections/technician/services/ServiceProposalsSection";
 import SubmitProposalModal from "@/components/sections/technician/current-orders/SubmitProposalModal";
 import BookingSuccess from "@/components/sections/technician/current-orders/BookingSuccess";
-
-
-interface Proposal {
-  _id: string;
-  estimatedTime?: string;
-  description?: string;
-  price?: number;
-  status: "pending" | "accepted" | "rejected";
-  createdAt: string;
-  isMyProposal?: boolean;
-  technician: {
-    _id: string;
-    fullName: string;
-    averageRating?: number;
-    totalReviews?: number;
-  } | null;
-}
 
 interface PostDetails {
   _id: string;

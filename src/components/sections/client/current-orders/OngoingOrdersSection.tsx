@@ -43,6 +43,9 @@ export interface Order {
     phone: string;
     averageRating?: number;
     yearsOfExperience?: number;
+    specialization?: { categoryId: string };
+    totalReviews?: number;
+    verificationStatus?: string;
   };
   clientReview?: { rating: number; comment?: string } | null;
   review?: {

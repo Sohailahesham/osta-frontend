@@ -38,7 +38,7 @@ export default function TrackingStepper({ progress, loading, onStep }: Props) {
                   <Check className="h-6 w-6 stroke-[3]" />
                 ) : step.key === "on_the_way" ? (
                   <Clock className="h-6 w-6" />
-                ) : step.key === "in_progress" ? (
+                ) : step.key === "started" ? (
                   <CircleDotDashed className="h-6 w-6" />
                 ) : (
                   <CheckCircle2 className="h-6 w-6" />

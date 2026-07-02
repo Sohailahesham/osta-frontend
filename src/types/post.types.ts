@@ -25,20 +25,23 @@ export interface Post {
 }
 
 export interface Proposal {
-  _id: string;
-  postId: string;
-  technicianId: {
     _id: string;
-    fullName: string;
-    averageRating?: number;
-    totalReviews?: number;
-    yearsOfExperience?: number;
-    specialization?: { categoryId: string };
-    verificationStatus?: string;
-  };
-  price: number;
-  estimatedTime?: string;
-  message?: string;
-  status: "pending" | "accepted" | "rejected";
-  createdAt: string;
+    postId: string;
+    description: string | null;
+    technicianId: {
+        _id: string;
+        fullName: string;
+        averageRating?: number;
+        totalReviews?: number;
+        yearsOfExperience?: number;
+        specialization?: {categoryId: string};
+        verificationStatus?: string;
+    };
+    price: number;
+    estimatedTime?: string;
+    message?: string;
+    status: "pending" | "accepted" | "rejected";
+    createdAt: string;
 }
+
+

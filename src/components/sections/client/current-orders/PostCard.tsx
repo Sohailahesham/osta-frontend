@@ -6,6 +6,7 @@ import { Post, Proposal } from "@/types/post.types";
 import Image from "next/image";
 import purp_icon from "@/assets/icons/purp_icon.svg";
 import { api } from "@/api/axios";
+import { StarRating } from "../../technician/profile/ServicesHistorySection";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -36,7 +37,7 @@ function MetaGrid({
 }: {
   date: string;
   time: string;
-  price?: number;
+  price?: number | null;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 mb-4">
@@ -150,28 +151,28 @@ export default function PostCard({ post }: { post: Post }) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(true);
 
-useEffect(() => {
-  let cancelled = false;
-  api
-    .get(`/posts/${post._id}/proposals`)
-    .then((res) => {
-      if (!cancelled) {
-        // الـ proposals جوه res.data.data.proposals
-        const proposals: Proposal[] =
-          res.data?.data?.proposals ?? res.data?.data ?? [];
-        setProposals(Array.isArray(proposals) ? proposals : []);
-      }
-    })
-    .catch(() => {
-      if (!cancelled) setProposals([]);
-    })
-    .finally(() => {
-      if (!cancelled) setLoadingProposals(false);
-    });
-  return () => {
-    cancelled = true;
-  };
-}, [post._id]);
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get(`/posts/${post._id}/proposals`)
+      .then((res) => {
+        if (!cancelled) {
+          // الـ proposals جوه res.data.data.proposals
+          const proposals: Proposal[] =
+            res.data?.data?.proposals ?? res.data?.data ?? [];
+          setProposals(Array.isArray(proposals) ? proposals : []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setProposals([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingProposals(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [post._id]);
 
   const navigate = () => router.push(`/client/posts/${post._id}`);
 
@@ -181,17 +182,14 @@ useEffect(() => {
       ? (post.acceptedProposal as Proposal)
       : (proposals.find((p) => p.status === "accepted") ?? null);
 
-  // السعر المقترح (من أول proposal pending أو الـ accepted)
-  const suggestedPrice =
-    acceptedProposal?.price ??
-    proposals.find((p) => p.status === "pending")?.price;
-
   // حالة العرض
   const hasAccepted = !!acceptedProposal;
 
   const safeProposals = Array.isArray(proposals) ? proposals : [];
-const pendingCount = safeProposals.filter((p) => p.status === "pending").length;
-const hasProposals = pendingCount > 0;
+  const pendingCount = safeProposals.filter(
+    (p) => p.status === "pending",
+  ).length;
+  const hasProposals = pendingCount > 0;
 
   return (
     <div
