@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { X, Camera } from "lucide-react";
-import { supportService } from "@/api/services/support.service";
+import { supportService, SupportTicket } from "@/api/services/support.service";
 
 const DESCRIPTION_MAX = 100;
 const TITLE_MAX = 150;
@@ -32,16 +32,20 @@ export default function SubmitTicketModal({
     setLoading(true);
     setError("");
     try {
-      const { data } = await supportService.createTicket({
+      const response = await supportService.createTicket({
         title: title.trim(),
         description: description.trim(),
         attachment,
       });
-      const ticket = (data as any)?.data ?? data;
+      const ticket: SupportTicket = response.data.data;
       onSuccess(ticket.ticketNumber);
-    } catch (err: any) {
-      const message = err.response?.data?.message;
-      setError(message || "حدث خطأ أثناء إرسال التذكرة");
+    } catch (err) {
+      const errorMessage =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : undefined;
+      setError(errorMessage || "حدث خطأ أثناء إرسال التذكرة");
     } finally {
       setLoading(false);
     }
@@ -119,7 +123,9 @@ export default function SubmitTicketModal({
                 className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary-color)] border border-gray-200 rounded-full px-3 py-1.5 hover:bg-gray-50 transition-all"
               >
                 <Camera size={14} />
-                {attachment ? attachment.name.slice(0, 18) : "ارفق صورة لتوضيح مشكلتك"}
+                {attachment
+                  ? attachment.name.slice(0, 18)
+                  : "ارفق صورة لتوضيح مشكلتك"}
               </button>
               <input
                 ref={fileInputRef}

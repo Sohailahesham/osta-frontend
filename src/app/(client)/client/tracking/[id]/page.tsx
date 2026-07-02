@@ -2,7 +2,7 @@
 
 import { api } from "@/api/axios";
 import { useState, useEffect, useCallback, use } from "react";
-import {MapPin} from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useSocket } from "@/hooks/useSocket";
@@ -165,30 +165,33 @@ export default function ClientTrackingPage({
         <TrackingNav />
 
         <div className="max-w-3xl mx-auto px-4 pt-16 sm:px-6 py-6">
-                <div className="flex items-center justify-between mb-8 py-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                      style={{ backgroundColor: "var(--primary-color)", color: "#fff" }}
-                    >
-                      {request?.userId?.fullName?.charAt(0) ?? "؟"}
-                    </div>
-                    <div>
-                      <p className="text-base font-bold text-[var(--primary-color)] text-left">
-                        {request?.serviceId?.name ?? "متابعة الطلب"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-[var(--gray-color)]">
-                    <MapPin className="w-4 h-4 text-[var(--accent-color)]" />
-                    <span>
-                      {request?.address?.district ??
-                        request?.address?.fullAddress ??
-                        "—"}
-                    </span>
-                  </div>
-                </div>
-                </div>
+          <div className="flex items-center justify-between mb-8 py-4">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                style={{
+                  backgroundColor: "var(--primary-color)",
+                  color: "#fff",
+                }}
+              >
+                {request?.userId?.fullName?.charAt(0) ?? "؟"}
+              </div>
+              <div>
+                <p className="text-base font-bold text-[var(--primary-color)] text-left">
+                  {request?.serviceId?.name ?? "متابعة الطلب"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-[var(--gray-color)]">
+              <MapPin className="w-4 h-4 text-[var(--accent-color)]" />
+              <span>
+                {request?.address?.district ??
+                  request?.address?.fullAddress ??
+                  "—"}
+              </span>
+            </div>
+          </div>
+        </div>
 
         {loadingInitial && !request && (
           <p className="text-center text-sm text-gray-400 mb-0 py-10">
@@ -202,15 +205,15 @@ export default function ClientTrackingPage({
         )}
 
         {request && (
-        <>
-          <TrackingNav />
-          <TrackingSteps
-            progress={progress}
-            isFullyCompleted={isFullyCompleted}
-            address={request.address.fullAddress}
-            assignedTechnician={request.assignedTechnician}
-          />
-        </>
+          <>
+            <TrackingNav />
+            <TrackingSteps
+              progress={progress}
+              isFullyCompleted={isFullyCompleted}
+              address={request.address.fullAddress}
+              assignedTechnician={request.assignedTechnician}
+            />
+          </>
         )}
       </div>
 

@@ -21,9 +21,6 @@ const getServiceName = (order: AssignedRequest) =>
 const getClientName = (order: AssignedRequest) =>
   order.userId?.fullName ?? "عميل غير معروف";
 
-const getClientInitial = (order: AssignedRequest) =>
-  getClientName(order).trim().charAt(0) ?? "م";
-
 const getDistrict = (order: AssignedRequest) => {
   const district = order.address?.district;
   const city = order.userId?.city;
@@ -133,7 +130,7 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Star Rating ─────────────────────────────────────────────────────────────────
 
-function StarRating({ rating }: { rating: number }) {
+export function StarRating({ rating }: { rating: number }) {
   const full = Math.floor(rating);
   const total = 5;
   return (

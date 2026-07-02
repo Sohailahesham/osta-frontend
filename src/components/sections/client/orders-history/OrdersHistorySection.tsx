@@ -31,12 +31,10 @@ function ActiveOrderBanner({ order }: { order: AssignedRequest }) {
         className="bg-[var(--secondary-color)] rounded-2xl px-6 py-4 flex items-center justify-between mb-8 cursor-pointer hover:opacity-90 transition-opacity"
         dir="rtl"
       >
-        <div className="flex items-center gap-2">
-          <ArrowLeft size={18} className="text-[var(--primary-color)]" />
-          <span className="text-sm font-bold text-[var(--primary-color)]">
-            اضغط للمتابعة
-          </span>
-        </div>
+        <span className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[var(--primary-color)] inline-block animate-pulse" />
+          يوجد طلب جار الآن
+        </span>
         <div className="text-right">
           <p className="font-bold text-[var(--primary-color)] text-base">
             {serviceName}
@@ -45,10 +43,12 @@ function ActiveOrderBanner({ order }: { order: AssignedRequest }) {
             <p className="text-xs text-gray-500">{categoryName}</p>
           )}
         </div>
-        <span className="bg-[var(--accent-color)] text-[var(--primary-color)] text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[var(--primary-color)] inline-block animate-pulse" />
-          يوجد طلب جار الآن
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-[var(--primary-color)]">
+            اضغط للمتابعة
+          </span>
+          <ArrowLeft size={18} className="text-[var(--primary-color)]" />
+        </div>
       </div>
     </Link>
   );
@@ -109,13 +109,17 @@ function HistoryOrderCard({ order }: { order: AssignedRequest }) {
   const categoryData = (
     order as unknown as { categoryId?: { name?: string; image?: string } }
   ).categoryId;
-  const serviceImage = order.serviceId?.image ?? null;
-  const serviceName = order.serviceId?.name ?? order.postId?.title ?? "—";
+  const serviceImage =
+    order.serviceId?.image ||
+    order.postId?.image ||
+    categoryData?.image ||
+    "/images/placeholder.png";
+  const serviceName = order.serviceId?.name || order.postId?.title || "—";
   const categoryName = categoryData?.name;
-  const technicianName = order.assignedTechnician?.fullName ?? null;
-  const clientRating = order.clientReview?.rating ?? (order as any).review?.rating ?? null;
+  const technicianName = order.assignedTechnician?.fullName || null;
+  const clientRating = order.review?.rating || null;
 
-// صورة الخدمة من serviceId.image
+  // صورة الخدمة من serviceId.image
 
   return (
     <div

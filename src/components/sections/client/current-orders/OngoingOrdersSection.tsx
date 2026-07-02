@@ -43,11 +43,19 @@ export interface Order {
     phone: string;
     averageRating?: number;
     yearsOfExperience?: number;
+    specialization?: { categoryId: string };
+    totalReviews?: number;
+    verificationStatus?: string;
   };
   clientReview?: { rating: number; comment?: string } | null;
   review?: {
     rating: number;
   } | null;
+  postId?: {
+    _id: string;
+    title?: string;
+    image?: string;
+  };
 }
 
 const STATUS_CONFIG = {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -14,7 +15,6 @@ export interface Service {
   name: string;
   description: string;
   image: string;
-  depositAmount: number;
 
   category: {
     _id: string;

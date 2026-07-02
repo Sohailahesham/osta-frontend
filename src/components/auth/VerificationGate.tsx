@@ -55,10 +55,10 @@ export default function VerificationGate({
 
         localStorage.setItem("user", JSON.stringify(user));
 
-        if (!cancelled && !user.isVerified && pathname !== "/verify-email") {
-          router.replace("/verify-email");
-          return;
-        }
+        // if (!cancelled && !user.isVerified && pathname !== "/verify-email") {
+        //   router.replace("/verify-email");
+        //   return;
+        // }
 
         if (
           !cancelled &&

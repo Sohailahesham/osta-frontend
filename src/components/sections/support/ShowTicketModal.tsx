@@ -39,22 +39,42 @@ export default function ShowTicketModal({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    supportService
-      .getTicketById(ticketId)
-      .then(({ data }) => {
-        if (!active) return;
-        const t = (data as any)?.data ?? data;
-        setTicket(t);
-      })
-      .catch((err) => {
-        if (!active) return;
-        setError(err.response?.data?.message || "تعذر تحميل بيانات التذكرة");
-      })
-      .finally(() => active && setLoading(false));
+    let isActive = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await supportService.getTicketById(ticketId);
+        if (!isActive) return;
+
+        const ticketObj = response.data as any;
+        if (ticketObj && ticketObj.data) {
+          const ticket: SupportTicket = ticketObj.data;
+          setTicket(ticket);
+        }
+      } catch (error: unknown) {
+        if (!isActive) return;
+        let errorMsg = "تعذر تحميل بيانات التذكرة";
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error
+        ) {
+          const apiError = error as {
+            response?: { data?: { message?: string } };
+          };
+          errorMsg = apiError.response?.data?.message || errorMsg;
+        }
+        setError(errorMsg);
+      } finally {
+        if (isActive) setLoading(false);
+      }
+    };
+
+    fetchData();
+
     return () => {
-      active = false;
+      isActive = false;
     };
   }, [ticketId]);
 
@@ -87,7 +107,8 @@ export default function ShowTicketModal({
 
         {ticket && (
           <p className="text-xs text-gray-400 text-right mb-6">
-            {formatTicketDate(ticket.createdAt)} &nbsp;&nbsp; #{ticket.ticketNumber}
+            {formatTicketDate(ticket.createdAt)} &nbsp;&nbsp; #
+            {ticket.ticketNumber}
           </p>
         )}
 

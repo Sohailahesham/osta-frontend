@@ -24,9 +24,9 @@ function getTechnicianNextRoute(user: AuthUser): string {
 }
 
 export function getPostLoginRoute(user: AuthUser): string {
-    if (!user.isVerified) {
-        return "/verify-email";
-    }
+    // if (!user.isVerified) {
+    //     return "/verify-email";
+    // }
 
     if (user.role === "client" && !user.profileComplete) {
         return "/register/user/complete-profile";

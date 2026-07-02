@@ -95,10 +95,10 @@ export default function CompleteClientProfilePage() {
 
         localStorage.setItem("user", JSON.stringify(user));
 
-        if (!user.isVerified) {
-          router.replace("/verify-email");
-          return;
-        }
+        // if (!user.isVerified) {
+        //   router.replace("/verify-email");
+        //   return;
+        // }
 
         if (user.role !== "client") {
           router.replace(getPostLoginRoute(user));

@@ -18,7 +18,6 @@ interface Props {
       min: number | string;
       max: number | string;
     };
-    depositAmount: number;
   };
 }
 
@@ -283,7 +282,7 @@ export default function BookingForm({
         </label>
         <div className="border border-gray-200 rounded-full px-6 py-3 flex items-center gap-2 w-52">
           <span className="text-sm text-gray-500">
-            {service.depositAmount ?? "50"}
+            {"50"}
           </span>
           <Image src={moneyIcon} alt="money" width={16} height={16} />
         </div>

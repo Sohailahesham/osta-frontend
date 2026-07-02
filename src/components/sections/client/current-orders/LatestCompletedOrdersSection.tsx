@@ -32,18 +32,22 @@ function CompletedOrderCard({
 
   // الـ API بيبعت "review" مش "clientReview"
   const clientRating =
-    order.clientReview?.rating ?? (order as ReviewLikeOrder).review?.rating ?? null;
+    order.clientReview?.rating ??
+    (order as ReviewLikeOrder).review?.rating ??
+    null;
 
   // صورة الخدمة من serviceId.image
   const serviceImage = order.serviceId?.image ?? null;
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex gap-4" dir="rtl">
-      
+    <div
+      className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex gap-4"
+      dir="rtl"
+    >
       {/* المحتوى */}
       <div className="flex-1 text-right">
         <h4 className="font-bold text-[var(--primary-color)] text-base mb-1">
-          {order.serviceId?.name}
+          {order.postId?.title || order.serviceId?.name}
         </h4>
         <p className="text-sm text-gray-400 mb-3">
           {formatDate(order.createdAt)}
@@ -60,8 +64,7 @@ function CompletedOrderCard({
             <p className="text-sm text-gray-400">التكلفة النهائية</p>
             {finalCost ? (
               <p className="font-bold text-[var(--primary-color)] text-lg">
-                {finalCost}{" "}
-                <span className="text-sm font-normal">جنيه</span>
+                {finalCost} <span className="text-sm font-normal">جنيه</span>
               </p>
             ) : (
               <p className="text-sm text-gray-400">—</p>
@@ -102,19 +105,21 @@ function CompletedOrderCard({
       {/* صورة الخدمة */}
       <div className="w-28 h-28 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
         {serviceImage ? (
-<Image
-  src={serviceImage}
-  alt={order.serviceId?.name ?? ""}
-  width={112}
-  height={112}
-  className="w-full h-full object-cover"
-/>
+          <Image
+            src={serviceImage}
+            alt={order.serviceId?.name ?? ""}
+            width={112}
+            height={112}
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-gray-300 text-xs text-center px-2">
-              {order.categoryId?.name}
-            </span>
-          </div>
+          <Image
+            src={order.postId?.image || order.categoryId?.image || "/images/placeholder.png"}
+          alt={order.serviceId?.name ?? ""}
+          width={112}
+          height={112}
+          className="w-full h-full object-cover"
+        />
         )}
       </div>
     </div>
@@ -133,7 +138,7 @@ export default function LatestCompletedOrdersSection({
   onRateNow,
 }: Props) {
   const completedOrders = orders.filter((o) => o.status === "completed");
-
+  console.log("LatestCompletedOrdersSection completedOrders:", completedOrders); // Debugging line
 
   return (
     <div className="section-wrapper">
