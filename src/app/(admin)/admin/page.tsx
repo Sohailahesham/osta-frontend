@@ -251,7 +251,7 @@ export default function AdminDashboardPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 md:min-w-[360px]">
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:min-w-[360px]">
               <div className="rounded-[28px] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
                 <p className="text-sm text-white/70">المستخدمون</p>
                 <p className="mt-2 text-3xl font-bold">

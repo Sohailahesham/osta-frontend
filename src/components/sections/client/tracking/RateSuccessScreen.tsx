@@ -11,9 +11,9 @@ interface Props {
 
 export default function RateSuccessScreen({ rating, onBackToHome }: Props) {
   return (
-    <div dir="rtl" className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: "rgba(28, 75, 65, 0.68)" }}>
-      <div className="relative w-full max-w-[442px] rounded-[32px] bg-white px-8 py-10 text-center shadow-xl sm:px-12">
-        <button type="button" onClick={onBackToHome} className="absolute left-8 top-8 text-gray-900 transition hover:opacity-70">
+    <div dir="rtl" className="fixed inset-0 z-50 flex items-center justify-center px-3 py-4 sm:px-4" style={{ backgroundColor: "rgba(28, 75, 65, 0.68)" }}>
+      <div className="relative w-full max-w-[442px] rounded-[32px] bg-white px-5 py-8 text-center shadow-xl sm:px-8 sm:py-10">
+        <button type="button" onClick={onBackToHome} className="absolute left-4 top-4 text-gray-900 transition hover:opacity-70 sm:left-8 sm:top-8">
           <X className="h-5 w-5" />
         </button>
 
@@ -36,7 +36,7 @@ export default function RateSuccessScreen({ rating, onBackToHome }: Props) {
           </div>
         </div>
 
-        <button type="button" onClick={onBackToHome} className="mt-10 h-[43px] min-w-[196px] rounded-full px-8 text-sm font-bold transition hover:brightness-95" style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}>
+        <button type="button" onClick={onBackToHome} className="mt-10 h-[43px] w-full min-w-[0] rounded-full px-6 text-sm font-bold transition hover:brightness-95 sm:min-w-[196px] sm:w-auto" style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}>
           العودة للرئيسية
         </button>
       </div>

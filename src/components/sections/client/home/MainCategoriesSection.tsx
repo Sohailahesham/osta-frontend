@@ -55,7 +55,7 @@ export default function MainCategoriesSection() {
             return (
               <div
                 key={cat._id}
-                onClick={() => router.push(`/client/categories/${cat._id}`)}
+                onClick={() => router.push("/client/categories")}
                 className="rounded-2xl overflow-hidden cursor-pointer group"
                 style={{ backgroundColor: "var(--secondary-color)" }}
               >

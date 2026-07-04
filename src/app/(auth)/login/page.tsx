@@ -22,19 +22,23 @@ export default function LoginPage() {
 
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [errors, setErrors] = useState<Partial<LoginForm>>({});
+  const [generalError, setGeneralError] = useState("");
 
   const update = (field: keyof LoginForm) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+    if (generalError) setGeneralError("");
   };
 
   const validate = () => {
     const fieldErrors = validateSchema(loginSchema, form);
     if (fieldErrors) {
       setErrors(fieldErrors as Partial<LoginForm>);
+      setGeneralError("");
       return false;
     }
     setErrors({});
+    setGeneralError("");
     return true;
   };
 
@@ -51,8 +55,19 @@ export default function LoginPage() {
       localStorage.setItem("refresh_token", data.data.refresh_token);
       localStorage.setItem("user", JSON.stringify(data.data.user));
       router.push(getPostLoginRoute(data.data.user));
-    } catch {
-      setErrors({ email: "البريد أو كلمة المرور غلط" });
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      const message = (error as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+      const resolvedMessage = Array.isArray(message)
+        ? message[0]
+        : message || "حدث خطأ، حاول مرة أخرى";
+
+      setErrors({});
+      if (status === 401 || status === 403 || /invalid|wrong|incorrect|unauthorized|password/i.test(resolvedMessage)) {
+        setGeneralError("البريد أو كلمة المرور غير صحيحة");
+      } else {
+        setGeneralError(resolvedMessage);
+      }
     }
   };
 
@@ -101,6 +116,12 @@ export default function LoginPage() {
           <p className="text-gray-400 text-xs sm:text-sm text-center mb-8">
             سجل دخولك إلى حسابك الشخصي
           </p>
+
+          {generalError && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 text-right">
+              {generalError}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             <AuthInput

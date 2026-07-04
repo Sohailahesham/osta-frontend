@@ -280,7 +280,7 @@ export default function BookingForm({
         <label className="text-sm font-semibold text-[var(--primary-color)]">
           قيمة العربون <span className="text-gray-400 font-normal">(جنية)</span>
         </label>
-        <div className="border border-gray-200 rounded-full px-6 py-3 flex items-center gap-2 w-52">
+        <div className="flex w-full max-w-[13rem] items-center gap-2 rounded-full border border-gray-200 px-4 py-3 sm:px-6">
           <span className="text-sm text-gray-500">
             {"50"}
           </span>

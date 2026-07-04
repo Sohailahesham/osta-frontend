@@ -46,7 +46,7 @@ export default function TrackingStepCards({ progress, request }: Props) {
 
   return (
     <section dir="rtl" className="-mx-4 mt-8 px-4 py-9 sm:-mx-6 sm:px-6">
-      <div className="mx-auto flex max-w-[805px] flex-col gap-9">
+      <div className="mx-auto flex w-full max-w-[805px] flex-col gap-9">
         {STEPS.map((step, index) => {
           const isComplete = progress >= STEPS.length;
           const activeIndex = progress > 0 && !isComplete ? progress - 1 : -1;
@@ -130,7 +130,7 @@ export default function TrackingStepCards({ progress, request }: Props) {
 
               {isActive && (
                 <div className="px-5 pb-5 pt-7">
-                  <div className="mb-8 flex items-center justify-between">
+                  <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-color)] text-base font-extrabold text-[var(--primary-color)]">
                         {customerName.charAt(0)}
@@ -146,8 +146,8 @@ export default function TrackingStepCards({ progress, request }: Props) {
                     </p>
                   </div>
 
-                  <div className="flex min-h-[54px] items-center justify-start rounded-xl bg-[#F8FAFA] px-4">
-                    <div className="flex items-center gap-3">
+                  <div className="flex min-h-[54px] items-center justify-start rounded-xl bg-[#F8FAFA] px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <span className="h-2 w-2 rounded-full bg-[var(--accent-color)]" />
                       <span className="h-2 w-8 rounded-full bg-[#88A39B]" />
                       <span className="h-2 w-2 rounded-full bg-[var(--accent-color)]" />
@@ -166,7 +166,7 @@ export default function TrackingStepCards({ progress, request }: Props) {
 
         {progress >= STEPS.length && (
           <article className="mt-10 rounded-[18px] border border-[var(--accent-color)] bg-[#E8F8BA] px-5 py-5 shadow-[0_18px_34px_rgba(179,231,24,0.12)]">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div className="flex items-baseline gap-1 rounded-full px-5 py-3">
                 <span className="text-4xl font-extrabold text-[var(--primary-color)]">
                   {finalPrice}

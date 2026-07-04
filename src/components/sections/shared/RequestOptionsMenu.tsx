@@ -65,7 +65,7 @@ export default function RequestOptionsMenu({
       {open && (
         <div
           dir="rtl"
-          className="absolute left-0 top-9 z-20 w-52 rounded-2xl border border-[#EAEAEA] bg-white py-2 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+          className="absolute left-0 top-9 z-20 w-[min(13rem,calc(100vw-1rem))] rounded-2xl border border-[#EAEAEA] bg-white py-2 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
         >
           <button
             type="button"

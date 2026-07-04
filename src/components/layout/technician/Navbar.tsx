@@ -86,9 +86,14 @@ export default function Navbar() {
     setNotificationPanelOpen((prev) => {
       const next = !prev;
 
-      if (next && unreadCount > 0) {
-        void markAllAsRead();
-        clearLatestNotification();
+      if (next) {
+        setProfileOpen(false);
+        setSupportMenuOpen(false);
+        setMenuOpen(false);
+        if (unreadCount > 0) {
+          void markAllAsRead();
+          clearLatestNotification();
+        }
       }
       return next;
     });
@@ -144,7 +149,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="relative z-40 mx-auto w-full  bg-[#B4D4BC70]/50 px-6 py-2 shadow-sm backdrop-blur-md lg:w-[90%] lg:rounded-full overflow-visible"
+      className="relative z-40 mx-auto w-full overflow-visible bg-[#B4D4BC70]/50 px-3 py-2 shadow-sm backdrop-blur-md sm:px-6 lg:w-[90%] lg:rounded-full lg:px-6"
       dir="rtl"
     >
       <div className="px-4 sm:px-6 lg:px-8">

@@ -30,13 +30,13 @@ export default function ChatModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl h-[88vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl"
+        className="relative flex h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl shadow-2xl"
         style={{ background: "#1C4B41" }}
         onClick={(e) => e.stopPropagation()}
         dir="rtl"
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-4 shrink-0">
+        <div className="flex shrink-0 items-center justify-between px-4 py-4 sm:px-6">
           {/* Left: accent sparkle button */}
           <div className="w-10 h-10 rounded-2xl bg-[var(--accent-color)] flex items-center justify-center">
             <SparkleSvg size={20} color="#1C4B41" />
@@ -69,11 +69,11 @@ export default function ChatModal({
         </div>
 
         {/* ── Body ── */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
           <ChatSidebar onSendMessage={onSendMessage} />
 
           {/* ── Chat (white) ── */}
-          <div className="flex flex-col flex-1 bg-white rounded-tr-3xl overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-hidden rounded-tr-3xl bg-white">
             <ChatMessages
               messages={messages}
               loading={loading}

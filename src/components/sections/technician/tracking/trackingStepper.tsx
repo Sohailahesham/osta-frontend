@@ -11,10 +11,10 @@ interface Props {
 
 export default function TrackingStepper({ progress, loading, onStep }: Props) {
   return (
-    <div className="relative mx-auto mb-8 max-w-[805px] pt-4">
-      <div className="absolute left-[15%] right-[15%] top-[52px] h-1 rounded-full bg-[#DFDFDD]" />
+    <div className="relative mx-auto mb-8 w-full max-w-[805px] px-2 pt-4 sm:px-4">
+      <div className="absolute left-[10%] right-[10%] top-[52px] h-1 rounded-full bg-[#DFDFDD] sm:left-[15%] sm:right-[15%]" />
 
-      <div className="relative flex justify-between">
+      <div className="relative flex justify-between gap-2 sm:gap-0">
         {STEPS.map((step, index) => {
           const activeStatusIndex =
             progress > 0 && progress < STEPS.length ? progress - 1 : -1;
@@ -26,10 +26,10 @@ export default function TrackingStepper({ progress, loading, onStep }: Props) {
           return (
             <div
               key={step.key}
-              className="flex w-1/3 flex-col items-center gap-3"
+              className="flex w-1/3 min-w-0 flex-col items-center gap-3"
             >
               <div
-                className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-300 ${
+                className={`flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 sm:h-16 sm:w-16 ${
                   isActiveStatus
                     ? "bg-[var(--primary-color)] text-white shadow-[0_0_0_4px_var(--accent-color),0_0_28px_rgba(179,231,24,0.45)]"
                     : isDone
@@ -49,7 +49,7 @@ export default function TrackingStepper({ progress, loading, onStep }: Props) {
               </div>
 
               <span
-                className={`text-center text-sm font-extrabold ${
+                className={`text-center text-[11px] font-extrabold leading-4 sm:text-sm ${
                   isActiveStatus || isDone
                     ? "text-[var(--primary-color)]"
                     : "text-[#8D8D8D]"
@@ -61,7 +61,7 @@ export default function TrackingStepper({ progress, loading, onStep }: Props) {
               <button
                 onClick={() => isActiveButton && !loading && onStep(index)}
                 disabled={!isActiveButton || loading}
-                className={`min-w-[86px] rounded-full px-6 py-2 text-sm font-extrabold transition-all ${
+                className={`w-full min-w-[0] rounded-full px-2 py-2 text-[11px] font-extrabold transition-all sm:min-w-[86px] sm:px-6 sm:text-sm ${
                   isActiveButton
                     ? "bg-[var(--accent-color)] text-[var(--primary-color)] shadow-[0_10px_22px_rgba(179,231,24,0.34)]"
                     : isPassed

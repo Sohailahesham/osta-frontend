@@ -55,7 +55,7 @@ export default function NotificationPanel({
     <div
       ref={panelRef}
       dir="rtl"
-      className="absolute left-0 top-12 z-50 flex max-h-56 w-80 flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-black/10 ring-1 ring-black/5"
+      className="fixed inset-x-3 top-16 z-[70] flex max-h-[75dvh] w-[calc(100vw-1.5rem)] max-w-[22rem] flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-black/10 ring-1 ring-black/5 sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:max-h-56 sm:w-[min(20rem,calc(100vw-1.5rem))] sm:max-w-none"
     >
       <div className="border-b border-gray-100 px-4 py-3">
         <h3 className="text-sm font-semibold text-[#112D27]">الإشعارات</h3>

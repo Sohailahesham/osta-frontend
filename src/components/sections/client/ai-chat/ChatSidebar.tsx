@@ -8,7 +8,7 @@ interface Props {
 
 export default function ChatSidebar({ onSendMessage }: Props) {
   return (
-    <div className="hidden md:flex flex-col w-70 p-5 gap-5 overflow-y-auto shrink-0 no-scrollbar">
+    <div className="hidden w-full shrink-0 flex-col gap-5 overflow-y-auto p-5 no-scrollbar md:flex md:w-70">
       {/* Brand block */}
       <div>
         <h3 className="text-white font-black text-3xl mb-2">أسطى AI</h3>

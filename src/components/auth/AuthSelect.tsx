@@ -111,7 +111,9 @@ export default function AuthSelect({
       )}
 
       {error && (
-        <span className="text-xs text-red-500 text-right">{error}</span>
+        <span className="min-h-[1.25rem] text-xs text-red-500 text-right leading-5" aria-live="polite">
+          {error}
+        </span>
       )}
     </div>
   );

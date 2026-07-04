@@ -90,24 +90,30 @@ export default function TechnicianRegisterPage() {
 
   const [errors, setErrors] = useState<Partial<BasicInfoForm>>({});
   const [generalError, setGeneralError] = useState("");
+  const [formError, setFormError] = useState("");
 
   const update = (field: keyof BasicInfoForm) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+    if (formError) setFormError("");
   };
 
   const validate = () => {
     const fieldErrors = validateSchema(technicianBasicInfoSchema, form);
     if (fieldErrors) {
       setErrors(fieldErrors as Partial<BasicInfoForm>);
+      setFormError("");
       return false;
     }
     setErrors({});
+    setFormError("");
     return true;
   };
 
   const handleNext = async () => {
     if (!validate()) return;
+
+    setFormError("");
 
     try {
       const { data } = await registerTechnician({
@@ -127,11 +133,11 @@ export default function TechnicianRegisterPage() {
       router.push(getPostLoginRoute(data.data.user));
     } catch (error: unknown) {
       const message = (error as ApiError).response?.data?.message;
-      setGeneralError(
-        Array.isArray(message)
-          ? message[0]
-          : message || "حدث خطأ، حاول مرة أخرى",
-      );
+      const nextMessage = Array.isArray(message)
+        ? message[0]
+        : message || "حدث خطأ، حاول مرة أخرى";
+      setGeneralError(nextMessage);
+      setFormError("");
     }
   };
 
@@ -228,6 +234,12 @@ export default function TechnicianRegisterPage() {
           <p className="text-gray-400 text-xs sm:text-sm text-right mb-6">
             أدخل بياناتك الأساسية للبدء في توثيق حسابك والانضمام إلى المنصة.
           </p>
+
+          {formError && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 text-right">
+              {formError}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

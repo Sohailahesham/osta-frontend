@@ -76,7 +76,7 @@ export default function PinnedChatCard({
   return (
     <div
       dir="rtl"
-      className="fixed z-50 bottom-10 right-30 w-[320px] overflow-hidden rounded-3xl bg-white shadow-[0_10px_30px_rgba(17,45,39,0.14)]"
+      className="fixed bottom-4 right-4 z-50 w-[min(320px,calc(100vw-1rem))] overflow-hidden rounded-3xl bg-white shadow-[0_10px_30px_rgba(17,45,39,0.14)] sm:bottom-10 sm:right-6"
       style={{ maxHeight: isExpanded ? "440px" : "auto" }}
     >
       {/* الجزء الثابت اللي بيبان دايمًا — الكارد نفسه */}

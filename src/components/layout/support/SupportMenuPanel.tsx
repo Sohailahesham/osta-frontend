@@ -23,7 +23,7 @@ export default function SupportMenuPanel({
   return (
     <div
       dir="rtl"
-      className="absolute right-0 top-[calc(100%+12px)] z-50 w-60 rounded-[24px] border border-[#EAECE8] bg-white p-3 shadow-[0_18px_42px_rgba(17,45,39,0.18)]"
+      className="absolute right-0 top-[calc(100%+12px)] z-50 w-[min(15rem,calc(100vw-1rem))] rounded-[24px] border border-[#EAECE8] bg-white p-3 shadow-[0_18px_42px_rgba(17,45,39,0.18)]"
     >
       <div className="flex flex-col gap-1">
         <button

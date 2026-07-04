@@ -130,9 +130,14 @@ export default function Navbar() {
     setNotificationPanelOpen((prev) => {
       const next = !prev;
 
-      if (next && unreadCount > 0) {
-        void markAllAsRead();
-        clearLatestNotification();
+      if (next) {
+        setProfileOpen(false);
+        setSupportMenuOpen(false);
+        setMenuOpen(false);
+        if (unreadCount > 0) {
+          void markAllAsRead();
+          clearLatestNotification();
+        }
       }
       return next;
     });
@@ -153,7 +158,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="relative z-50 w-full lg:w-[90%] mx-auto bg-[#FEFEFE70]/50 backdrop-blur-md lg:rounded-full px-6 py-2 shadow-sm"
+      className="relative z-50 mx-auto w-full bg-[#FEFEFE70]/50 px-3 py-2 shadow-sm backdrop-blur-md sm:px-6 lg:w-[90%] lg:rounded-full lg:px-6"
       dir="rtl"
     >
       <div className="px-4 sm:px-6 lg:px-8">
@@ -267,7 +272,7 @@ export default function Navbar() {
   {profileOpen && (
     <div
       dir="rtl"
-      className="absolute end-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-[9999]"
+      className="absolute end-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-64 rounded-2xl border border-gray-100 bg-white py-2 shadow-lg z-[9999] sm:w-64"
     >
       {/* User info */}
       <div className="flex items-center justify-between px-4 py-3">

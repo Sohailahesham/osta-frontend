@@ -90,19 +90,19 @@ export default function BookingModal({ service, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-4"
+        className="mx-0 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white sm:mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {done ? (
           <BookingSuccess onClose={onClose} />
         ) : (
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             {/* Header */}
-            <div className="flex items-start justify-between mb-6">
+            <div className="mb-6 flex items-start justify-between gap-3">
               <button
                 onClick={onClose}
                 className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50"
@@ -110,16 +110,16 @@ export default function BookingModal({ service, onClose }: Props) {
                 <X size={16} className="text-gray-400" />
               </button>
               <div className="text-right">
-                <h2 className="text-2xl font-bold text-[var(--primary-color)]">
+                <h2 className="text-xl font-bold text-[var(--primary-color)] sm:text-2xl">
                   تحديد موعد لحجز
                 </h2>
                 <p className="text-gray-400 text-sm">{service.name}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
               {/* كارت الخدمة — ثابت */}
-              <div className="col-span-1" dir="rtl">
+              <div className="w-full" dir="rtl">
                 <h3 className="font-bold text-[var(--primary-color)] mb-3 text-right">
                   الخدمة المطلوبة
                 </h3>
@@ -165,13 +165,13 @@ export default function BookingModal({ service, onClose }: Props) {
               </div>
 
               {/* الفورم — ثابت الزرارين، متغير المحتوى */}
-              <div className="col-span-2" dir="rtl">
+              <div className="w-full" dir="rtl">
                 <h3 className="font-bold text-[var(--primary-color)] text-right mb-3">
                   موعد تنفيذ الخدمة
                 </h3>
 
                 {/* الزرارين — ثابتين دايماً */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <button
                     onClick={handleTodayClick}
                     className={`py-3 px-4 rounded-2xl border-2 text-sm transition-all

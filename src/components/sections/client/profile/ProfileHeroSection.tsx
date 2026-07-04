@@ -124,7 +124,7 @@ export default function ProfileHeroSection({
                     value={nameVal}
                     onChange={(e) => setNameVal(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="bg-transparent border-b-2 border-white/60 focus:border-[var(--accent-color)] text-white text-3xl md:text-4xl font-bold outline-none text-right w-64 transition-colors placeholder:text-white/40"
+                    className="w-full max-w-[16rem] border-b-2 border-white/60 bg-transparent text-right text-3xl font-bold text-white outline-none transition-colors placeholder:text-white/40 focus:border-[var(--accent-color)] md:max-w-[20rem] md:text-4xl"
                     dir="rtl"
                     maxLength={60}
                   />

@@ -332,7 +332,7 @@ export default function TechnicianReviewsPage() {
             />
           </div>
         ) : pendingTechnicians.length === 0 ? (
-          <div className="rounded-[34px] border border-[#E4ECE7] bg-white/90 p-12 text-center shadow-[0_20px_60px_rgba(17,45,39,0.08)]">
+          <div className="rounded-[34px] border border-[#E4ECE7] bg-white/90 p-6 text-center shadow-[0_20px_60px_rgba(17,45,39,0.08)] sm:p-12">
             <Clock3 className="mx-auto text-[#8AA198]" size={34} />
             <p className="mt-5 text-2xl font-bold text-[var(--primary-color)]">
               لا توجد طلبات مراجعة حالياً

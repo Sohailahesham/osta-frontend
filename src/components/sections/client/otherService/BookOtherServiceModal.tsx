@@ -262,7 +262,7 @@ export default function BookOtherServiceModal({
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
       dir="rtl"
     >
-      <div className="flex w-full sm:max-w-3xl flex-col overflow-hidden bg-gray-100  shadow-2xl h-full sm:h-[90vh] sm:rounded-[32px]">
+      <div className="flex h-full w-full max-w-3xl flex-col overflow-hidden bg-gray-100 shadow-2xl sm:h-[90vh] sm:rounded-[32px]">
         {/* Header */}
         <div className="flex items-start justify-between border-b bg-gray-50 border-gray-200 px-4 sm:px-8 py-6">
           <div className="text-right">

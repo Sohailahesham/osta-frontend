@@ -85,24 +85,30 @@ export default function UserRegisterPage() {
   >({});
   const [showFail, setShowFail] = useState(false);
   const [failMessage, setFailMessage] = useState("");
+  const [formError, setFormError] = useState("");
 
   const update = (field: keyof UserRegisterForm) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+    if (formError) setFormError("");
   };
 
   const validate = () => {
     const fieldErrors = validateSchema(userRegisterSchema, form);
     if (fieldErrors) {
       setErrors(fieldErrors as Partial<Record<keyof UserRegisterForm, string>>);
+      setFormError("");
       return false;
     }
     setErrors({});
+    setFormError("");
     return true;
   };
 
   const handleSubmit = async () => {
     if (!validate()) return;
+
+    setFormError("");
 
     try {
       const { data } = await registerUser({
@@ -122,11 +128,11 @@ export default function UserRegisterPage() {
       router.push(getPostLoginRoute(data.data.user));
     } catch (error: unknown) {
       const message = (error as ApiError).response?.data?.message;
-      setFailMessage(
-        Array.isArray(message)
-          ? message[0]
-          : message || "حدث خطأ، حاول مرة أخرى",
-      );
+      const nextMessage = Array.isArray(message)
+        ? message[0]
+        : message || "حدث خطأ، حاول مرة أخرى";
+      setFailMessage(nextMessage);
+      setFormError("");
       setShowFail(true);
     }
   };
@@ -169,6 +175,12 @@ export default function UserRegisterPage() {
           <p className="text-gray-400 text-xs sm:text-sm text-center mb-8">
             أنشئ حسابك للوصول إلى الحرفيين المؤهلين وطلب الخدمات بسهولة.
           </p>
+
+          {formError && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 text-right">
+              {formError}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

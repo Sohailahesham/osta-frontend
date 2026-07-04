@@ -111,7 +111,7 @@ export default function ProfileDropdown({
       ref={dropdownRef}
       dir="rtl"
       style={{ position: "absolute" }}
-      className="w-72 overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)] z-[9999]"
+      className="w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)] z-[9999]"
     >
       {/* Header */}
       <div className="primary-gradient flex items-center gap-3 px-5 py-5">

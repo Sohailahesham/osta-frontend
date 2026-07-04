@@ -78,7 +78,7 @@ export default function ServiceDetailsPage() {
           <span
             className="cursor-pointer hover:text-[var(--primary-color)] transition-colors"
             onClick={() =>
-              router.push(`/client/categories/${service.category._id}`)
+              router.push("/client/categories")
             }
           >
             {service.category.name}
@@ -94,7 +94,7 @@ export default function ServiceDetailsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="flex flex-col-reverse lg:flex-row gap-8">
           {/* الجانب الأيسر */}
-          <div className="lg:w-80 flex-shrink-0">
+          <div className="w-full lg:w-80 lg:flex-shrink-0">
             <div className="top-24 flex flex-col gap-4">
               {/* بطاقة السعر */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">

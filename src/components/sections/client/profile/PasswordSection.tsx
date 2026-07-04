@@ -174,7 +174,7 @@ export default function PasswordSection({
       )}
 
       <div
-        className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+        className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6"
         dir="rtl"
       >
         {/* Header */}

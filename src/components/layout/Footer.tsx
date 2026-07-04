@@ -32,7 +32,8 @@ export default function Footer() {
 
   return (
     <footer className="primary-gradient" dir="rtl">
-      <div className="w-4/5 mx-auto py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
+      <div className="mx-auto w-[90%] max-w-7xl px-4 py-10 sm:w-4/5 sm:px-0 sm:py-16 lg:px-0">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Image
@@ -52,7 +53,7 @@ export default function Footer() {
         {/* الوسط — روابط سريعة */}
         <div className="flex flex-col gap-4">
           <h3 className="text-white font-bold text-base">روابط سريعة</h3>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
             {QUICK_LINKS_COL1.map((link) => (
               <button
                 key={link.label}
@@ -107,13 +108,13 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="w-4/5 mx-auto h-px bg-white/10" />
+      <div className="mx-auto mt-4 h-px w-[90%] bg-white/10 sm:w-4/5" />
 
       <div
-        className="w-4/5 mx-auto py-5 flex items-center justify-between"
+        className="mx-auto flex flex-col gap-3 px-4 py-5 text-center sm:w-4/5 sm:flex-row sm:items-center sm:justify-between sm:px-0 sm:text-right"
         dir="ltr"
       >
-        <div className="flex items-center gap-2 text-white/40 text-xs">
+        <div className="flex flex-wrap items-center justify-center gap-2 text-white/40 text-xs sm:justify-start">
           <button className="hover:text-white/70 transition-all">
             Cookie Policy
           </button>
@@ -125,6 +126,7 @@ export default function Footer() {
         <p className="text-white/40 text-xs">
           © 2026 أسطى . جميع الحقوق محفوظة
         </p>
+      </div>
       </div>
     </footer>
   );

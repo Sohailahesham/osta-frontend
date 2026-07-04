@@ -12,8 +12,8 @@ export default function AIDiagnosis() {
           "linear-gradient(90deg,#1B5647 0%, #205C4C 50%, #1B5647 100%)",
       }}
     >
-      <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           {/* RIGHT — Content */}
           <div className="order-1">
             <div className="text-right">
@@ -26,7 +26,7 @@ export default function AIDiagnosis() {
             </div>
 
             {/* Chat Card */}
-            <div className="mt-8 lg:mt-12 rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/10 p-4 w-full max-w-[520px]">
+            <div className="mt-8 w-full max-w-[520px] rounded-[28px] border border-white/10 bg-white/10 p-4 backdrop-blur-xl lg:mt-12">
               {/* Message Area */}
               <div className="rounded-[20px] bg-white/10 min-h-[120px] lg:min-h-[140px] p-4 sm:p-6">
                 <p className="text-right text-white/90 leading-8 text-sm sm:text-base">
@@ -72,17 +72,17 @@ export default function AIDiagnosis() {
             */}
 
             {/* Mobile layout */}
-            <div className="lg:hidden w-full flex flex-col items-center gap-6">
+            <div className="flex w-full flex-col items-center gap-6 lg:hidden">
               <Image
                 src={aibg}
                 alt="AI Diagnosis"
                 width={500}
                 height={460}
-                className="rounded-[30px] object-cover w-full max-w-[420px] h-auto shadow-2xl"
+                className="h-auto w-full max-w-[420px] rounded-[30px] object-cover shadow-2xl"
               />
 
               {/* Bubble shown below image on mobile */}
-              <div className="w-full max-w-[420px] rounded-[24px] bg-white/20 backdrop-blur-xl border border-white/20 p-4">
+              <div className="w-full max-w-[420px] rounded-[24px] border border-white/20 bg-white/20 p-4 backdrop-blur-xl">
                 <p className="text-right text-white leading-7 text-sm">
                   يبدو أن المشكلة مرتبطة بخدمة سباكة وقد تحتاج إلى فحص السيفون
                   أو تغيير بعض التوصيلات
@@ -91,7 +91,7 @@ export default function AIDiagnosis() {
             </div>
 
             {/* Desktop layout — original decorative positioning preserved */}
-            <div className="hidden lg:block relative w-fit">
+            <div className="relative hidden w-fit lg:block">
               <Image
                 src={aibg}
                 alt="AI Diagnosis"

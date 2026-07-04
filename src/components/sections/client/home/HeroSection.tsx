@@ -34,19 +34,19 @@ export default function HeroSection() {
       
       {/* المحتوى */}
       <div className="absolute inset-0 flex items-center justify-start">
-        <div className="px-8 md:px-16 lg:px-24 text-right">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
+        <div className="px-4 py-8 text-right sm:px-8 md:px-16 lg:px-24">
+          <h1 className="mb-4 text-3xl font-bold leading-tight text-white md:text-5xl">
             مرحبًا بك في أُسطى
           </h1>
-          <p className="max-w-md text-white/80 text-sm md:text-base mb-8 leading-relaxed">
+          <p className="mb-8 max-w-md text-sm leading-relaxed text-white/80 md:text-base">
             ابحث عن الحرفي المناسب أو استعرض الخدمات المتاحة لإنجاز أعمال
             الصيانة والأعمال المنزلية بسهولة.
           </p>
 
-          <div className="flex items-center gap-4 justify-start">
+          <div className="flex flex-wrap items-center justify-start gap-3 sm:gap-4">
             <Button
               onClick={() => router.push("/client/smart-request")}
-              className="!w-70 !h-12"
+              className="!h-12 !w-full sm:!w-70"
             >
               الطلب الذكي
             </Button>

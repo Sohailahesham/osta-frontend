@@ -30,7 +30,7 @@ const progressSteps = [
 export default function HeroSection() {
   return (
     <section dir="ltr" className="w-full ">
-      <div className="relative min-h-[720px] lg:h-[720px] overflow-hidden rounded-bl-[40px] rounded-br-[40px]">
+      <div className="relative min-h-[720px] overflow-hidden rounded-bl-[40px] rounded-br-[40px] lg:h-[720px]">
         {/* Background */}
         <Image
           src={heroBg}
@@ -45,11 +45,11 @@ export default function HeroSection() {
 
         {/* Content */}
         {/* Content */}
-        <div className="relative z-10 h-full px-4 sm:px-6 lg:px-16 pt-24 sm:pt-28 lg:pt-0 pb-10 lg:pb-0">
-          <div className="grid lg:grid-cols-2 h-full items-center gap-10">
+        <div className="relative z-10 h-full px-4 pb-10 pt-24 sm:px-6 sm:pt-28 lg:px-16 lg:pb-0 lg:pt-0">
+          <div className="grid h-full items-center gap-10 lg:grid-cols-2">
             {/* LEFT SIDE — Cards */}
-            <div className="relative flex justify-center lg:justify-start order-2 lg:order-1">
-              <div className="relative w-full max-w-[470px] rounded-[32px] bg-white/20 backdrop-blur-xl border border-white/20 p-4 sm:p-6 shadow-2xl">
+            <div className="relative order-2 flex justify-center lg:order-1 lg:justify-start">
+              <div className="relative w-full max-w-[470px] rounded-[32px] border border-white/20 bg-white/20 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
                 {/* Technician Cards */}
                 <div className="space-y-3 sm:space-y-4">
                   {techCards.map((card, index) => (
@@ -136,7 +136,7 @@ export default function HeroSection() {
                 </div>
 
                 {/* Progress */}
-                <div className="mt-6 sm:mt-10 px-2 sm:px-4">
+                <div className="mt-6 px-2 sm:mt-10 sm:px-4">
                   <div className="relative">
                     <div className="absolute top-3 left-8 right-8 h-[2px] bg-[var(--accent-color)]/50" />
                     <div className="relative flex justify-between">
@@ -172,13 +172,13 @@ export default function HeroSection() {
             </div>
 
             {/* RIGHT SIDE — Headline */}
-            <div className="text-right text-white order-1 lg:order-2 ">
-              <h1 className="font-black leading-[1.2] text-4xl sm:text-5xl lg:text-6xl">
+            <div className="order-1 text-right text-white lg:order-2">
+              <h1 className="text-4xl font-black leading-[1.2] sm:text-5xl lg:text-6xl">
                 اطلب فني موثوق في
                 <br />
                 دقائق
               </h1>
-              <p className="mt-4 sm:mt-6 text-white/85 text-base sm:text-lg leading-7 sm:leading-8 max-w-xl mr-auto lg:mr-0">
+              <p className="mr-auto mt-4 max-w-xl text-base leading-7 text-white/85 sm:mt-6 sm:text-lg sm:leading-8 lg:mr-0">
                 منصة ذكية تربطك بالحرفيين المناسبين بسرعة، مع تسعير تقديري
                 ومتابعة لحالة الطلب لحظة بلحظة.
               </p>
