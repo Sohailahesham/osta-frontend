@@ -33,7 +33,7 @@ function StarRow({ rating, filled }: { rating: number; filled: boolean }) {
 
 function StarsDisplay({ rating }: { rating: number }) {
   return (
-    <div className="flex gap-0.5" >
+    <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
         <StarRow key={s} rating={s} filled={s <= Math.round(rating)} />
       ))}
@@ -85,7 +85,7 @@ function ReviewCard({ review }: { review: Review }) {
 
       {/* Quote mark + comment */}
       <div className="relative">
-        <span className="absolute -top-1 -right-1 text-4xl leading-none text-[var(--accent-color)] font-serif select-none">
+        <span className="absolute -top-8 -left-1 text-4xl leading-none text-[var(--accent-color)] font-serif select-none">
           "
         </span>
         <p className="pt-4 text-sm leading-relaxed text-gray-600">
@@ -94,13 +94,13 @@ function ReviewCard({ review }: { review: Review }) {
       </div>
 
       {/* Client info */}
-      <div className="flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
-        <span className="text-sm font-bold text-[#112D27]">
-          {review.userId?.fullName ?? "عميل"}
-        </span>
+      <div className="flex items-center gap-3 border-t border-gray-100 pt-3">
         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--secondary-color)] text-xs font-bold text-[var(--primary-color)]">
           {initials}
         </div>
+        <span className="text-sm font-bold text-[#112D27]">
+          {review.userId?.fullName ?? "عميل"}
+        </span>
       </div>
     </div>
   );
@@ -149,7 +149,10 @@ export default function ReviewsSection({
       </div>
 
       {/* Rating summary card */}
-      <div className="rounded-[20px] border border-[#EAECE8] bg-white p-6 shadow-sm" dir="ltr">
+      <div
+        className="rounded-[20px] border border-[#EAECE8] bg-white p-6 shadow-sm"
+        dir="ltr"
+      >
         {loading ? (
           <div className="flex justify-center py-6">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--primary-color)] border-t-transparent" />
@@ -187,9 +190,11 @@ export default function ReviewsSection({
 
       {!loading && reviews.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {reviews.map((review) => (
-            <ReviewCard key={review._id} review={review} />
-          ))}
+          {reviews.map((review) => {
+            if (review.comment)
+              return <ReviewCard key={review._id} review={review} />;
+            return null;
+          })}
         </div>
       )}
     </div>
