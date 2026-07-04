@@ -54,6 +54,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [supportMenuOpen, setSupportMenuOpen] = useState(false);
   const supportMenuRef = useRef<HTMLDivElement>(null);
@@ -93,6 +94,41 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
+
+  // Position profile dropdown near its anchor and keep it within viewport
+  useEffect(() => {
+    const position = () => {
+      if (!profileRef.current || !dropdownRef.current) return;
+      const rect = profileRef.current.getBoundingClientRect();
+      const dropdownWidth = dropdownRef.current.offsetWidth;
+
+      let left = rect.left + window.scrollX - dropdownWidth + rect.width;
+      if (left < 8) left = 8;
+      const maxLeft = window.innerWidth - dropdownWidth - 8 + window.scrollX;
+      if (left > maxLeft) left = maxLeft;
+
+      // choose above if not enough space below
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom - 8;
+      const dropdownHeight = dropdownRef.current.offsetHeight || 260;
+
+      if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
+        dropdownRef.current.style.top = `${rect.top + window.scrollY - dropdownHeight - 8}px`;
+      } else {
+        dropdownRef.current.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      }
+
+      dropdownRef.current.style.left = `${left}px`;
+    };
+
+    if (profileOpen) position();
+    window.addEventListener("resize", position);
+    window.addEventListener("scroll", position, true);
+    return () => {
+      window.removeEventListener("resize", position);
+      window.removeEventListener("scroll", position, true);
+    };
+  }, [profileOpen]);
 
   const handleLogout = async () => {
     setProfileOpen(false);
@@ -271,8 +307,9 @@ export default function Navbar() {
 
   {profileOpen && (
     <div
+      ref={dropdownRef}
       dir="rtl"
-      className="absolute end-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-64 rounded-2xl border border-gray-100 bg-white py-2 shadow-lg z-[9999] sm:w-64"
+      className="absolute top-full mt-2 w-[min(18rem,calc(100vw-1rem))] max-w-64 rounded-2xl border border-gray-100 bg-white py-2 shadow-lg z-[99999]"
     >
       {/* User info */}
       <div className="flex items-center justify-between px-4 py-3">
