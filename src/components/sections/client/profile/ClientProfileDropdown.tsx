@@ -99,7 +99,7 @@ export default function ClientProfileDropdown({ currentUser, onClose, anchorRef 
     <div
       ref={dropdownRef}
       dir="rtl"
-      style={{ position: "absolute" }}
+      style={{ position: "fixed" }}
       className="z-[99999] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)]"
     >
       <div className="flex items-center gap-3 px-5 py-5 primary-gradient">

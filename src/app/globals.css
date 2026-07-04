@@ -34,3 +34,18 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Keep overlays above page content */
+:root {
+  --overlay-z-index: 99999;
+}
+
+nav,
+[role="navigation"] {
+  position: relative;
+  z-index: 60;
+}
+
+body {
+  overflow-x: hidden;
+}
