@@ -9,11 +9,19 @@ export function getErrorMessage(error: unknown, p0?: string): string {
 }
 
 export function getInvoiceAmounts(request: ClientRequest) {
-  return {
-    subtotal: request.invoice?.subtotal ?? 0,
-    tax: request.invoice?.tax ?? 0,
-    total: request.invoice?.total ?? 0,
-    prepaid: 0,
-    remaining: request.invoice?.total ?? 0,
-  };
+    const servicePrice = request.servicePrice ?? 0;
+    const materialsPrice = request.extraMaterialsPrice ?? 0;
+    const total = request.totalPrice ?? servicePrice + materialsPrice;
+
+    const prepaid = request.depositStatus === "paid" ? request.depositAmount ?? 0 : 0;
+
+    const remaining = request.isFullyPaid ? 0 : Math.max(total - prepaid, 0);
+
+    return {
+        servicePrice,
+        materialsPrice,
+        total,
+        prepaid,
+        remaining,
+    };
 }

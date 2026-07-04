@@ -107,7 +107,9 @@ export default function ClientTrackingPage({
   }, [request, fetchRequest]);
 
   const handlePay = async () => {
-    if (!request) return;
+    if (!request) {
+      return;
+    }
 
     const { remaining } = getInvoiceAmounts(request);
     if (remaining <= 0) {
@@ -119,9 +121,7 @@ export default function ClientTrackingPage({
     setPayError("");
 
     try {
-      const response = await api.post<{ data?: { paymentUrl?: string } }>(
-        `/payment/remaining/${requestId}`,
-      );
+      const response = await api.post(`/payment/remaining/${requestId}`);
       const paymentUrl = response.data?.data?.paymentUrl;
 
       if (paymentUrl) {
