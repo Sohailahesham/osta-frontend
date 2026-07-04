@@ -85,8 +85,8 @@ function ReviewCard({ review }: { review: Review }) {
 
       {/* Quote mark + comment */}
       <div className="relative">
-        <span className="absolute -top-8 -left-1 text-4xl leading-none text-[var(--accent-color)] font-serif select-none">
-          "
+        <span className="absolute -top-8 -left-1 text-4xl leading-none text-[var(--accent-color)] font-bold opacity-25 pointer-events-none font-serif select-none">
+          “
         </span>
         <p className="pt-4 text-sm leading-relaxed text-gray-600">
           {review.comment}
