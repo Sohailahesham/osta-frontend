@@ -81,6 +81,7 @@ export default function Navbar() {
     markAllAsRead,
     clearLatestNotification,
   } = useNotifications(notificationSocket, userId);
+  const bellRef = useRef<HTMLButtonElement | null>(null);
 
   const handleBellClick = () => {
     setNotificationPanelOpen((prev) => {
@@ -263,6 +264,7 @@ export default function Navbar() {
             {/* ── NOTIFICATION BELL ─────────────────────────────────────────────── */}
             <div className="relative">
               <button
+                ref={bellRef}
                 onClick={handleBellClick}
                 className="relative flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-gray-100 hover:text-[var(--primary-color)]"
               >
@@ -285,6 +287,7 @@ export default function Navbar() {
                   notifications={notifications}
                   isLoading={isLoading}
                   onClose={() => setNotificationPanelOpen(false)}
+                  anchorRef={bellRef}
                   targetRoute="/technician/orders"
                 />
               )}

@@ -24,6 +24,7 @@ interface NotificationPanelProps {
   isLoading: boolean;
   onClose: () => void;
   targetRoute: string;
+  anchorRef?: React.RefObject<HTMLElement>;
 }
 
 export default function NotificationPanel({
@@ -31,9 +32,54 @@ export default function NotificationPanel({
   isLoading,
   onClose,
   targetRoute,
+  anchorRef,
 }: NotificationPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Position the panel relative to anchor on desktop
+  useEffect(() => {
+    const position = () => {
+      const panel = panelRef.current;
+      const anchor = anchorRef?.current;
+      if (!panel) return;
+
+      // mobile: let CSS handle full-width fixed panel
+      if (!anchor || window.innerWidth < 640) {
+        panel.style.removeProperty("left");
+        panel.style.removeProperty("top");
+        return;
+      }
+
+      const rect = anchor.getBoundingClientRect();
+      const dropdownWidth = panel.offsetWidth;
+
+      let left = rect.left + window.scrollX - dropdownWidth + rect.width;
+      if (left < 8) left = 8;
+      const maxLeft = window.innerWidth - dropdownWidth - 8 + window.scrollX;
+      if (left > maxLeft) left = maxLeft;
+
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom - 8;
+      const dropdownHeight = panel.offsetHeight || 260;
+
+      if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
+        panel.style.top = `${rect.top + window.scrollY - dropdownHeight - 8}px`;
+      } else {
+        panel.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      }
+
+      panel.style.left = `${left}px`;
+    };
+
+    position();
+    window.addEventListener("resize", position);
+    window.addEventListener("scroll", position, true);
+    return () => {
+      window.removeEventListener("resize", position);
+      window.removeEventListener("scroll", position, true);
+    };
+  }, [anchorRef, notifications.length, isLoading]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

@@ -21,6 +21,7 @@ import bellIcon from "@/assets/icons/notification.svg";
 import userIcon from "@/assets/icons/user.svg";
 
 import { api } from "@/api/axios";
+import ClientProfileDropdown from "@/components/sections/client/profile/ClientProfileDropdown";
 
 import { useSocket } from "@/hooks/useSocket";
 import { useUnreadTotal } from "@/hooks/useUnreadTotal";
@@ -54,7 +55,6 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [supportMenuOpen, setSupportMenuOpen] = useState(false);
   const supportMenuRef = useRef<HTMLDivElement>(null);
@@ -95,40 +95,7 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  // Position profile dropdown near its anchor and keep it within viewport
-  useEffect(() => {
-    const position = () => {
-      if (!profileRef.current || !dropdownRef.current) return;
-      const rect = profileRef.current.getBoundingClientRect();
-      const dropdownWidth = dropdownRef.current.offsetWidth;
-
-      let left = rect.left + window.scrollX - dropdownWidth + rect.width;
-      if (left < 8) left = 8;
-      const maxLeft = window.innerWidth - dropdownWidth - 8 + window.scrollX;
-      if (left > maxLeft) left = maxLeft;
-
-      // choose above if not enough space below
-      const viewportHeight = window.innerHeight;
-      const spaceBelow = viewportHeight - rect.bottom - 8;
-      const dropdownHeight = dropdownRef.current.offsetHeight || 260;
-
-      if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
-        dropdownRef.current.style.top = `${rect.top + window.scrollY - dropdownHeight - 8}px`;
-      } else {
-        dropdownRef.current.style.top = `${rect.bottom + window.scrollY + 8}px`;
-      }
-
-      dropdownRef.current.style.left = `${left}px`;
-    };
-
-    if (profileOpen) position();
-    window.addEventListener("resize", position);
-    window.addEventListener("scroll", position, true);
-    return () => {
-      window.removeEventListener("resize", position);
-      window.removeEventListener("scroll", position, true);
-    };
-  }, [profileOpen]);
+  
 
   const handleLogout = async () => {
     setProfileOpen(false);
@@ -161,6 +128,7 @@ export default function Navbar() {
     markAllAsRead,
     clearLatestNotification,
   } = useNotifications(notificationSocket, userId);
+  const bellRef = useRef<HTMLButtonElement>(null);
 
   const handleBellClick = () => {
     setNotificationPanelOpen((prev) => {
@@ -268,6 +236,7 @@ export default function Navbar() {
             {/* ── NOTIFICATION BELL ─────────────────────────────────────────────── */}
             <div className="relative">
               <button
+                ref={bellRef}
                 onClick={handleBellClick}
                 className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all hover:text-[var(--primary-color)]"
               >
@@ -291,100 +260,29 @@ export default function Navbar() {
                   notifications={notifications}
                   isLoading={isLoading}
                   onClose={() => setNotificationPanelOpen(false)}
+                  anchorRef={bellRef}
                   targetRoute="/client/orders"
                 />
               )}
             </div>
             {/* ─────────────────────────────────────────────────────────────────────── */}
 
-            <div className="relative" ref={profileRef}>
-  <button
-    onClick={() => setProfileOpen((prev) => !prev)}
-    className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
-  >
-    <Image src={userIcon} alt="Profile" width={24} height={24} />
-  </button>
+                      <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setProfileOpen((prev) => !prev)}
+              className="w-9 h-9 flex items-center justify-center rounded-full text-[#112D27] hover:bg-gray-100 transition-all text-gray-500 hover:text-[var(--primary-color)]"
+            >
+              <Image src={userIcon} alt="Profile" width={24} height={24} />
+            </button>
 
-  {profileOpen && (
-    <div
-      ref={dropdownRef}
-      dir="rtl"
-      className="absolute top-full mt-2 w-[min(18rem,calc(100vw-1rem))] max-w-64 rounded-2xl border border-gray-100 bg-white py-2 shadow-lg z-[99999]"
-    >
-      {/* User info */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="min-w-0 text-right">
-          {currentUser ? (
-            <>
-              <p className="text-sm font-semibold text-[#112D27] truncate">
-                {currentUser.fullName}
-              </p>
-              <p className="text-xs text-gray-400 truncate">
-                {currentUser.email}
-              </p>
-            </>
-          ) : (
-            <div className="space-y-1.5">
-              <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
-              <div className="h-2.5 w-36 bg-gray-100 rounded animate-pulse" />
-            </div>
-          )}
-        </div>
-
-        <div className="w-10 h-10 rounded-full text-white bg-[var(--primary-color)] flex items-center justify-center font-bold text-lg flex-shrink-0">
-          {currentUser ? (
-            userInitial
-          ) : (
-            <span className="w-5 h-5 rounded-full bg-gray-200 animate-pulse block" />
-          )}
-        </div>
-      </div>
-
-      <div className="border-t border-gray-100" />
-
-      {/* Profile */}
-      <Link
-        href="/client/profile"
-        onClick={() => setProfileOpen(false)}
-        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
-      >
-        <User size={18}  />
-        <span>الملف الشخصي</span>
-      </Link>
-
-      {/* Orders */}
-      <Link
-        href="/client/orders-history"
-        onClick={() => setProfileOpen(false)}
-        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
-      >
-        <CreditCard size={18}  />
-        <span>سجل الطلبات</span>
-      </Link>
-
-      {/* Invoices */}
-      <Link
-        href="/client/invoices"
-        onClick={() => setProfileOpen(false)}
-        className="flex items-center justify-between flex-row-reverse px-5 py-4 text-sm text-[#112D27] hover:bg-gray-50 transition-all"
-      >
-        <FileText size={18}  />
-        <span>الفواتير</span>
-      </Link>
-
-      <div className="border-t border-gray-100" />
-
-      {/* Logout */}
-      <button
-        onClick={handleLogout}
-        className="w-full flex items-center justify-between flex-row-reverse px-4 py-4 text-sm text-red-500 hover:bg-red-50 transition-all"
-      >
-        <LogOut size={18} />
-        <span>تسجيل الخروج</span>
-      </button>
-    </div>
-  )}
-</div>
+            {profileOpen && (
+              <ClientProfileDropdown
+                currentUser={currentUser}
+                onClose={() => setProfileOpen(false)}
+                anchorRef={profileRef}
+              />
+            )}
+          </div>
 
             {/* زرار الموبايل */}
             <button
