@@ -98,7 +98,7 @@ export default function NotificationPanel({
                   </span>
                 </span>
 
-                <span className="line-clamp-2 break-words text-xs leading-snug text-gray-500">
+                <span className="break-words text-xs leading-5 text-gray-500">
                   {notification.body}
                 </span>
 

@@ -62,7 +62,15 @@ export default function ProfileDropdown({
         left = maxLeft;
       }
 
-      dropdownRef.current.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom - 8;
+      const dropdownHeight = dropdownRef.current.offsetHeight || 260;
+
+      if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
+        dropdownRef.current.style.top = `${rect.top + window.scrollY - dropdownHeight - 8}px`;
+      } else {
+        dropdownRef.current.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      }
 
       dropdownRef.current.style.left = `${left}px`;
     };
@@ -111,7 +119,7 @@ export default function ProfileDropdown({
       ref={dropdownRef}
       dir="rtl"
       style={{ position: "absolute" }}
-      className="w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)] z-[9999]"
+      className="z-[99999] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)]"
     >
       {/* Header */}
       <div className="primary-gradient flex items-center gap-3 px-5 py-5">
