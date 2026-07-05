@@ -53,3 +53,6 @@ git add .
 git commit -m "setup project structure"
 
 git push origin feature/project-setup
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat

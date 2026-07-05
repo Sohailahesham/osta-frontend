@@ -198,7 +198,7 @@ export default function WalletPage() {
               .map((tx) => (
                 <div
                   key={tx._id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 "
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm"
                 >
                   <div className="flex items-center gap-3">
                     <span
