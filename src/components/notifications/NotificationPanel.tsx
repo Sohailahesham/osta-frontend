@@ -28,7 +28,7 @@ interface NotificationPanelProps {
   // العنصر الأب (relative wrapper) بالظبط زي الـ profile dropdown.
   // سايبينه في الـ interface عشان الأماكن اللي بتستدعي الكومبوننت
   // متتأثرش (Navbar لسه بيبعت anchorRef).
-  anchorRef?: React.RefObject<HTMLElement>;
+  anchorRef?: React.RefObject<HTMLElement | null> ;
 }
 
 export default function NotificationPanel({

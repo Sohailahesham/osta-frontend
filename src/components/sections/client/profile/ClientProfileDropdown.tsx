@@ -15,7 +15,7 @@ interface CurrentUser {
 interface Props {
   currentUser: CurrentUser | null;
   onClose: () => void;
-  anchorRef: React.RefObject<HTMLElement>;
+  anchorRef: React.RefObject<HTMLElement | null>;
 }
 
 export default function ClientProfileDropdown({ currentUser, onClose, anchorRef }: Props) {
