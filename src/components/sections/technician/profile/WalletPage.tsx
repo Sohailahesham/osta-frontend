@@ -184,21 +184,21 @@ export default function WalletPage() {
       </div>
 
       {!error && wallet && wallet.transactions.length > 0 && (
-        <div className="mt-6">
+        <div className="m-6 mt-8 flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-6">
           <h4
             className="mb-3 text-sm font-bold"
             style={{ color: "var(--gray-color)" }}
           >
             آخر العمليات
           </h4>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 ">
             {wallet.transactions
               .slice()
               .reverse()
               .map((tx) => (
                 <div
                   key={tx._id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 "
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -213,7 +213,7 @@ export default function WalletPage() {
                       {tx.type === "credit" ? (
                         <ArrowDownLeft
                           className="h-4 w-4"
-                          style={{ color: "var(--primary-color)" }}
+                          style={{ color: "var(--accent-color)" }}
                         />
                       ) : (
                         <ArrowUpRight className="h-4 w-4 text-red-500" />
@@ -221,7 +221,11 @@ export default function WalletPage() {
                     </span>
                     <div>
                       <p className="text-xs font-bold text-gray-700 line-clamp-1 max-w-[220px]">
-                        {tx.description}
+                        {tx.description.toLowerCase().includes("withdrawal")
+                          ? "سحب رصيد"
+                          : tx.description.toLowerCase().includes("payment")
+                          ? "دفع من العميل"
+                          : tx.description}
                       </p>
                       <p className="mt-0.5 text-[11px] text-gray-400">
                         {formatDate(tx.createdAt)} ·{" "}

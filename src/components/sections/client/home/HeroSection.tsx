@@ -45,10 +45,10 @@ export default function HeroSection() {
 
           <div className="flex flex-wrap items-center justify-start gap-3 sm:gap-4">
             <Button
-              onClick={() => router.push("/client/smart-request")}
+              onClick={() => router.push("/client/categories")}
               className="!h-12 !w-full sm:!w-70"
             >
-              الطلب الذكي
+             تصفح الاقسام و الخدمات
             </Button>
             <div className="w-12 h-12 rounded-full bg-[var(--accent-color)] hover:bg[var(--accent-hover)] flex items-center justify-center">
               <ArrowUpLeft size={20} className="text-[var(--primary-color)]" />
