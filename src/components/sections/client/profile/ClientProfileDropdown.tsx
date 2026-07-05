@@ -39,9 +39,12 @@ export default function ClientProfileDropdown({ currentUser, onClose, anchorRef 
       const rect = anchor.getBoundingClientRect();
       const dropdownWidth = el.offsetWidth;
 
-      let left = rect.left + window.scrollX - dropdownWidth + rect.width;
+      // ملحوظة: العنصر position: fixed، يبقى إحداثياته لازم تكون بالنسبة
+      // للـ viewport فقط، من غير إضافة window.scrollX / window.scrollY
+      // (لأن getBoundingClientRect أصلاً بيرجع إحداثيات viewport-relative).
+      let left = rect.left - dropdownWidth + rect.width;
       if (left < 8) left = 8;
-      const maxLeft = window.innerWidth - dropdownWidth - 8 + window.scrollX;
+      const maxLeft = window.innerWidth - dropdownWidth - 8;
       if (left > maxLeft) left = maxLeft;
 
       const viewportHeight = window.innerHeight;
@@ -49,9 +52,9 @@ export default function ClientProfileDropdown({ currentUser, onClose, anchorRef 
       const dropdownHeight = el.offsetHeight || 260;
 
       if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
-        el.style.top = `${rect.top + window.scrollY - dropdownHeight - 8}px`;
+        el.style.top = `${rect.top - dropdownHeight - 8}px`;
       } else {
-        el.style.top = `${rect.bottom + window.scrollY + 8}px`;
+        el.style.top = `${rect.bottom + 8}px`;
       }
 
       el.style.left = `${left}px`;
@@ -77,8 +80,17 @@ export default function ClientProfileDropdown({ currentUser, onClose, anchorRef 
         onClose();
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    // بنأخر إضافة الـ listener شوية عشان نتجنب إن نفس اللمسة اللي فتحت
+    // الدروب داون (على الموبايل) تتفسر كـ "كليك برة" وتقفله فورًا في نفس اللحظة.
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [onClose, anchorRef]);
 
   const handleLogout = async () => {
@@ -100,7 +112,7 @@ export default function ClientProfileDropdown({ currentUser, onClose, anchorRef 
       ref={dropdownRef}
       dir="rtl"
       style={{ position: "fixed" }}
-      className="z-[99999] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)]"
+      className="fixed inset-x-3 top-16 z-[99999] w-[calc(100vw-1.5rem)] overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)] sm:inset-auto sm:top-auto sm:w-[min(18rem,calc(100vw-1rem))]"
     >
       <div className="flex items-center gap-3 px-5 py-5 primary-gradient">
         <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-[var(--primary-color)]">

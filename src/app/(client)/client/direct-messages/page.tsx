@@ -74,6 +74,23 @@ export default function ClientDirectMessagesPage() {
     [pathname, router, searchParams]
   );
 
+  // 🔧 رجوع لقائمة المحادثات على الموبايل: بيمسح الغرفة النشطة وبراميترات الـ URL
+  const handleBackToList = useCallback(() => {
+    setActiveRoom(null);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("requestId");
+    params.delete("postId");
+    params.delete("technicianId");
+    params.delete("title");
+    params.delete("clientName");
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [pathname, router, searchParams]);
+
   const refreshRooms = useCallback(
     async (silent = false) => {
       if (!isReady) return;
@@ -156,6 +173,7 @@ export default function ClientDirectMessagesPage() {
   return (
     <DirectMessagesLayout
       navbar={<Navbar />}
+      isRoomSelected={!!activeRoom}
       chatWindow={
         !isReady || !userId ? (
           <div className="flex-1 flex items-center justify-center">
@@ -169,6 +187,7 @@ export default function ClientDirectMessagesPage() {
             onHistoryLoaded={() => {
               void refreshRooms(true);
             }}
+            onBack={handleBackToList}
           />
         )
       }

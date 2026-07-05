@@ -5,7 +5,7 @@ import Navbar from "@/components/layout/technician/Navbar";
 export default function HeroSection() {
   return (
     <section
-      className="primary-gradient relative w-full min-h-[30vh] overflow-hidden"
+      className="primary-gradient relative w-full min-h-[30vh]"
       dir="rtl"
     >
       {/* الناف بار فوق كل حاجة */}

@@ -73,6 +73,22 @@ export default function TechnicianDirectMessagesPage() {
     [pathname, router, searchParams]
   );
 
+  const handleBackToList = useCallback(() => {
+    setActiveRoom(null);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("requestId");
+    params.delete("postId");
+    params.delete("technicianId");
+    params.delete("title");
+    params.delete("clientName");
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [pathname, router, searchParams]);
+
   const refreshRooms = useCallback(
     async (silent = false) => {
       if (!isReady) return;
@@ -154,6 +170,7 @@ export default function TechnicianDirectMessagesPage() {
   return (
     <DirectMessagesLayout
       navbar={<Navbar />}
+      isRoomSelected={!!activeRoom}
       chatWindow={
         !isReady || !userId ? (
           <div className="flex-1 flex items-center justify-center">
@@ -167,6 +184,7 @@ export default function TechnicianDirectMessagesPage() {
             onHistoryLoaded={() => {
               void refreshRooms(true);
             }}
+            onBack={handleBackToList}
           />
         )
       }

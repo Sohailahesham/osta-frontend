@@ -24,6 +24,10 @@ interface NotificationPanelProps {
   isLoading: boolean;
   onClose: () => void;
   targetRoute: string;
+  // 🔧 مبقاش محتاجينه فعليًا — البانل بقى بيتمركز بالـ CSS بس تحت
+  // العنصر الأب (relative wrapper) بالظبط زي الـ profile dropdown.
+  // سايبينه في الـ interface عشان الأماكن اللي بتستدعي الكومبوننت
+  // متتأثرش (Navbar لسه بيبعت anchorRef).
   anchorRef?: React.RefObject<HTMLElement>;
 }
 
@@ -32,54 +36,9 @@ export default function NotificationPanel({
   isLoading,
   onClose,
   targetRoute,
-  anchorRef,
 }: NotificationPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  // Position the panel relative to anchor on desktop
-  useEffect(() => {
-    const position = () => {
-      const panel = panelRef.current;
-      const anchor = anchorRef?.current;
-      if (!panel) return;
-
-      // mobile: let CSS handle full-width fixed panel
-      if (!anchor || window.innerWidth < 640) {
-        panel.style.removeProperty("left");
-        panel.style.removeProperty("top");
-        return;
-      }
-
-      const rect = anchor.getBoundingClientRect();
-      const dropdownWidth = panel.offsetWidth;
-
-      let left = rect.left + window.scrollX - dropdownWidth + rect.width;
-      if (left < 8) left = 8;
-      const maxLeft = window.innerWidth - dropdownWidth - 8 + window.scrollX;
-      if (left > maxLeft) left = maxLeft;
-
-      const viewportHeight = window.innerHeight;
-      const spaceBelow = viewportHeight - rect.bottom - 8;
-      const dropdownHeight = panel.offsetHeight || 260;
-
-      if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
-        panel.style.top = `${rect.top + window.scrollY - dropdownHeight - 8}px`;
-      } else {
-        panel.style.top = `${rect.bottom + window.scrollY + 8}px`;
-      }
-
-      panel.style.left = `${left}px`;
-    };
-
-    position();
-    window.addEventListener("resize", position);
-    window.addEventListener("scroll", position, true);
-    return () => {
-      window.removeEventListener("resize", position);
-      window.removeEventListener("scroll", position, true);
-    };
-  }, [anchorRef, notifications.length, isLoading]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -98,16 +57,21 @@ export default function NotificationPanel({
   };
 
   return (
+    // 🔧 الفكرة الأساسية في الفكس: بدل ما نحسب الإحداثيات بالـ JS
+    // (getBoundingClientRect) ونعمل position: fixed — بنخلي البانل
+    // absolute جوه الـ div الأب اللي فيه زرار الجرس (اللي أصلاً عليه
+    // className="relative" في الـ Navbar). ده بالظبط نفس الأسلوب اللي
+    // شغال كويس مع الـ profile dropdown، وبيظهر تحت الجرس مباشرة من
+    // غير أي حسابات أو مشاكل توقيت.
     <div
       ref={panelRef}
-      dir="rtl"
-      className="fixed inset-x-3 top-16 z-[99999] flex max-h-[75dvh] w-[calc(100vw-1.5rem)] max-w-[22rem] flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-black/10 ring-1 ring-black/5 sm:fixed sm:inset-auto sm:top-12 sm:max-h-[70dvh] sm:w-[min(20rem,calc(100vw-1.5rem))] sm:max-w-none"
+      className="absolute top-full end-0 z-[999999] mt-2 flex max-h-[70vh] w-[min(20rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[20px] border border-[#EAECE8] bg-white shadow-[0_18px_42px_rgba(17,45,39,0.18)] sm:max-h-[26rem]"
     >
-      <div className="border-b border-gray-100 px-4 py-3">
+      <div className="flex-shrink-0 border-b border-gray-100 px-4 py-3">
         <h3 className="text-sm font-semibold text-[#112D27]">الإشعارات</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-10 text-sm text-gray-400">
             جارٍ التحميل...

@@ -112,23 +112,24 @@ export default function ChatInput({
 
   return (
     <div className="border-t border-[#EEF1EF] bg-white flex-shrink-0">
+      {/* Image Preview */}
       {previewUrl || localError ? (
-        <div className="px-4 pt-3">
+        <div className="px-3 sm:px-4 pt-2 sm:pt-3">
           {previewUrl ? (
-            <div className="inline-flex items-start gap-2 rounded-2xl border border-[#E0DED9] bg-[#FAFBFA] p-2">
+            <div className="inline-flex items-start gap-1.5 sm:gap-2 rounded-2xl border border-[#E0DED9] bg-[#FAFBFA] p-1.5 sm:p-2">
               <img
                 src={previewUrl}
                 alt="معاينة الصورة"
-                className="h-16 w-16 rounded-xl object-cover"
+                className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl object-cover flex-shrink-0"
               />
-              <div className="flex flex-col justify-between gap-2">
-                <span className="max-w-32 truncate text-xs text-[#31554B]">
+              <div className="flex flex-col justify-between gap-1 sm:gap-2 min-w-0">
+                <span className="max-w-24 sm:max-w-32 truncate text-[11px] sm:text-xs text-[#31554B]">
                   {selectedImage?.name}
                 </span>
                 <button
                   type="button"
                   onClick={handleRemoveImage}
-                  className="text-right text-[11px] text-[#A05A5A]"
+                  className="text-right text-[10px] sm:text-[11px] text-[#A05A5A] hover:underline"
                 >
                   إزالة الصورة
                 </button>
@@ -137,12 +138,14 @@ export default function ChatInput({
           ) : null}
 
           {localError ? (
-            <p className="mt-2 text-xs text-[#A05A5A]">{localError}</p>
+            <p className="mt-2 text-[11px] sm:text-xs text-[#A05A5A]">{localError}</p>
           ) : null}
         </div>
       ) : null}
 
-      <div className="flex items-center gap-2 px-4 py-3">
+      {/* Input Area */}
+      <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3">
+        {/* Attach Image Button */}
         <button
           type="button"
           onClick={() => {
@@ -152,11 +155,11 @@ export default function ChatInput({
           }}
           disabled={disabled}
           aria-label="إرفاق صورة"
-          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:bg-[#F4F6F4] disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:bg-[#F4F6F4] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <svg
-            width="25"
-            height="21"
+            width="20"
+            height="17"
             viewBox="0 0 25 21"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -186,6 +189,7 @@ export default function ChatInput({
           className="hidden"
         />
 
+        {/* Textarea */}
         <textarea
           ref={textareaRef}
           value={text}
@@ -196,9 +200,10 @@ export default function ChatInput({
           disabled={disabled}
           rows={1}
           dir="rtl"
-          className="flex-1 resize-none rounded-full border border-[#E0DED9] px-4 py-2.5 text-sm text-[#1F2D28] placeholder-[#BBBBBB] outline-none focus:border-[#7CB342] transition-colors bg-[#FAFBFA] disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed overflow-hidden"
+          className="flex-1 resize-none rounded-full border border-[#E0DED9] px-3 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm text-[#1F2D28] placeholder-[#BBBBBB] outline-none focus:border-[#7CB342] transition-colors bg-[#FAFBFA] disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed overflow-hidden"
         />
 
+        {/* Send Button */}
         <button
           type="button"
           onClick={() => {
@@ -206,11 +211,11 @@ export default function ChatInput({
           }}
           disabled={disabled || (!text.trim() && !selectedImage)}
           aria-label="إرسال"
-          className="w-9 h-9 rounded-full bg-[#B3E718] flex items-center justify-center flex-shrink-0 transition-all hover:bg-[#6a9e32] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#B3E718] flex items-center justify-center flex-shrink-0 transition-all hover:bg-[#6a9e32] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <svg
-            width="20"
-            height="20"
+            width="16"
+            height="16"
             viewBox="0 0 20 20"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

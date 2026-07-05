@@ -262,7 +262,7 @@ export default function CategoriesSection() {
                   )}
 
                   <div
-                    className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100"
+                    className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 flex-col sm:flex-row gap-3 sm:gap-0"
                     dir="rtl"
                   >
                     <p className="text-sm text-gray-500">
@@ -277,10 +277,10 @@ export default function CategoriesSection() {
                         setSelectedCategory(cat);
                         setModalOpen(true);
                       }}
-                      className="group flex items-center gap-2 border border-[var(--purple-dark)] bg-[var(--purple-light)] hover:bg-[var(--purple-dark)] hover:text-white text-[var(--purple-dark)] text-sm font-bold px-6 py-3 rounded-full transition-all"
+                      className="group flex items-center gap-1.5 border border-[var(--purple-dark)] bg-[var(--purple-light)] hover:bg-[var(--purple-dark)] hover:text-white text-[var(--purple-dark)] text-xs sm:text-sm font-bold px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all whitespace-nowrap flex-shrink-0"
                     >
                       <Star
-                        size={14}
+                        size={13}
                         className="fill-current transition-colors"
                       />
                       اطلب خدمة مخصصة
