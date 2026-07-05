@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { NotificationItem } from "@/hooks/useNotifications";
 import { getNotificationRoute } from "@/lib/notification-routing";
@@ -24,11 +24,7 @@ interface NotificationPanelProps {
   isLoading: boolean;
   onClose: () => void;
   targetRoute: string;
-  // 🔧 مبقاش محتاجينه فعليًا — البانل بقى بيتمركز بالـ CSS بس تحت
-  // العنصر الأب (relative wrapper) بالظبط زي الـ profile dropdown.
-  // سايبينه في الـ interface عشان الأماكن اللي بتستدعي الكومبوننت
-  // متتأثرش (Navbar لسه بيبعت anchorRef).
-  anchorRef?: React.RefObject<HTMLElement | null> ;
+  anchorRef: RefObject<HTMLElement | null>;
 }
 
 export default function NotificationPanel({
