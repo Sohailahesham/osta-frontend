@@ -15,7 +15,8 @@ interface CurrentUser {
 interface Props {
   currentUser: CurrentUser | null;
   onClose: () => void;
-  anchorRef: RefObject<HTMLElement | null>
+  anchorRef: RefObject<HTMLElement | null>;
+
 }
 
 export default function ClientProfileDropdown({ currentUser, onClose, anchorRef }: Props) {
@@ -39,9 +40,6 @@ export default function ClientProfileDropdown({ currentUser, onClose, anchorRef 
       const rect = anchor.getBoundingClientRect();
       const dropdownWidth = el.offsetWidth;
 
-      // ملحوظة: العنصر position: fixed، يبقى إحداثياته لازم تكون بالنسبة
-      // للـ viewport فقط، من غير إضافة window.scrollX / window.scrollY
-      // (لأن getBoundingClientRect أصلاً بيرجع إحداثيات viewport-relative).
       let left = rect.left - dropdownWidth + rect.width;
       if (left < 8) left = 8;
       const maxLeft = window.innerWidth - dropdownWidth - 8;
