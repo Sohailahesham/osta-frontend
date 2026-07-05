@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,7 @@ interface CurrentUser {
 interface Props {
   currentUser: CurrentUser | null;
   onClose: () => void;
-  anchorRef: React.RefObject<HTMLElement>;
+  anchorRef: RefObject<HTMLElement | null>
 }
 
 export default function ClientProfileDropdown({ currentUser, onClose, anchorRef }: Props) {

@@ -6,7 +6,7 @@ import Navbar from "@/components/layout/client/Navbar";
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full min-h-[40vh] overflow-hidden" dir="rtl">
+    <section className="relative w-full min-h-[40vh]" dir="rtl">
       {/* الصورة */}
       <Image
         src={heroImage}
